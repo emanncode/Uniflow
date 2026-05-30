@@ -7,7 +7,7 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 export default function CTA() {
   return (
     <section style={{
-      padding: 'clamp(80px, 10vw, 120px) 0',
+        padding: 'clamp(80px, 20vw, 120px) 0',
       position: 'relative',
       overflow: 'hidden',
     }}>

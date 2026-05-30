@@ -52,8 +52,9 @@ export default function Problem() {
   return (
     <section
       id="problem"
+      className="pt-4"
       style={{
-        padding: 'clamp(80px, 10vw, 120px) 0',
+        padding: 'clamp(80px, 20vw, 120px) 0',
         position: 'relative',
         overflow: 'hidden',
       }}

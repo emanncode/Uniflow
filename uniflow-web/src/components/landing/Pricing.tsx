@@ -81,7 +81,7 @@ export default function Pricing() {
     <section
       id="pricing"
       style={{
-        padding: 'clamp(80px, 10vw, 120px) 0',
+        padding: 'clamp(80px, 20vw, 120px) 0',
         position: 'relative',
         overflow: 'hidden',
       }}

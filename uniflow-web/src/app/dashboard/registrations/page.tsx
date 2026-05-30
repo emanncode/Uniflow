@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import RejectModal from '@/components/registrations/RejectModal'
@@ -35,79 +35,42 @@ export default function RegistrationsPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
 
-  useEffect(() => { fetchRegistrations() }, [])
-
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = useCallback(async () => {
     const { data } = await supabase
       .from('university_registrations')
       .select('*')
       .order('created_at', { ascending: false })
     if (data) setRegistrations(data)
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => { fetchRegistrations() }, [fetchRegistrations])
 
   const handleApprove = async (id: string) => {
     setActionLoading(true)
 
-    // get the registration details
-    const reg = registrations.find(r => r.id === id)
-    if (!reg) { setActionLoading(false); return }
-
-    // 1. create auth user with a random temp password
-    const tempPassword = Math.random().toString(36).slice(-12) + 'A1!'
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: reg.official_email,
-      password: tempPassword,
-      email_confirm: true,
-    })
-
-    if (authError) {
-      alert('Error creating user: ' + authError.message)
-      setActionLoading(false)
-      return
-    }
-
-    // 2. create university record
-    const { data: uniData, error: uniError } = await supabase
-      .from('universities')
-      .insert({
-        name: reg.university_name,
-        short_name: reg.short_name,
-        country: reg.country,
-        state: reg.state,
-        is_active: true,
+    try {
+      const response = await fetch('/api/approve-university', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ registrationId: id }),
       })
-      .select()
-      .single()
 
-    if (uniError) {
-      alert('Error creating university: ' + uniError.message)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to approve university')
+      }
+
+      await fetchRegistrations()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An unknown error occurred'
+      alert('Error: ' + message)
+    } finally {
       setActionLoading(false)
-      return
     }
-
-    // 3. create their profile
-    await supabase.from('profiles').insert({
-      id: authData.user.id,
-      university_id: uniData.id,
-      full_name: reg.contact_person_name,
-      email: reg.official_email,
-      role: 'university_admin',
-    })
-
-    // 4. send password reset email so they can set their own password
-    await supabase.auth.resetPasswordForEmail(reg.official_email, {
-      redirectTo: `https://${reg.short_name}-admin.uniflow.com.ng/u/login`,
-    })
-
-    // 5. update registration status
-    await supabase
-      .from('university_registrations')
-      .update({ status: 'approved', reviewed_at: new Date().toISOString() })
-      .eq('id', id)
-
-    await fetchRegistrations()
-    setActionLoading(false)
   }
 
   const handleReject = async (reason: string) => {
