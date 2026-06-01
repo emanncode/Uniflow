@@ -18,6 +18,128 @@ const navItems = [
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
+interface SidebarContentProps {
+  pathname: string;
+  userEmail: string;
+  setSidebarOpen: (open: boolean) => void;
+  handleSignOut: () => void;
+}
+
+const SidebarContent = ({ pathname, userEmail, setSidebarOpen, handleSignOut }: SidebarContentProps) => (
+  <div style={{
+    width: '240px',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '24px 12px',
+    backgroundColor: 'var(--bg-secondary)',
+    borderRight: '1px solid var(--border-primary)',
+  }}>
+    {/* logo */}
+    <div style={{ padding: '0 8px', marginBottom: '32px' }}>
+      <UniflowLogo size={24} />
+      <div style={{
+        fontSize: '10px', fontWeight: 600,
+        color: 'var(--text-muted)', letterSpacing: '0.1em',
+        textTransform: 'uppercase' as const,
+        marginTop: '6px', paddingLeft: '2px',
+      }}>
+        Super Admin
+      </div>
+    </div>
+
+    {/* nav items */}
+    <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      {navItems.map(item => {
+        const Icon = item.icon
+        const active = pathname === item.href
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setSidebarOpen(false)}
+            style={{ textDecoration: 'none' }}
+          >
+            <motion.div
+              whileHover={{ backgroundColor: active ? undefined : 'rgba(255,255,255,0.03)' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '10px',
+                padding: '10px 12px', borderRadius: 'var(--radius-md)',
+                backgroundColor: active ? 'rgba(255,92,26,0.1)' : 'rgba(255, 255, 255, 0)',
+                border: active ? '1px solid rgba(255,92,26,0.2)' : '1px solid transparent',
+                transition: 'all var(--transition)',
+              }}
+            >
+              <Icon
+                size={16}
+                color={active ? 'var(--brand)' : 'var(--text-muted)'}
+                strokeWidth={active ? 2.2 : 1.8}
+              />
+              <span style={{
+                fontSize: '13px',
+                fontWeight: active ? 600 : 400,
+                color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+              }}>
+                {item.label}
+              </span>
+              {active && (
+                <div style={{
+                  width: '4px', height: '4px', borderRadius: '50%',
+                  backgroundColor: 'var(--brand)',
+                  marginLeft: 'auto',
+                  boxShadow: '0 0 6px var(--brand)',
+                }} />
+              )}
+            </motion.div>
+          </Link>
+        )
+      })}
+    </nav>
+
+    {/* user + sign out */}
+    <div style={{
+      borderTop: '1px solid var(--border-primary)',
+      paddingTop: '16px',
+    }}>
+      <div style={{
+        padding: '10px 12px', marginBottom: '4px',
+        borderRadius: 'var(--radius-md)',
+        backgroundColor: 'rgba(255,255,255,0.02)',
+        border: '1px solid var(--border-primary)',
+      }}>
+        <div style={{
+          fontSize: '10px', fontWeight: 700,
+          color: 'var(--brand)', marginBottom: '3px',
+          textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+        }}>
+          Uniflow Admin
+        </div>
+        <div style={{
+          fontSize: '11px', color: 'var(--text-muted)',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {userEmail}
+        </div>
+      </div>
+
+      <motion.button
+        whileHover={{ backgroundColor: 'rgba(239,68,68,0.06)' }}
+        onClick={handleSignOut}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '10px 12px', borderRadius: 'var(--radius-md)',
+          backgroundColor: 'rgba(255, 255, 255, 0)', border: 'none',
+          cursor: 'pointer', fontFamily: 'Sora, sans-serif',
+          transition: 'all var(--transition)',
+        }}
+      >
+        <LogOut size={15} color="var(--text-muted)" />
+        <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sign out</span>
+      </motion.button>
+    </div>
+  </div>
+)
+
 export default function DashboardClientWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,121 +158,6 @@ export default function DashboardClientWrapper({ children }: { children: React.R
     router.push('/login');
   };
 
-  const SidebarContent = () => (
-    <div style={{
-      width: '240px',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '24px 12px',
-      backgroundColor: 'var(--bg-secondary)',
-      borderRight: '1px solid var(--border-primary)',
-    }}>
-      {/* logo */}
-      <div style={{ padding: '0 8px', marginBottom: '32px' }}>
-        <UniflowLogo size={24} />
-        <div style={{
-          fontSize: '10px', fontWeight: 600,
-          color: 'var(--text-muted)', letterSpacing: '0.1em',
-          textTransform: 'uppercase' as const,
-          marginTop: '6px', paddingLeft: '2px',
-        }}>
-          Super Admin
-        </div>
-      </div>
-
-      {/* nav items */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        {navItems.map(item => {
-          const Icon = item.icon
-          const active = pathname === item.href
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setSidebarOpen(false)}
-              style={{ textDecoration: 'none' }}
-            >
-              <motion.div
-                whileHover={{ backgroundColor: active ? undefined : 'rgba(255,255,255,0.03)' }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px', borderRadius: 'var(--radius-md)',
-                  backgroundColor: active ? 'rgba(255,92,26,0.1)' : 'transparent',
-                  border: active ? '1px solid rgba(255,92,26,0.2)' : '1px solid transparent',
-                  transition: 'all var(--transition)',
-                }}
-              >
-                <Icon
-                  size={16}
-                  color={active ? 'var(--brand)' : 'var(--text-muted)'}
-                  strokeWidth={active ? 2.2 : 1.8}
-                />
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: active ? 600 : 400,
-                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
-                }}>
-                  {item.label}
-                </span>
-                {active && (
-                  <div style={{
-                    width: '4px', height: '4px', borderRadius: '50%',
-                    backgroundColor: 'var(--brand)',
-                    marginLeft: 'auto',
-                    boxShadow: '0 0 6px var(--brand)',
-                  }} />
-                )}
-              </motion.div>
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* user + sign out */}
-      <div style={{
-        borderTop: '1px solid var(--border-primary)',
-        paddingTop: '16px',
-      }}>
-        <div style={{
-          padding: '10px 12px', marginBottom: '4px',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: 'rgba(255,255,255,0.02)',
-          border: '1px solid var(--border-primary)',
-        }}>
-          <div style={{
-            fontSize: '10px', fontWeight: 700,
-            color: 'var(--brand)', marginBottom: '3px',
-            textTransform: 'uppercase' as const, letterSpacing: '0.06em',
-          }}>
-            Uniflow Admin
-          </div>
-          <div style={{
-            fontSize: '11px', color: 'var(--text-muted)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {userEmail}
-          </div>
-        </div>
-
-        <motion.button
-          whileHover={{ backgroundColor: 'rgba(239,68,68,0.06)' }}
-          onClick={handleSignOut}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '10px 12px', borderRadius: 'var(--radius-md)',
-            backgroundColor: 'transparent', border: 'none',
-            cursor: 'pointer', fontFamily: 'Sora, sans-serif',
-            transition: 'all var(--transition)',
-          }}
-        >
-          <LogOut size={15} color="var(--text-muted)" />
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sign out</span>
-        </motion.button>
-      </div>
-    </div>
-  )
-
   return (
     <div style={{
       display: 'flex',
@@ -166,7 +173,12 @@ export default function DashboardClientWrapper({ children }: { children: React.R
       }}
         className="desktop-sidebar"
       >
-        <SidebarContent />
+        <SidebarContent
+          pathname={pathname}
+          userEmail={userEmail}
+          setSidebarOpen={setSidebarOpen}
+          handleSignOut={handleSignOut}
+        />
       </div>
 
       {/* ── mobile sidebar overlay ── */}
@@ -195,7 +207,12 @@ export default function DashboardClientWrapper({ children }: { children: React.R
                 zIndex: 50, display: 'flex',
               }}
             >
-              <SidebarContent />
+              <SidebarContent
+                pathname={pathname}
+                userEmail={userEmail}
+                setSidebarOpen={setSidebarOpen}
+                handleSignOut={handleSignOut}
+              />
             </motion.div>
           </>
         )}
@@ -237,7 +254,7 @@ export default function DashboardClientWrapper({ children }: { children: React.R
                 width: '36px', height: '36px',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-primary)',
-                backgroundColor: 'transparent',
+                backgroundColor: 'rgba(255, 255, 255, 0)',
                 display: 'flex', alignItems: 'center',
                 justifyContent: 'center', cursor: 'pointer',
               }}

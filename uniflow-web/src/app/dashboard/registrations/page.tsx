@@ -44,7 +44,10 @@ export default function RegistrationsPage() {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchRegistrations() }, [fetchRegistrations])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchRegistrations()
+  }, [fetchRegistrations])
 
   const handleApprove = async (id: string) => {
     setActionLoading(true)

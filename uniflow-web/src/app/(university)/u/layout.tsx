@@ -55,78 +55,28 @@ const ROLE_LABELS: Record<Role, string> = {
   hod: 'Head of Department',
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Sub-components ─────────────────────────────────────────────────────────
 
-export default function UniversityPortalLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const pathname = usePathname()
+interface SidebarProps {
+  mobile?: boolean
+  user: { name: string; email: string; role: Role }
+  university: { name: string; short_name: string } | null
+  pathname: string
+  setSidebarOpen: (open: boolean) => void
+  onSignOut: () => void
+}
 
-  const [user, setUser] = useState<{ name: string; email: string; role: Role } | null>(null)
-  const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+const Sidebar = ({
+  mobile = false,
+  user,
+  university,
+  pathname,
+  setSidebarOpen,
+  onSignOut,
+}: SidebarProps) => {
+  const navItems = NAV_ITEMS[user.role] ?? []
 
-  useEffect(() => {
-    async function loadSession() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        if (pathname !== '/login') {
-          router.push('/login')
-        } else {
-          setLoading(false)
-        }
-        return
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name, role, university_id')
-        .eq('id', session.user.id)
-        .single()
-
-      if (!profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
-        await supabase.auth.signOut()
-        if (pathname !== '/login') {
-          router.push('/login')
-        } else {
-          setLoading(false)
-        }
-        return
-      }
-
-      const { data: uni } = await supabase
-        .from('universities')
-        .select('name, short_name')
-        .eq('id', profile.university_id)
-        .single()
-
-      setUser({ name: profile.full_name, email: session.user.email!, role: profile.role as Role })
-      setUniversity(uni)
-      setLoading(false)
-    }
-    loadSession()
-  }, [pathname, router])
-
-  async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
-
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--brand)' }} />
-        <p style={{ color: 'var(--text-muted)', fontFamily: 'Sora, sans-serif', fontSize: '14px' }}>Loading portal...</p>
-      </div>
-    </div>
-  )
-
-  // Skip sidebar/topbar for login page
-  if (pathname === '/login') return <>{children}</>
-
-  const navItems = NAV_ITEMS[user!.role] ?? []
-
-  const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
+  return (
     <aside
       className={mobile ? '' : 'desktop-sidebar'}
       style={{
@@ -181,7 +131,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
           letterSpacing: '0.1em',
           color: 'var(--text-muted)',
         }}>
-          {ROLE_LABELS[user!.role]}
+          {ROLE_LABELS[user.role]}
         </span>
       </div>
 
@@ -237,20 +187,20 @@ export default function UniversityPortalLayout({ children }: { children: React.R
             flexShrink: 0,
           }}>
             <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 700, color: '#fff' }}>
-              {user!.name?.charAt(0)?.toUpperCase() ?? 'U'}
+              {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
             </span>
           </div>
           <div style={{ minWidth: 0 }}>
             <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user!.name}
+              {user.name}
             </p>
             <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user!.email}
+              {user.email}
             </p>
           </div>
         </div>
         <button
-          onClick={handleSignOut}
+          onClick={onSignOut}
           style={{
             width: '100%',
             display: 'flex',
@@ -272,12 +222,128 @@ export default function UniversityPortalLayout({ children }: { children: React.R
       </div>
     </aside>
   )
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
+export default function UniversityPortalLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const pathname = usePathname()
+
+  const [user, setUser] = useState<{ name: string; email: string; role: Role } | null>(null)
+  const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadSession() {
+      try {
+        console.log('Loading session for path:', pathname)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError)
+          setLoading(false)
+          return
+        }
+
+        console.log('Session status:', !!session)
+        
+        if (!session) {
+          if (pathname !== '/u/login') {
+            console.log('No session, redirecting to login')
+            router.push('/u/login')
+          } else {
+            setLoading(false)
+          }
+          return
+        }
+
+        console.log('Fetching profile for user:', session.user.id)
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, role, university_id')
+          .eq('id', session.user.id)
+          .single()
+
+        if (profileError) {
+          console.error('Profile fetch error:', profileError)
+          // On login page, don't block if profile fetch fails
+          if (pathname === '/u/login') {
+            setLoading(false)
+            return
+          }
+          // For other pages, we might need a profile, but let's not hang
+          setLoading(false)
+          return
+        }
+
+        if (!profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
+          console.log('Invalid profile or role:', profile?.role)
+          await supabase.auth.signOut()
+          if (pathname !== '/u/login') {
+            router.push('/u/login')
+          } else {
+            setLoading(false)
+          }
+          return
+        }
+
+        console.log('Fetching university data for ID:', profile.university_id)
+        const { data: uni, error: uniError } = await supabase
+          .from('universities')
+          .select('name, short_name')
+          .eq('id', profile.university_id)
+          .single()
+
+        if (uniError) {
+          console.error('University fetch error:', uniError)
+        }
+
+        console.log('Setting user and university data')
+        setUser({ name: profile.full_name, email: session.user.email!, role: profile.role as Role })
+        setUniversity(uni)
+      } catch (err) {
+        console.error('Critical error in UniversityPortalLayout:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadSession()
+  }, [pathname, router])
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.push('/u/login')
+  }
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--brand)' }} />
+        <p style={{ color: 'var(--text-muted)', fontFamily: 'Sora, sans-serif', fontSize: '14px' }}>Loading portal...</p>
+      </div>
+    </div>
+  )
+
+  // Skip sidebar/topbar for login page
+  if (pathname === '/u/login') return <>{children}</>
+
+  // If session loaded but no user data (e.g. fetch failed), still try to render children
+  // though many pages might need the user object.
+  if (!user) return <>{children}</>
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
 
       {/* Desktop Sidebar */}
-      <Sidebar />
+      <Sidebar
+        user={user}
+        university={university}
+        pathname={pathname}
+        setSidebarOpen={setSidebarOpen}
+        onSignOut={handleSignOut}
+      />
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
@@ -301,7 +367,14 @@ export default function UniversityPortalLayout({ children }: { children: React.R
           transition: 'transform 0.25s ease',
         }}
       >
-        <Sidebar mobile />
+        <Sidebar
+          mobile
+          user={user}
+          university={university}
+          pathname={pathname}
+          setSidebarOpen={setSidebarOpen}
+          onSignOut={handleSignOut}
+        />
       </div>
 
       {/* Main Content */}
@@ -361,7 +434,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', fontWeight: 700, color: '#fff' }}>
-                {user!.name?.charAt(0)?.toUpperCase() ?? 'U'}
+                {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
               </span>
             </div>
           </div>

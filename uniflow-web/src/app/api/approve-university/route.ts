@@ -38,6 +38,7 @@ export async function POST(request: Request) {
         country: reg.country,
         state: reg.state,
         is_active: true,
+        status: 'approved',
       })
       .select()
       .single()
@@ -62,8 +63,20 @@ export async function POST(request: Request) {
     }
 
     // 5. Send password reset email
+    const host = request.headers.get('host') || ''
+    const isLocal = host.includes('localhost') || host.includes('lvh.me')
+    const protocol = isLocal ? 'http' : 'https'
+    
+    // Construct the redirect URL for the university admin portal
+    // We follow the lib's convention: [short_name]-admin.[base_domain]
+    let baseDomain = 'uniflow.com.ng'
+    if (host.includes('lvh.me')) baseDomain = 'lvh.me:3000'
+    else if (host.includes('localhost')) baseDomain = 'localhost:3000'
+
+    const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/login`
+
     await supabase.auth.resetPasswordForEmail(reg.official_email, {
-      redirectTo: `https://${reg.short_name}-admin.uniflow.com.ng/u/login`,
+      redirectTo,
     })
 
     // 6. Update registration status
