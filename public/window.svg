@@ -1,0 +1,12 @@
+<svg width='32px' height='32px' viewBox="0 0 32 32" fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+        {/* outer U shape */}
+      <path d="M6 6 L6 20 Q6 28 16 28 Q26 28 26 20 L26 6" stroke='#ff5c1a' strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        {/* flow line 1 — short, left */}
+      <line x1="10" y1="13" x2="16" y2="13" stroke='#ff5c1a' strokeWidth="2.5" strokeLinecap="round" opacity="0.6" />
+        {/* flow line 2 — full, middle */}
+      <line x1="10" y1="18" x2="22" y2="18" stroke='#ff5c1a' strokeWidth="2.5" strokeLinecap="round" />
+        {/* flow dot — right end brand */}
+      <circle cx="25" cy="18" r="2" fill='#ff5c1a'
+        />
+</svg>
