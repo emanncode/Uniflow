@@ -1,167 +1,710 @@
-import { Tabs } from 'expo-router'
-import { View, Text, StyleSheet, Platform } from 'react-native'
+import { useEffect, useState, useCallback } from "react";
 import {
-  LayoutDashboard,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
   CalendarDays,
   BookOpen,
-  FolderDown,
-  Bell,
-} from 'lucide-react-native'
+  Clock,
+  MapPin,
+  ChevronRight,
+  User,
+  ThumbsUp,
+  Zap,
+} from "lucide-react-native";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
+import type { TimetableSlot, ClassUpdate, ClassStatus } from "@/types";
+import { CLASS_STATUS_COLORS, DAY_ORDER } from "@/types";
 
-// ─── Tab Icon ──────────────────────────────────────────────────────────────
+const C = Theme.colors;
+const R = Theme.radius;
 
-interface TabIconProps {
-  icon: React.ReactNode
-  label: string
-  focused: boolean
-  badgeCount?: number
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+const TODAY_NAME = new Date()
+  .toLocaleDateString("en-US", { weekday: "long" })
+  .toLowerCase();
+
+const TODAY_LABEL = new Date().toLocaleDateString("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+});
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
-function TabIcon({ icon, label, focused, badgeCount }: TabIconProps) {
+function formatTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
+}
+
+// ─── Status Badge ──────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: ClassStatus }) {
+  const { color, background } = CLASS_STATUS_COLORS[status];
   return (
-    <View style={styles.tabItem}>
-      <View style={styles.iconWrapper}>
-        {icon}
-        {badgeCount && badgeCount > 0 ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badgeCount > 99 ? '99+' : badgeCount}</Text>
+    <View style={[styles.badge, { backgroundColor: background }]}>
+      <Text style={[styles.badgeText, { color }]}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Text>
+    </View>
+  );
+}
+
+// ─── Stat Card ─────────────────────────────────────────────────────────────
+
+function StatCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+}) {
+  return (
+    <View style={styles.statCard}>
+      <View style={styles.statIcon}>{icon}</View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+// ─── Class Card ────────────────────────────────────────────────────────────
+
+interface ClassCardProps {
+  slot: TimetableSlot;
+  update?: ClassUpdate;
+  isToday?: boolean;
+  onPress: () => void;
+  onUpvote?: (update: ClassUpdate) => void;
+}
+
+function ClassCard({
+  slot,
+  update,
+  isToday,
+  onPress,
+  onUpvote,
+}: ClassCardProps) {
+  const status = update?.status ?? null;
+  const accentColor = status ? CLASS_STATUS_COLORS[status].color : C.brand;
+
+  return (
+    <TouchableOpacity
+      style={[styles.classCard, isToday && styles.classCardToday]}
+      onPress={onPress}
+      activeOpacity={0.75}
+    >
+      <View style={[styles.classAccent, { backgroundColor: accentColor }]} />
+
+      <View style={styles.classBody}>
+        {/* Top */}
+        <View style={styles.classTop}>
+          <Text style={styles.courseCode}>{slot.courses?.code ?? "—"}</Text>
+          {status && <StatusBadge status={status} />}
+        </View>
+
+        <Text style={styles.courseTitle} numberOfLines={1}>
+          {slot.courses?.title ?? "Unknown Course"}
+        </Text>
+
+        {/* Lecturer */}
+        {slot.profiles?.full_name ? (
+          <View style={styles.lecturerRow}>
+            <User size={11} color={C.textMuted} strokeWidth={1.8} />
+            <Text style={styles.lecturerText}>{slot.profiles.full_name}</Text>
           </View>
         ) : null}
+
+        {/* Meta */}
+        <View style={styles.classMeta}>
+          <View style={styles.metaItem}>
+            <Clock size={12} color={C.textMuted} strokeWidth={1.8} />
+            <Text style={styles.metaText}>
+              {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+            </Text>
+          </View>
+          <View style={styles.metaItem}>
+            <MapPin size={12} color={C.textMuted} strokeWidth={1.8} />
+            <Text style={styles.metaText} numberOfLines={1}>
+              {update?.new_venue ?? slot.venue}
+            </Text>
+          </View>
+        </View>
+
+        {/* Update message */}
+        {update?.message ? (
+          <Text style={styles.updateMessage} numberOfLines={1}>
+            {update.message}
+          </Text>
+        ) : null}
+
+        {/* Upvote — only if there's an update */}
+        {update && onUpvote && (
+          <TouchableOpacity
+            style={styles.upvoteBtn}
+            onPress={() => onUpvote(update)}
+            activeOpacity={0.75}
+          >
+            <ThumbsUp size={12} color={C.brand} strokeWidth={2} />
+            <Text style={styles.upvoteText}>
+              {update.upvotes ?? 0} confirm
+              {(update.upvotes ?? 0) !== 1 ? "s" : ""}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
-      <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>{label}</Text>
-    </View>
-  )
+
+      <ChevronRight size={16} color={C.textMuted} strokeWidth={1.8} />
+    </TouchableOpacity>
+  );
 }
 
-// ─── Student Tab Layout ────────────────────────────────────────────────────
+// ─── Main Screen ───────────────────────────────────────────────────────────
 
-export default function StudentLayout() {
+export default function StudentDashboard() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
+
+  const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([]);
+  const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([]);
+  const [todayUpdates, setTodayUpdates] = useState<Record<string, ClassUpdate>>(
+    {},
+  );
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────
+
+  const fetchData = useCallback(async () => {
+    if (!profile) return;
+    try {
+      // 1. Get enrolled course IDs
+      const { data: enrollments } = await supabase
+        .from("enrollments")
+        .select("course_id")
+        .eq("student_id", profile.id)
+        .eq("is_active", true);
+
+      if (!enrollments || enrollments.length === 0) {
+        setTodaySlots([]);
+        setUpcomingSlots([]);
+        setTotalCourses(0);
+        return;
+      }
+
+      const courseIds = enrollments.map((e) => e.course_id);
+      setTotalCourses(courseIds.length);
+
+      // 2. Get timetable for enrolled courses
+      const { data: allSlots } = await supabase
+        .from("timetable")
+        .select(
+          `
+          *,
+          courses(id, title, code, credit_units),
+          profiles(full_name)
+        `,
+        )
+        .in("course_id", courseIds)
+        .eq("is_active", true)
+        .order("start_time");
+
+      if (!allSlots) return;
+
+      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME);
+      const upcoming = allSlots
+        .filter((s) => s.day_of_week !== TODAY_NAME)
+        .sort((a, b) => DAY_ORDER[a.day_of_week] - DAY_ORDER[b.day_of_week])
+        .slice(0, 4);
+
+      setTodaySlots(today);
+      setUpcomingSlots(upcoming);
+
+      // 3. Today's class updates
+      const todayDate = new Date().toISOString().split("T")[0];
+      const { data: updates } = await supabase
+        .from("class_updates")
+        .select("*")
+        .eq("university_id", profile.university_id)
+        .eq("update_date", todayDate)
+        .in(
+          "timetable_id",
+          today.map((s) => s.id),
+        );
+
+      if (updates) {
+        const map: Record<string, ClassUpdate> = {};
+        updates.forEach((u) => {
+          map[u.timetable_id] = u;
+        });
+        setTodayUpdates(map);
+      }
+    } catch (e) {
+      console.error("Student dashboard fetch error:", e);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    fetchData().finally(() => setIsLoading(false));
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  }, [fetchData]);
+
+  // ── Realtime ──────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!profile) return;
+
+    const channel = supabase
+      .channel("student-dashboard-updates")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "class_updates",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        (payload) => {
+          const update = payload.new as ClassUpdate;
+          if (!update?.timetable_id) return;
+          setTodayUpdates((prev) => ({
+            ...prev,
+            [update.timetable_id]: update,
+          }));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile]);
+
+  // ── Upvote ────────────────────────────────────────────────────────────
+
+  const handleUpvote = useCallback(async (update: ClassUpdate) => {
+    // Optimistic update
+    setTodayUpdates((prev) => ({
+      ...prev,
+      [update.timetable_id]: {
+        ...update,
+        upvotes: (update.upvotes ?? 0) + 1,
+      },
+    }));
+
+    await supabase
+      .from("class_updates")
+      .update({ upvotes: (update.upvotes ?? 0) + 1 })
+      .eq("id", update.id);
+  }, []);
+
+  // ── Loading ───────────────────────────────────────────────────────────
+
+  if (isLoading) {
+    return (
+      <View style={[styles.root, styles.centered]}>
+        <ActivityIndicator size="large" color={C.brand} />
+      </View>
+    );
+  }
+
+  const firstName = profile?.full_name?.split(" ")[0] ?? "Student";
+  const alertCount = Object.keys(todayUpdates).length;
+
+  // ── Render ────────────────────────────────────────────────────────────
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: Theme.colors.brand,
-        tabBarInactiveTintColor: Theme.colors.textMuted,
-      }}
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 32 },
+      ]}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={C.brand}
+        />
+      }
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              icon={<LayoutDashboard size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
-              label="Home"
-              focused={focused}
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.greeting}>{getGreeting()}</Text>
+          <Text style={styles.name}>{firstName}</Text>
+          <Text style={styles.date}>{TODAY_LABEL}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.avatarBtn}
+          onPress={() => router.push("/(student)/profile")}
+          activeOpacity={0.8}
+        >
+          <User size={20} color={C.brand} strokeWidth={1.8} />
+        </TouchableOpacity>
+      </View>
+
+      {/* ── Stats ── */}
+      <View style={styles.statsRow}>
+        <StatCard
+          label="Today"
+          value={todaySlots.length}
+          icon={<CalendarDays size={18} color={C.brand} strokeWidth={1.8} />}
+        />
+        <StatCard
+          label="Courses"
+          value={totalCourses}
+          icon={<BookOpen size={18} color={C.brand} strokeWidth={1.8} />}
+        />
+        <StatCard
+          label="Alerts"
+          value={alertCount}
+          icon={<Zap size={18} color={C.brand} strokeWidth={1.8} />}
+        />
+      </View>
+
+      {/* ── Live Alert Banner — shown when there are status updates ── */}
+      {alertCount > 0 && (
+        <View style={styles.alertBanner}>
+          <Zap size={14} color={C.brand} strokeWidth={2} />
+          <Text style={styles.alertBannerText}>
+            {alertCount} class update{alertCount !== 1 ? "s" : ""} today — check
+            below
+          </Text>
+        </View>
+      )}
+
+      {/* ── Today's Classes ── */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Today's Classes</Text>
+          <TouchableOpacity
+            onPress={() => router.push("/(student)/timetable")}
+            hitSlop={8}
+          >
+            <Text style={styles.sectionLink}>See all</Text>
+          </TouchableOpacity>
+        </View>
+
+        {todaySlots.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <CalendarDays size={28} color={C.textMuted} strokeWidth={1.5} />
+            <Text style={styles.emptyTitle}>No classes today</Text>
+            <Text style={styles.emptySubtitle}>Enjoy your free day</Text>
+          </View>
+        ) : (
+          todaySlots.map((slot) => (
+            <ClassCard
+              key={slot.id}
+              slot={slot}
+              update={todayUpdates[slot.id]}
+              isToday
+              onPress={() => router.push("/(student)/timetable")}
+              onUpvote={handleUpvote}
             />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="timetable"
-        options={{
-          title: 'Timetable',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              icon={<CalendarDays size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
-              label="Timetable"
-              focused={focused}
+          ))
+        )}
+      </View>
+
+      {/* ── Upcoming ── */}
+      {upcomingSlots.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Upcoming</Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(student)/timetable")}
+              hitSlop={8}
+            >
+              <Text style={styles.sectionLink}>Full schedule</Text>
+            </TouchableOpacity>
+          </View>
+
+          {upcomingSlots.map((slot) => (
+            <ClassCard
+              key={slot.id}
+              slot={slot}
+              onPress={() => router.push("/(student)/timetable")}
             />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="courses"
-        options={{
-          title: 'Courses',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              icon={<BookOpen size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
-              label="Courses"
-              focused={focused}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="resources"
-        options={{
-          title: 'Resources',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              icon={<FolderDown size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
-              label="Resources"
-              focused={focused}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: 'Alerts',
-          tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              icon={<Bell size={22} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
-              label="Alerts"
-              focused={focused}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen name="profile" options={{ href: null }} />
-    </Tabs>
-  )
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: Theme.colors.bgSecondary,
-    borderTopWidth: 1,
-    borderTopColor: Theme.colors.borderPrimary,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-    paddingTop: 8,
-    elevation: 0,
+  root: {
+    flex: 1,
+    backgroundColor: C.bgDeep,
   },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  content: {
+    paddingHorizontal: 20,
+    gap: 24,
+  },
+
+  // Header
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headerLeft: { gap: 2 },
+  greeting: {
+    color: C.textMuted,
+    fontSize: 13,
+    fontWeight: "400",
+  },
+  name: {
+    color: C.textPrimary,
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.8,
+  },
+  date: {
+    color: C.textMuted,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  avatarBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: R.full,
+    backgroundColor: C.brandMuted,
+    borderWidth: 1,
+    borderColor: C.borderBrand,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Stats
+  statsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    padding: 14,
+    alignItems: "center",
+    gap: 6,
+  },
+  statIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: R.sm,
+    backgroundColor: C.brandSubtle,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statValue: {
+    color: C.textPrimary,
+    fontSize: 24,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  statLabel: {
+    color: C.textMuted,
+    fontSize: 10,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  // Alert banner
+  alertBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: C.brandMuted,
+    borderRadius: R.sm,
+    borderWidth: 1,
+    borderColor: C.borderBrand,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  alertBannerText: {
+    color: C.brand,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  // Section
+  section: { gap: 10 },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionTitle: {
+    color: C.textPrimary,
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  sectionLink: {
+    color: C.brand,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+
+  // Empty
+  emptyCard: {
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    padding: 32,
+    alignItems: "center",
+    gap: 8,
+  },
+  emptyTitle: {
+    color: C.textSecondary,
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  emptySubtitle: {
+    color: C.textMuted,
+    fontSize: 13,
+  },
+
+  // Class Card
+  classCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    overflow: "hidden",
+    paddingRight: 14,
+    gap: 12,
+  },
+  classCardToday: {
+    borderColor: C.borderBrand,
+  },
+  classAccent: {
+    width: 3,
+    alignSelf: "stretch",
+  },
+  classBody: {
+    flex: 1,
+    paddingVertical: 14,
     gap: 4,
   },
-  iconWrapper: {
-    position: 'relative',
+  classTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: Theme.colors.textMuted,
-    letterSpacing: 0.2,
+  courseCode: {
+    color: C.brand,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
-  tabLabelActive: {
-    color: Theme.colors.brand,
-    fontWeight: '700',
+  courseTitle: {
+    color: C.textPrimary,
+    fontSize: 15,
+    fontWeight: "600",
   },
+  lecturerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 1,
+  },
+  lecturerText: {
+    color: C.textMuted,
+    fontSize: 11,
+  },
+  classMeta: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 2,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    color: C.textMuted,
+    fontSize: 12,
+  },
+  updateMessage: {
+    color: C.textSecondary,
+    fontSize: 12,
+    fontStyle: "italic",
+    marginTop: 2,
+  },
+
+  // Upvote
+  upvoteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    alignSelf: "flex-start",
+    backgroundColor: C.brandSubtle,
+    borderRadius: R.full,
+    borderWidth: 1,
+    borderColor: C.borderBrand,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 8,
+  },
+  upvoteText: {
+    color: C.brand,
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  // Badge
   badge: {
-    position: 'absolute',
-    top: -4,
-    right: -8,
-    backgroundColor: Theme.colors.danger,
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: R.full,
   },
   badgeText: {
-    color: Theme.colors.textPrimary,
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: "700",
   },
-})
+});
