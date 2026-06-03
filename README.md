@@ -6,7 +6,7 @@
 
 A powerful, modern platform combining a feature-rich mobile application with an intuitive administrative web interface.
 
-[Live Demo](https://uniflow-ebon.vercel.app) • [Issues](https://github.com/Emann-Code-01/Uniflow/issues) • [Discussions](https://github.com/Emann-Code-01/Uniflow/discussions)
+[Live Demo](https://uniflow-ebon.vercel.app) • [Issues](https://github.com/emanncode/Uniflow/issues) • [Discussions](https://github.com/emanncode/Uniflow/discussions)
 
 </div>
 
@@ -112,7 +112,7 @@ Uniflow/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Emann-Code-01/Uniflow.git
+   git clone https://github.com/emanncode/Uniflow.git
    cd Uniflow
    ```
 
@@ -225,8 +225,8 @@ This project is open source. Check the LICENSE file for more information.
 Have questions or need help? Here are some resources:
 
 - 📖 [Documentation](./docs)
-- 🐛 [Report Issues](https://github.com/Emann-Code-01/Uniflow/issues)
-- 💬 [Start a Discussion](https://github.com/Emann-Code-01/Uniflow/discussions)
+- 🐛 [Report Issues](https://github.com/emanncode/Uniflow/issues)
+- 💬 [Start a Discussion](https://github.com/emanncode/Uniflow/discussions)
 - 🌐 [Live Demo](https://uniflow-ebon.vercel.app)
 
 ---
@@ -236,7 +236,7 @@ Have questions or need help? Here are some resources:
 - **Language**: TypeScript (92.3%)
 - **Mobile Framework**: Expo/React Native
 - **Web Framework**: Next.js
-- **Repository**: [Emann-Code-01/Uniflow](https://github.com/Emann-Code-01/Uniflow)
+- **Repository**: [emanncode/Uniflow](https://github.com/emanncode/Uniflow)
 - **Status**: Active Development ✅
 - **Deployment**: Vercel
 
@@ -244,7 +244,7 @@ Have questions or need help? Here are some resources:
 
 <div align="center">
 
-**Made with ❤️ by [Emann-Code-01](https://github.com/Emann-Code-01)**
+**Made with ❤️ by [emanncode](https://github.com/emanncode)**
 
 ⭐ If you find this project helpful, please consider giving it a star!
 
