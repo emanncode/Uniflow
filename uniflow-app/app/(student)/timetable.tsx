@@ -443,7 +443,7 @@ export default function StudentTimetable() {
 
       setSheetVisible(false)
       setActiveSlot(null)
-    } catch (e) {
+    } catch (_) {
       Alert.alert('Error', 'Could not submit report. Please try again.')
     } finally {
       setIsSubmitting(false)

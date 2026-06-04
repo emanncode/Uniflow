@@ -80,7 +80,7 @@ export default function DashboardNotFound() {
               margin: 0,
             }}
           >
-            This page doesn't exist.
+            This page doesn&apos;t exist.
           </motion.h2>
         </div>
 
@@ -95,7 +95,7 @@ export default function DashboardNotFound() {
             margin: '0 0 32px',
           }}
         >
-          The dashboard page you're looking for doesn't exist
+          The dashboard page you&apos;re looking for doesn&apos;t exist
           or you may not have permission to view it.
         </motion.p>
 

@@ -61,12 +61,12 @@ const SidebarContent = ({ pathname, userEmail, setSidebarOpen, handleSignOut }: 
             style={{ textDecoration: 'none' }}
           >
             <motion.div
-              whileHover={{ backgroundColor: active ? undefined : 'rgba(255,255,255,0.03)' }}
+              whileHover={{ backgroundColor: active ? undefined : 'var(--bg-hover)' }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '10px 12px', borderRadius: 'var(--radius-md)',
-                backgroundColor: active ? 'rgba(255,92,26,0.1)' : 'rgba(255, 255, 255, 0)',
-                border: active ? '1px solid rgba(255,92,26,0.2)' : '1px solid transparent',
+                backgroundColor: active ? 'var(--brand-muted)' : 'transparent',
+                border: active ? '1px solid var(--border-brand)' : '1px solid transparent',
                 transition: 'all var(--transition)',
               }}
             >
@@ -104,7 +104,7 @@ const SidebarContent = ({ pathname, userEmail, setSidebarOpen, handleSignOut }: 
       <div style={{
         padding: '10px 12px', marginBottom: '4px',
         borderRadius: 'var(--radius-md)',
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        backgroundColor: 'var(--bg-hover)',
         border: '1px solid var(--border-primary)',
       }}>
         <div style={{
@@ -123,13 +123,13 @@ const SidebarContent = ({ pathname, userEmail, setSidebarOpen, handleSignOut }: 
       </div>
 
       <motion.button
-        whileHover={{ backgroundColor: 'rgba(239,68,68,0.06)' }}
+        whileHover={{ backgroundColor: 'var(--danger-muted)' }}
         onClick={handleSignOut}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
           padding: '10px 12px', borderRadius: 'var(--radius-md)',
-          backgroundColor: 'rgba(255, 255, 255, 0)', border: 'none',
-          cursor: 'pointer', fontFamily: 'Sora, sans-serif',
+          backgroundColor: 'transparent', border: 'none',
+          cursor: 'pointer',
           transition: 'all var(--transition)',
         }}
       >
@@ -249,12 +249,12 @@ export default function DashboardClientWrapper({ children }: { children: React.R
 
           <div style={{ marginLeft: 'auto' }}>
             <motion.button
-              whileHover={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+              whileHover={{ backgroundColor: 'var(--bg-hover)' }}
               style={{
                 width: '36px', height: '36px',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border-primary)',
-                backgroundColor: 'rgba(255, 255, 255, 0)',
+                backgroundColor: 'transparent',
                 display: 'flex', alignItems: 'center',
                 justifyContent: 'center', cursor: 'pointer',
               }}

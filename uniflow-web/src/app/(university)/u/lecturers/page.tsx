@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import {
   Users, Plus, Search, X, Loader2, Trash2, Upload,
   Mail, User, Building2, ChevronDown, AlertCircle,
-  CheckCircle2, Download,
+  CheckCircle2,
 } from 'lucide-react'
 
 interface Lecturer {
@@ -23,9 +23,9 @@ interface Department { id: string; name: string; code: string }
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '500px', background: '#0d1525', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '28px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ width: '100%', maxWidth: '500px', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', padding: '28px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-premium)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
         {children}
@@ -35,9 +35,9 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  active: { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.25)', text: '#22c55e' },
-  pending: { bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)', text: '#fbbf24' },
-  inactive: { bg: 'rgba(113,113,122,0.1)', border: 'rgba(113,113,122,0.25)', text: '#71717a' },
+  active: { bg: 'var(--success-muted)', border: 'rgba(34, 197, 94, 0.2)', text: 'var(--success)' },
+  pending: { bg: 'var(--warning-muted)', border: 'rgba(245, 158, 11, 0.2)', text: 'var(--warning)' },
+  inactive: { bg: 'var(--status-ended-muted)', border: 'rgba(113, 113, 122, 0.2)', text: 'var(--status-ended)' },
 }
 
 function LecturerRow({ lecturer, onDelete }: { lecturer: Lecturer; onDelete: (id: string) => void }) {
@@ -49,35 +49,35 @@ function LecturerRow({ lecturer, onDelete }: { lecturer: Lecturer; onDelete: (id
       alignItems: 'center',
       gap: '16px',
       padding: '14px 16px',
-      borderBottom: '1px solid rgba(255,255,255,0.04)',
-      transition: 'background 0.15s',
+      borderBottom: '1px solid var(--border-primary)',
+      transition: 'all var(--transition)',
     }}
-      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'}
       onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
     >
       {/* Name + Email */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(37,99,235,0.4), rgba(251,191,36,0.4))', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+        <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>
             {lecturer.full_name.charAt(0).toUpperCase()}
           </span>
         </div>
         <div>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{lecturer.full_name}</p>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-muted)' }}>{lecturer.email}</p>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{lecturer.full_name}</p>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{lecturer.email}</p>
         </div>
       </div>
 
       {/* Department */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
         <Building2 size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-        <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
           {lecturer.department_name ?? '—'}
         </span>
       </div>
 
       {/* Status */}
-      <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', fontWeight: 600, color: s.text, background: s.bg, border: `1px solid ${s.border}`, borderRadius: '6px', padding: '3px 8px', display: 'inline-block', textTransform: 'capitalize' }}>
+      <span style={{ fontSize: '10px', fontWeight: 600, color: s.text, background: s.bg, border: `1px solid ${s.border}`, borderRadius: '6px', padding: '3px 8px', display: 'inline-block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         {lecturer.status}
       </span>
 
@@ -119,10 +119,6 @@ export default function LecturersPage() {
     if (!profile) return
     setUniId(profile.university_id)
 
-    const deptFilter = profile.role === 'hod' && profile.department_id
-      ? { university_id: profile.university_id, department_id: profile.department_id }
-      : { university_id: profile.university_id }
-
     const [lecRes, deptRes] = await Promise.all([
       supabase.from('profiles').select('id, full_name, email, department_id, status, created_at').eq('role', 'lecturer').eq('university_id', profile.university_id).order('created_at', { ascending: false }),
       supabase.from('departments').select('id, name, code').eq('university_id', profile.university_id).order('name'),
@@ -149,8 +145,6 @@ export default function LecturersPage() {
     setError('')
     setSaving(true)
     try {
-      // Invite lecturer via Supabase auth admin — in real usage this would be a server action
-      // For now we create the profile directly (assumes auth user is created separately)
       const { error: err } = await supabase.from('profiles').insert({
         full_name: newName.trim(),
         email: newEmail.trim().toLowerCase(),
@@ -163,7 +157,7 @@ export default function LecturersPage() {
       setNewName(''); setNewEmail(''); setNewDeptId('')
       setShowModal(false)
       await loadData()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message)
     } finally {
       setSaving(false)
@@ -208,7 +202,7 @@ export default function LecturersPage() {
       setCsvMode(false); setCsvRows([])
       setShowModal(false)
       await loadData()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message)
     } finally {
       setSaving(false)
@@ -238,17 +232,16 @@ export default function LecturersPage() {
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Lecturers</h1>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Lecturers</h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
             {counts.total} total · {counts.active} active · {counts.pending} pending
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <label style={{
+          <label className="btn-secondary" style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '8px 14px', borderRadius: '8px', cursor: 'pointer',
-            border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)',
-            fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-secondary)',
+            padding: '8px 14px', cursor: 'pointer',
+            fontSize: '13px',
           }}>
             <Upload size={14} /> Upload CSV
             <input ref={fileRef} type="file" accept=".csv" onChange={handleCsvUpload} style={{ display: 'none' }} />
@@ -266,14 +259,14 @@ export default function LecturersPage() {
           <input type="text" placeholder="Search lecturers..." value={search} onChange={e => setSearch(e.target.value)} className="input" style={{ width: '100%', paddingLeft: '38px', boxSizing: 'border-box' }} />
         </div>
         <div style={{ position: 'relative' }}>
-          <select value={filterDept} onChange={e => setFilterDept(e.target.value)} className="input" style={{ appearance: 'none', paddingRight: '32px', minWidth: '160px' }}>
+          <select value={filterDept} onChange={e => setFilterDept(e.target.value)} className="select" style={{ paddingRight: '32px', minWidth: '160px' }}>
             <option value="">All Departments</option>
             {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
           <ChevronDown size={14} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
         </div>
         <div style={{ position: 'relative' }}>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="input" style={{ appearance: 'none', paddingRight: '32px' }}>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="select" style={{ paddingRight: '32px' }}>
             <option value="">All Statuses</option>
             <option value="active">Active</option>
             <option value="pending">Pending</option>
@@ -284,10 +277,10 @@ export default function LecturersPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 120px 40px', gap: '16px', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 120px 40px', gap: '16px', padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-secondary)' }}>
           {['Lecturer', 'Department', 'Status', ''].map(h => (
-            <span key={h} style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</span>
+            <span key={h} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</span>
           ))}
         </div>
 
@@ -298,7 +291,7 @@ export default function LecturersPage() {
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <Users size={32} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
-            <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
               {search || filterDept || filterStatus ? 'No lecturers match your filters.' : 'No lecturers yet. Add or upload a CSV to get started.'}
             </p>
           </div>
@@ -306,7 +299,7 @@ export default function LecturersPage() {
       </div>
 
       {/* CSV download template hint */}
-      <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-muted)', marginTop: '10px' }}>
+      <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '10px' }}>
         CSV format: <code style={{ color: 'var(--text-secondary)' }}>Name, Email, Department Code</code> (header row required)
       </p>
 
@@ -316,18 +309,18 @@ export default function LecturersPage() {
           {csvMode ? (
             <div>
               {error && (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px 12px', marginBottom: '16px' }}>
-                  <AlertCircle size={14} style={{ color: '#ef4444' }} />
-                  <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: '#ef4444' }}>{error}</p>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'var(--danger-muted)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: 'var(--radius-md)', padding: '10px 12px', marginBottom: '16px' }}>
+                  <AlertCircle size={14} style={{ color: 'var(--danger)' }} />
+                  <p style={{ fontSize: '12px', color: 'var(--danger)' }}>{error}</p>
                 </div>
               )}
-              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', maxHeight: '240px', overflowY: 'auto', marginBottom: '16px' }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', maxHeight: '240px', overflowY: 'auto', marginBottom: '16px' }}>
                 {csvRows.map((r, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <CheckCircle2 size={13} style={{ color: '#22c55e', flexShrink: 0 }} />
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderBottom: '1px solid var(--border-primary)' }}>
+                    <CheckCircle2 size={13} style={{ color: 'var(--success)', flexShrink: 0 }} />
                     <div>
-                      <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'var(--text-primary)' }}>{r.name}</p>
-                      <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-muted)' }}>{r.email} {r.dept && `· ${r.dept}`}</p>
+                      <p style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{r.name}</p>
+                      <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{r.email} {r.dept && `· ${r.dept}`}</p>
                     </div>
                   </div>
                 ))}
@@ -342,9 +335,9 @@ export default function LecturersPage() {
           ) : (
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {error && (
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px 12px' }}>
-                  <AlertCircle size={14} style={{ color: '#ef4444' }} />
-                  <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: '#ef4444' }}>{error}</p>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'var(--danger-muted)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
+                  <AlertCircle size={14} style={{ color: 'var(--danger)' }} />
+                  <p style={{ fontSize: '12px', color: 'var(--danger)' }}>{error}</p>
                 </div>
               )}
               <div>
@@ -364,7 +357,7 @@ export default function LecturersPage() {
               <div>
                 <label className="label" style={{ display: 'block', marginBottom: '8px' }}>Department <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
                 <div style={{ position: 'relative' }}>
-                  <select value={newDeptId} onChange={e => setNewDeptId(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', paddingRight: '32px', boxSizing: 'border-box' }}>
+                  <select value={newDeptId} onChange={e => setNewDeptId(e.target.value)} className="select" style={{ width: '100%', paddingRight: '32px', boxSizing: 'border-box' }}>
                     <option value="">No department</option>
                     {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>

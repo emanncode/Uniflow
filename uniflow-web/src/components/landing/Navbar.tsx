@@ -56,11 +56,11 @@ export default function Navbar() {
           maxWidth: '1100px',
           height: '64px',
           padding: '0 24px',
-          background: scrolled ? 'rgba(10, 10, 11, 0.7)' : 'rgba(255, 255, 255, 0.03)',
+          background: scrolled ? 'var(--bg-primary)' : 'var(--bg-hover)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
           borderRadius: 'var(--radius-full)',
-          border: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(255, 255, 255, 0.05)',
+          border: scrolled ? '1px solid var(--border-secondary)' : '1px solid var(--border-primary)',
           boxShadow: scrolled ? 'var(--shadow-premium)' : 'none',
           pointerEvents: 'auto',
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -76,10 +76,10 @@ export default function Navbar() {
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
-          background: 'rgba(255, 255, 255, 0.03)',
+          background: 'var(--bg-hover)',
           padding: '4px',
           borderRadius: 'var(--radius-full)',
-          border: '1px solid rgba(255, 255, 255, 0.03)',
+          border: '1px solid var(--border-primary)',
         }}>
           {navLinks.map((link) => (
             <Link
@@ -96,7 +96,7 @@ export default function Navbar() {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.color = 'var(--text-primary)'
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'
+                e.currentTarget.style.background = 'var(--bg-hover)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.color = 'var(--text-secondary)'

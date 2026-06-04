@@ -5,6 +5,7 @@ export const Colors = {
   bgSecondary: '#0f1011',
   bgTertiary: '#161719',
   bgCard: 'rgba(18, 19, 21, 0.6)',
+  overlay: 'rgba(0, 0, 0, 0.6)',
   bgHover: 'rgba(255, 255, 255, 0.03)',
 
   // Borders
@@ -32,6 +33,7 @@ export const Colors = {
   warningMuted: 'rgba(245, 158, 11, 0.08)',
   danger: '#ef4444',
   dangerMuted: 'rgba(239, 68, 68, 0.08)',
+  dangerBorder: 'rgba(239, 68, 68, 0.4)',
   info: '#3b82f6',
   infoMuted: 'rgba(59, 130, 246, 0.08)',
 };

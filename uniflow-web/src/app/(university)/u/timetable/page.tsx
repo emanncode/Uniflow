@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
   CalendarDays, Plus, X, Loader2, Trash2,
-  AlertCircle, Clock, MapPin, Users, BookOpen,
-  AlertTriangle, ChevronDown, CheckCircle2,
+  AlertCircle, Clock, MapPin, Users,
+  AlertTriangle, ChevronDown,
 } from 'lucide-react'
 
 interface TimetableSlot {
@@ -29,16 +29,27 @@ const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 const HOURS = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00']
 
 const DAY_COLORS: Record<string, string> = {
-  Monday: '#2563eb', Tuesday: '#8b5cf6', Wednesday: '#f59e0b',
-  Thursday: '#22c55e', Friday: '#ef4444',
+  Monday: 'var(--info)',
+  Tuesday: 'var(--brand)',
+  Wednesday: 'var(--warning)',
+  Thursday: 'var(--success)',
+  Friday: 'var(--danger)',
+}
+
+const DAY_MUTED_COLORS: Record<string, string> = {
+  Monday: 'var(--info-muted)',
+  Tuesday: 'var(--brand-muted)',
+  Wednesday: 'var(--warning-muted)',
+  Thursday: 'var(--success-muted)',
+  Friday: 'var(--danger-muted)',
 }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '520px', background: '#0d1525', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '28px', maxHeight: '90vh', overflowY: 'auto' }}>
+      <div style={{ width: '100%', maxWidth: '520px', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', padding: '28px', maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-premium)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
         {children}
@@ -69,29 +80,49 @@ function detectConflicts(slots: TimetableSlot[]): TimetableSlot[] {
 // ─── Slot Card ─────────────────────────────────────────────────────────────────
 
 function SlotCard({ slot, onDelete }: { slot: TimetableSlot; onDelete: (id: string) => void }) {
-  const color = DAY_COLORS[slot.day] ?? '#2563eb'
+  const color = DAY_COLORS[slot.day] ?? 'var(--info)'
+  const mutedColor = DAY_MUTED_COLORS[slot.day] ?? 'var(--info-muted)'
+
   return (
     <div style={{
-      background: slot.conflict ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.03)',
-      border: `1px solid ${slot.conflict ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.07)'}`,
-      borderRadius: '12px',
+      background: slot.conflict ? 'var(--danger-muted)' : 'var(--bg-card)',
+      border: `1px solid ${slot.conflict ? 'rgba(239, 68, 68, 0.3)' : 'var(--border-primary)'}`,
+      borderRadius: 'var(--radius-md)',
       padding: '14px',
       display: 'flex',
       flexDirection: 'column',
       gap: '10px',
       position: 'relative',
-    }}>
+      transition: 'all var(--transition)',
+    }}
+      onMouseEnter={e => {
+        if (!slot.conflict) {
+          ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-secondary)'
+            ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'
+        }
+      }}
+      onMouseLeave={e => {
+        if (!slot.conflict) {
+          ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-primary)'
+            ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-card)'
+        }
+      }}
+    >
       {slot.conflict && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', padding: '4px 8px', alignSelf: 'flex-start' }}>
-          <AlertTriangle size={11} style={{ color: '#ef4444' }} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '10px', fontWeight: 600, color: '#ef4444' }}>CONFLICT</span>
+          <AlertTriangle size={11} style={{ color: 'var(--danger)' }} />
+          <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--danger)', textTransform: 'uppercase' }}>CONFLICT</span>
         </div>
       )}
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
         <div>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{slot.course_name}</p>
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '10px', fontWeight: 600, color, background: `${color}18`, border: `1px solid ${color}30`, borderRadius: '4px', padding: '1px 5px' }}>
+          <p style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{slot.course_name}</p>
+          <span style={{
+            fontSize: '10px', fontWeight: 600,
+            color: color, background: mutedColor,
+            border: `1px solid rgba(255,255,255,0.1)`, borderRadius: '4px', padding: '1px 5px',
+          }}>
             {slot.course_code}
           </span>
         </div>
@@ -103,17 +134,17 @@ function SlotCard({ slot, onDelete }: { slot: TimetableSlot; onDelete: (id: stri
       <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Clock size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-secondary)' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
             {slot.start_time} – {slot.end_time}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <MapPin size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-secondary)' }}>{slot.venue}</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{slot.venue}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Users size={11} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-secondary)' }}>{slot.lecturer_name}</span>
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{slot.lecturer_name}</span>
         </div>
       </div>
     </div>
@@ -126,7 +157,6 @@ export default function TimetablePage() {
   const [slots, setSlots] = useState<TimetableSlot[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [lecturers, setLecturers] = useState<Lecturer[]>([])
-  const [departments, setDepartments] = useState<Department[]>([])
   const [activeDay, setActiveDay] = useState('Monday')
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -154,7 +184,7 @@ export default function TimetablePage() {
     if (!profile) return
     setUniId(profile.university_id)
 
-    const [ttRes, courseRes, lecRes, deptRes] = await Promise.all([
+    const [ttRes, courseRes, lecRes] = await Promise.all([
       supabase.from('timetable').select(`
         id, venue, day, start_time, end_time,
         courses(name, code),
@@ -163,31 +193,36 @@ export default function TimetablePage() {
       `).eq('university_id', profile.university_id).order('day').order('start_time'),
       supabase.from('courses').select('id, name, code').eq('university_id', profile.university_id).order('name'),
       supabase.from('profiles').select('id, full_name').eq('university_id', profile.university_id).eq('role', 'lecturer').order('full_name'),
-      supabase.from('departments').select('id, name').eq('university_id', profile.university_id).order('name'),
     ])
 
-    const rawSlots: TimetableSlot[] = (ttRes.data ?? []).map(t => ({
-      id: t.id,
-      course_name: (t.courses as any)?.name ?? '—',
-      course_code: (t.courses as any)?.code ?? '—',
-      lecturer_name: (t.profiles as any)?.full_name ?? '—',
-      venue: t.venue,
-      day: t.day,
-      start_time: t.start_time,
-      end_time: t.end_time,
-      department_name: (t.departments as any)?.name ?? '—',
-    }))
+    const rawSlots: TimetableSlot[] = (ttRes.data ?? []).map(t => {
+      const course = t.courses as unknown as { name: string; code: string }
+      const profileData = t.profiles as unknown as { full_name: string }
+      const dept = t.departments as unknown as { name: string } | null
+      return {
+        id: t.id,
+        course_name: course?.name ?? '—',
+        course_code: course?.code ?? '—',
+        lecturer_name: profileData?.full_name ?? '—',
+        venue: t.venue,
+        day: t.day,
+        start_time: t.start_time,
+        end_time: t.end_time,
+        department_name: dept?.name ?? '—',
+      }
+    })
 
     setSlots(detectConflicts(rawSlots))
     setCourses(courseRes.data ?? [])
     setLecturers(lecRes.data ?? [])
-    setDepartments(deptRes.data ?? [])
     setLoading(false)
   }
 
-  // Check conflicts live in modal
-  function checkConflictLive() {
-    if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) { setConflictCheck(null); return }
+  useEffect(() => {
+    if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) {
+      setConflictCheck(null)
+      return
+    }
     const clash = slots.find(s => {
       if (s.day !== newDay) return false
       const overlaps = newStart < s.end_time && newEnd > s.start_time
@@ -198,9 +233,7 @@ export default function TimetablePage() {
       ? `⚠️ Conflict with "${clash.course_name}" at ${clash.start_time}–${clash.end_time} ${clash.venue === newVenue ? `(same venue: ${newVenue})` : `(same lecturer)`}`
       : null
     )
-  }
-
-  useEffect(() => { checkConflictLive() }, [newVenue, newDay, newStart, newEnd, newLecturerId])
+  }, [newVenue, newDay, newStart, newEnd, newLecturerId, slots, lecturers])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -223,8 +256,8 @@ export default function TimetablePage() {
       setNewCourseId(''); setNewLecturerId(''); setNewVenue(''); setNewDeptId('')
       setShowModal(false)
       await loadData()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
     } finally {
       setSaving(false)
     }
@@ -244,11 +277,11 @@ export default function TimetablePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Timetable</h1>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Timetable</h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
             {slots.length} scheduled slots
             {conflictCount > 0 && (
-              <span style={{ color: '#ef4444', marginLeft: '8px' }}>· {conflictCount} conflict{conflictCount !== 1 ? 's' : ''}</span>
+              <span style={{ color: 'var(--danger)', marginLeft: '8px' }}>· {conflictCount} conflict{conflictCount !== 1 ? 's' : ''}</span>
             )}
           </p>
         </div>
@@ -259,9 +292,9 @@ export default function TimetablePage() {
 
       {/* Conflict banner */}
       {conflictCount > 0 && (
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', padding: '12px 16px', marginBottom: '20px' }}>
-          <AlertTriangle size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: '#ef4444' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: 'var(--danger-muted)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '12px', padding: '12px 16px', marginBottom: '20px' }}>
+          <AlertTriangle size={16} style={{ color: 'var(--danger)', flexShrink: 0 }} />
+          <p style={{ fontSize: '13px', color: 'var(--danger)' }}>
             {conflictCount} timetable conflict{conflictCount !== 1 ? 's' : ''} detected. Slots marked in red have overlapping venues or lecturers.
           </p>
         </div>
@@ -274,21 +307,22 @@ export default function TimetablePage() {
           const hasConflict = slots.some(s => s.day === day && s.conflict)
           const active = day === activeDay
           const color = DAY_COLORS[day]
+          const mutedColor = DAY_MUTED_COLORS[day]
           return (
             <button key={day} onClick={() => setActiveDay(day)} style={{
               display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 14px', borderRadius: '8px', cursor: 'pointer',
-              border: active ? `1px solid ${color}50` : '1px solid rgba(255,255,255,0.08)',
-              background: active ? `${color}15` : 'transparent',
-              fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: active ? 600 : 400,
+              padding: '8px 14px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
+              border: active ? `1px solid ${color}` : '1px solid var(--border-primary)',
+              background: active ? mutedColor : 'transparent',
+              fontSize: '13px', fontWeight: active ? 600 : 400,
               color: active ? color : 'var(--text-muted)',
-              transition: 'all 0.15s',
+              transition: 'all var(--transition)',
             }}>
               {day}
-              <span style={{ fontSize: '11px', background: active ? `${color}25` : 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px', color: active ? color : 'var(--text-muted)' }}>
+              <span style={{ fontSize: '11px', background: active ? 'rgba(255,255,255,0.08)' : 'var(--bg-hover)', borderRadius: '4px', padding: '1px 5px', color: active ? color : 'var(--text-muted)' }}>
                 {count}
               </span>
-              {hasConflict && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />}
+              {hasConflict && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--danger)', flexShrink: 0 }} />}
             </button>
           )
         })}
@@ -300,9 +334,9 @@ export default function TimetablePage() {
           <Loader2 size={24} className="animate-spin" style={{ color: 'var(--brand)' }} />
         </div>
       ) : daySlots.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '60px 0', border: '1px dashed var(--border-primary)', borderRadius: 'var(--radius-md)' }}>
           <CalendarDays size={32} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
             No classes scheduled for {activeDay}. Add a slot to get started.
           </p>
         </div>
@@ -319,23 +353,23 @@ export default function TimetablePage() {
         <Modal title="Add Timetable Slot" onClose={() => { setShowModal(false); setError(''); setConflictCheck(null) }}>
           <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {error && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px 12px' }}>
-                <AlertCircle size={14} style={{ color: '#ef4444' }} />
-                <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: '#ef4444' }}>{error}</p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'var(--danger-muted)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '10px', padding: '10px 12px' }}>
+                <AlertCircle size={14} style={{ color: 'var(--danger)' }} />
+                <p style={{ fontSize: '12px', color: 'var(--danger)' }}>{error}</p>
               </div>
             )}
 
             {conflictCheck && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: '10px', padding: '10px 12px' }}>
-                <AlertTriangle size={14} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '1px' }} />
-                <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: '#f59e0b', lineHeight: 1.5 }}>{conflictCheck}</p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: 'var(--warning-muted)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '10px', padding: '10px 12px' }}>
+                <AlertTriangle size={14} style={{ color: 'var(--warning)', flexShrink: 0, marginTop: '1px' }} />
+                <p style={{ fontSize: '12px', color: 'var(--warning)', lineHeight: 1.5 }}>{conflictCheck}</p>
               </div>
             )}
 
             <div>
               <label className="label" style={{ display: 'block', marginBottom: '6px' }}>Course</label>
               <div style={{ position: 'relative' }}>
-                <select required value={newCourseId} onChange={e => setNewCourseId(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', paddingRight: '32px', boxSizing: 'border-box' }}>
+                <select required value={newCourseId} onChange={e => setNewCourseId(e.target.value)} className="select" style={{ paddingRight: '32px', boxSizing: 'border-box' }}>
                   <option value="" disabled>Select course...</option>
                   {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
                 </select>
@@ -346,7 +380,7 @@ export default function TimetablePage() {
             <div>
               <label className="label" style={{ display: 'block', marginBottom: '6px' }}>Lecturer</label>
               <div style={{ position: 'relative' }}>
-                <select required value={newLecturerId} onChange={e => setNewLecturerId(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', paddingRight: '32px', boxSizing: 'border-box' }}>
+                <select required value={newLecturerId} onChange={e => setNewLecturerId(e.target.value)} className="select" style={{ paddingRight: '32px', boxSizing: 'border-box' }}>
                   <option value="" disabled>Select lecturer...</option>
                   {lecturers.map(l => <option key={l.id} value={l.id}>{l.full_name}</option>)}
                 </select>
@@ -358,7 +392,7 @@ export default function TimetablePage() {
               <div>
                 <label className="label" style={{ display: 'block', marginBottom: '6px' }}>Day</label>
                 <div style={{ position: 'relative' }}>
-                  <select required value={newDay} onChange={e => setNewDay(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', paddingRight: '28px', boxSizing: 'border-box' }}>
+                  <select required value={newDay} onChange={e => setNewDay(e.target.value)} className="select" style={{ paddingRight: '28px', boxSizing: 'border-box' }}>
                     {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                   <ChevronDown size={12} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
@@ -373,13 +407,13 @@ export default function TimetablePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
                 <label className="label" style={{ display: 'block', marginBottom: '6px' }}>Start Time</label>
-                <select required value={newStart} onChange={e => setNewStart(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', boxSizing: 'border-box' }}>
+                <select required value={newStart} onChange={e => setNewStart(e.target.value)} className="select" style={{ boxSizing: 'border-box' }}>
                   {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label" style={{ display: 'block', marginBottom: '6px' }}>End Time</label>
-                <select required value={newEnd} onChange={e => setNewEnd(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', boxSizing: 'border-box' }}>
+                <select required value={newEnd} onChange={e => setNewEnd(e.target.value)} className="select" style={{ boxSizing: 'border-box' }}>
                   {HOURS.map(h => <option key={h} value={h}>{h}</option>)}
                 </select>
               </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from 'framer-motion'
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import Ticker from '@/components/hero/Ticker'
@@ -32,6 +32,7 @@ export default function Hero() {
   const smoothPhoneY = useTransform(smoothMouseY, [-0.5, 0.5], [-8, 8])
 
   useEffect(() => {
+     
     setMounted(true)
     const handleMouse = (e: MouseEvent) => {
       const x = (e.clientX / window.innerWidth) - 0.5
@@ -70,7 +71,7 @@ export default function Hero() {
             position: 'absolute', top: '-15%', left: '50%',
             transform: 'translateX(-50%)',
             width: '1000px', height: '600px',
-            background: 'radial-gradient(ellipse, rgba(110,231,183,0.07) 0%, transparent 60%)',
+            background: 'radial-gradient(ellipse, var(--success-muted) 0%, transparent 60%)',
           }} />
           <motion.div
             animate={{ opacity: [0.3, 0.6, 0.3], scale: [1, 1.1, 1] }}
@@ -78,7 +79,7 @@ export default function Hero() {
             style={{
               position: 'absolute', bottom: '10%', left: '-5%',
               width: '500px', height: '400px',
-              background: 'radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 60%)',
+              background: 'radial-gradient(circle, var(--warning-muted) 0%, transparent 60%)',
             }}
           />
           <motion.div
@@ -87,7 +88,7 @@ export default function Hero() {
             style={{
               position: 'absolute', top: '10%', right: '-5%',
               width: '400px', height: '400px',
-              background: 'radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 60%)',
+              background: 'radial-gradient(circle, var(--info-muted) 0%, transparent 60%)',
             }}
           />
         </motion.div>
@@ -98,7 +99,7 @@ export default function Hero() {
           transform: 'translate(-50%, -50%)',
           fontSize: 'clamp(120px, 20vw, 280px)',
           fontWeight: 900,
-          color: 'rgba(255,255,255,0.012)',
+          color: 'rgba(255,255,255,0.01)',
           letterSpacing: '-0.06em',
           pointerEvents: 'none',
           userSelect: 'none',
@@ -235,7 +236,7 @@ export default function Hero() {
                   lineHeight: 1.85,
                   margin: '20px 0 36px',
                   maxWidth: '440px',
-                  borderLeft: '2px solid rgba(110,231,183,0.3)',
+                  borderLeft: '2px solid var(--brand-muted)',
                   paddingLeft: '16px',
                 }}
               >
@@ -254,7 +255,7 @@ export default function Hero() {
               >
                 <Link href="/register">
                   <motion.button
-                    whileHover={{ scale: 1.05, boxShadow: '0 12px 40px rgba(110,231,183,0.25)' }}
+                    whileHover={{ scale: 1.05, boxShadow: 'var(--shadow-brand)' }}
                     whileTap={{ scale: 0.95 }}
                     className="btn-primary"
                     style={{
@@ -264,7 +265,7 @@ export default function Hero() {
                       color: '#fff',
                       border: 'none',
                       cursor: 'pointer',
-                      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transition: 'all 0.4s var(--transition)',
                     }}
                   >
                     Register Your University →
@@ -272,18 +273,18 @@ export default function Hero() {
                 </Link>
                 <Link href="#how-it-works" style={{ textDecoration: 'none' }}>
                   <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.12)' }}
+                    whileHover={{ scale: 1.05, backgroundColor: 'var(--bg-hover)' }}
                     whileTap={{ scale: 0.95 }}
                     className="glass-btn"
                     style={{
                       padding: '15px 32px', fontSize: '14px', fontWeight: 700,
                       borderRadius: 'var(--radius-lg)',
-                      border: '1.5px solid rgba(255,255,255,0.2)',
+                      border: '1.5px solid var(--border-secondary)',
                       backgroundColor: 'rgba(255,255,255,0.08)',
                       color: 'var(--text-primary)',
                       backdropFilter: 'blur(10px)',
                       cursor: 'pointer',
-                      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                      transition: 'all 0.4s var(--transition)',
                     }}
                   >
                     See how it works
@@ -373,7 +374,7 @@ export default function Hero() {
                 <NotificationPop
                   text="CSC301 canceled today"
                   sub="Just now · 47 students notified"
-                  icon="🔔" color="#ef4444" delay={1600}
+                  icon="🔔" color="var(--danger)" delay={1600}
                 />
               </div>
 
@@ -384,7 +385,7 @@ export default function Hero() {
                 <NotificationPop
                   text="MTH201 moved to LT5"
                   sub="2 min ago · Confirmed by 12"
-                  icon="📍" color="#3b82f6" delay={2200}
+                  icon="📍" color="var(--info)" delay={2200}
                 />
               </div>
 
@@ -395,7 +396,7 @@ export default function Hero() {
                 <NotificationPop
                   text="PHY101 delayed 30min"
                   sub="5 min ago · Dr. Adeyemi"
-                  icon="⏰" color="#f59e0b" delay={2800}
+                  icon="⏰" color="var(--warning)" delay={2800}
                 />
               </div>
 

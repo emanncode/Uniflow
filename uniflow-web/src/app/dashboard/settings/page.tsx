@@ -5,6 +5,23 @@ import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { User, Mail, Shield, Save, Eye, EyeOff } from 'lucide-react'
 
+const fetchProfile = async (
+  setProfile: React.Dispatch<React.SetStateAction<{ full_name: string, email: string }>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('full_name, email')
+    .eq('id', user.id)
+    .single()
+
+  if (data) setProfile({ full_name: data.full_name, email: data.email })
+  setLoading(false)
+}
+
 export default function SettingsPage() {
   const [profile, setProfile] = useState({ full_name: '', email: '' })
   const [loading, setLoading] = useState(true)
@@ -16,22 +33,8 @@ export default function SettingsPage() {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
 
   useEffect(() => {
-    fetchProfile()
+    fetchProfile(setProfile, setLoading)
   }, [])
-
-  const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('full_name, email')
-      .eq('id', user.id)
-      .single()
-
-    if (data) setProfile({ full_name: data.full_name, email: data.email })
-    setLoading(false)
-  }
 
   const handleSaveProfile = async () => {
     setSaving(true)

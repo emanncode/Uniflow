@@ -41,12 +41,12 @@ export default function RejectModal({ onConfirm, onCancel, loading }: {
       >
         <div style={{
           width: '44px', height: '44px', borderRadius: '12px',
-          backgroundColor: 'rgba(239,68,68,0.08)',
-          border: '1px solid rgba(239,68,68,0.2)',
+          backgroundColor: 'var(--danger-muted)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           marginBottom: '16px',
         }}>
-          <XCircle size={20} color="#ef4444" strokeWidth={1.8} />
+          <XCircle size={20} color="var(--danger)" strokeWidth={1.8} />
         </div>
 
         <h3 style={{
@@ -77,7 +77,6 @@ export default function RejectModal({ onConfirm, onCancel, loading }: {
             padding: '12px 16px',
             color: 'var(--text-primary)',
             fontSize: '13px',
-            fontFamily: 'Sora, sans-serif',
             outline: 'none',
             resize: 'vertical',
             lineHeight: 1.6,
@@ -102,9 +101,8 @@ export default function RejectModal({ onConfirm, onCancel, loading }: {
               flex: 1, padding: '12px',
               borderRadius: 'var(--radius-md)',
               fontSize: '13px', fontWeight: 700,
-              backgroundColor: reason.trim() ? '#ef4444' : 'rgba(239,68,68,0.3)',
+              backgroundColor: reason.trim() ? 'var(--danger)' : 'var(--danger-muted)',
               color: '#fff', border: 'none', cursor: reason.trim() ? 'pointer' : 'not-allowed',
-              fontFamily: 'Sora, sans-serif',
               transition: 'all var(--transition)',
             }}
           >

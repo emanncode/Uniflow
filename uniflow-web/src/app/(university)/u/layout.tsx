@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { getSubdomain } from '@/lib/subdomain'
 import UniflowLogo from '@/components/ui/UniflowLogo'
 import {
   LayoutDashboard,
@@ -18,7 +17,7 @@ import {
   ChevronRight,
   Bell,
   Settings,
-  GraduationCap, AlertCircle,
+  GraduationCap,
 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -83,8 +82,8 @@ const Sidebar = ({
       style={{
         width: mobile ? '100%' : '260px',
         minHeight: '100vh',
-        background: 'rgba(7,13,26,0.98)',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--bg-primary)',
+        borderRight: '1px solid var(--border-primary)',
         display: 'flex',
         flexDirection: 'column',
         padding: '0',
@@ -95,27 +94,24 @@ const Sidebar = ({
       }}
     >
       {/* Logo + Uni Name */}
-      <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid var(--border-primary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <UniflowLogo size={32} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: '16px', color: 'var(--text-primary)' }}>
-            Uniflow
-          </span>
         </div>
         {university && (
           <div style={{
-            background: 'rgba(37,99,235,0.12)',
-            border: '1px solid rgba(37,99,235,0.25)',
+            background: 'var(--brand-subtle)',
+            border: '1px solid var(--border-brand)',
             borderRadius: '10px',
             padding: '10px 12px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <GraduationCap size={14} style={{ color: 'var(--brand)' }} />
-              <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--brand)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '11px', color: 'var(--brand)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {university.short_name}
               </span>
             </div>
-            <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginLeft: '22px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginLeft: '22px' }}>
               {university.name}
             </p>
           </div>
@@ -125,7 +121,6 @@ const Sidebar = ({
       {/* Role Badge */}
       <div style={{ padding: '12px 20px' }}>
         <span style={{
-          fontFamily: 'Sora, sans-serif',
           fontSize: '10px',
           fontWeight: 600,
           textTransform: 'uppercase',
@@ -153,8 +148,8 @@ const Sidebar = ({
                 borderRadius: '10px',
                 marginBottom: '2px',
                 textDecoration: 'none',
-                background: active ? 'rgba(37,99,235,0.15)' : 'transparent',
-                border: active ? '1px solid rgba(37,99,235,0.3)' : '1px solid transparent',
+                background: active ? 'var(--brand-muted)' : 'transparent',
+                border: active ? '1px solid var(--border-brand)' : '1px solid transparent',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -163,7 +158,6 @@ const Sidebar = ({
                 style={{ color: active ? 'var(--brand)' : 'var(--text-muted)', flexShrink: 0 }}
               />
               <span style={{
-                fontFamily: 'Sora, sans-serif',
                 fontSize: '13px',
                 fontWeight: active ? 600 : 400,
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -179,23 +173,23 @@ const Sidebar = ({
       </nav>
 
       {/* User Footer */}
-      <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-primary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
           <div style={{
             width: '34px', height: '34px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--brand), var(--gold))',
+            background: 'linear-gradient(135deg, var(--brand), var(--brand-secondary))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 700, color: '#fff' }}>
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
               {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
             </span>
           </div>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {user.name}
             </p>
-            <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {user.email}
             </p>
           </div>
@@ -209,14 +203,14 @@ const Sidebar = ({
             gap: '8px',
             padding: '9px 12px',
             borderRadius: '8px',
-            background: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.2)',
+            background: 'var(--danger-muted)',
+            border: '1px solid var(--danger-muted)',
             cursor: 'pointer',
             transition: 'all 0.15s ease',
           }}
         >
-          <LogOut size={14} style={{ color: '#ef4444' }} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: '#ef4444', fontWeight: 500 }}>
+          <LogOut size={14} style={{ color: 'var(--danger)' }} />
+          <span style={{ fontSize: '13px', color: 'var(--danger)', fontWeight: 500 }}>
             Sign Out
           </span>
         </button>
@@ -235,33 +229,9 @@ export default function UniversityPortalLayout({ children }: { children: React.R
   const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
-
-  const isAuthPage = pathname === '/u/login' || pathname === '/u/reset-password'
 
   useEffect(() => {
     async function loadSession() {
-        // 0. Verify university exists from subdomain
-        const subdomain = getSubdomain(window.location.hostname)
-        if (!subdomain || subdomain === 'super') {
-          setNotFound(true)
-          setLoading(false)
-          return
-        }
-        const shortName = subdomain.replace('-admin', '')
-        const { data: uniCheck } = await supabase
-          .from('universities')
-          .select('id')
-          .eq('short_name', shortName)
-          .eq('status', 'approved')
-          .single()
-
-        if (!uniCheck) {
-          setNotFound(true)
-          setLoading(false)
-          return
-        }
-
       try {
         console.log('Loading session for path:', pathname)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -275,7 +245,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         console.log('Session status:', !!session)
         
         if (!session) {
-          if (!isAuthPage) {
+          if (pathname !== '/u/login') {
             console.log('No session, redirecting to login')
             router.push('/u/login')
           } else {
@@ -294,7 +264,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         if (profileError) {
           console.error('Profile fetch error:', profileError)
           // On login page, don't block if profile fetch fails
-          if (isAuthPage) {
+          if (pathname === '/u/login') {
             setLoading(false)
             return
           }
@@ -306,7 +276,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         if (!profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
           console.log('Invalid profile or role:', profile?.role)
           await supabase.auth.signOut()
-          if (!isAuthPage) {
+          if (pathname !== '/u/login') {
             router.push('/u/login')
           } else {
             setLoading(false)
@@ -335,43 +305,24 @@ export default function UniversityPortalLayout({ children }: { children: React.R
       }
     }
     loadSession()
-  }, [pathname, router, isAuthPage])
+  }, [pathname, router])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.push('/u/login')
   }
 
-  if (notFound) {
-    return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <div style={{ width: '64px', height: '64px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-            <AlertCircle size={32} color="#ef4444" />
-          </div>
-          <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>Portal Not Found</h1>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
-            The university portal you are looking for does not exist or has not been approved yet.
-          </p>
-          <button onClick={() => window.location.href = 'https://uniflow.com.ng'} className="btn-primary" style={{ padding: '12px 24px' }}>
-            Return to Homepage
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
       <div className="flex flex-col items-center gap-4">
         <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--brand)' }} />
-        <p style={{ color: 'var(--text-muted)', fontFamily: 'Sora, sans-serif', fontSize: '14px' }}>Loading portal...</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading portal...</p>
       </div>
     </div>
   )
 
   // Skip sidebar/topbar for login page
-  if (isAuthPage) return <>{children}</>
+  if (pathname === '/u/login') return <>{children}</>
 
   // If session loaded but no user data (e.g. fetch failed), still try to render children
   // though many pages might need the user object.
@@ -429,9 +380,9 @@ export default function UniversityPortalLayout({ children }: { children: React.R
           position: 'sticky',
           top: 0,
           zIndex: 30,
-          background: 'rgba(7,13,26,0.85)',
+          background: 'var(--bg-primary)',
           backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderBottom: '1px solid var(--border-primary)',
           padding: '0 24px',
           height: '60px',
           display: 'flex',
@@ -463,7 +414,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button style={{
               background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.08)',
+              border: '1px solid var(--border-secondary)',
               borderRadius: '8px',
               padding: '7px',
               cursor: 'pointer',
@@ -474,10 +425,10 @@ export default function UniversityPortalLayout({ children }: { children: React.R
             </button>
             <div style={{
               width: '32px', height: '32px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--brand), var(--gold))',
+              background: 'linear-gradient(135deg, var(--brand), var(--brand-secondary))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', fontWeight: 700, color: '#fff' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
               </span>
             </div>

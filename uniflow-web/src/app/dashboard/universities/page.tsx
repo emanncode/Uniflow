@@ -23,22 +23,25 @@ interface University {
   created_at: string
 }
 
+const fetchUniversities = async (
+  setUniversities: React.Dispatch<React.SetStateAction<University[]>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  const { data } = await supabase
+    .from('university_registrations')
+    .select('*')
+    .eq('status', 'approved')
+    .order('reviewed_at', { ascending: false })
+  if (data) setUniversities(data)
+  setLoading(false)
+}
+
 export default function UniversitiesPage() {
   const [universities, setUniversities] = useState<University[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
-  useEffect(() => { fetchUniversities() }, [])
-
-  const fetchUniversities = async () => {
-    const { data } = await supabase
-      .from('university_registrations')
-      .select('*')
-      .eq('status', 'approved')
-      .order('reviewed_at', { ascending: false })
-    if (data) setUniversities(data)
-    setLoading(false)
-  }
+  useEffect(() => { fetchUniversities(setUniversities, setLoading) }, [])
 
   const filtered = universities.filter(u =>
     u.university_name.toLowerCase().includes(search.toLowerCase()) ||

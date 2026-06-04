@@ -92,14 +92,14 @@ export default function Footer() {
                     <motion.a
                       key={social.label}
                       href={social.href}
-                      whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,92,26,0.1)' }}
+                      whileHover={{ scale: 1.1, backgroundColor: 'var(--brand-muted)' }}
                       whileTap={{ scale: 0.95 }}
                       aria-label={social.label}
                       style={{
                         width: '36px', height: '36px',
                         borderRadius: 'var(--radius-sm)',
                         border: '1px solid var(--border-primary)',
-                        backgroundColor: 'rgba(255,255,255,0.02)',
+                        backgroundColor: 'var(--bg-hover)',
                         display: 'flex', alignItems: 'center',
                         justifyContent: 'center',
                         transition: 'all var(--transition)',

@@ -31,7 +31,7 @@ import type {
   ClassStatus,
   DayOfWeek,
 } from "@/types";
-import { CLASS_STATUS_COLORS, DAY_ORDER } from "@/types";
+import { CLASS_STATUS_COLORS } from "@/types";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -442,7 +442,7 @@ export default function LecturerTimetable() {
 
         setSheetVisible(false);
         setActiveSlot(null);
-      } catch (e) {
+      } catch (_) {
         Alert.alert(
           "Error",
           "Could not update class status. Please try again.",
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
   // Action Sheet
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor: C.overlay,
   },
   sheet: {
     backgroundColor: C.bgSecondary,

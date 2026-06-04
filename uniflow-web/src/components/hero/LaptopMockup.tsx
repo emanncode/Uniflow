@@ -49,17 +49,17 @@ export default function LaptopMockup() {
           <div style={{
             display: 'flex', alignItems: 'center', gap: '5px',
             padding: '7px 10px',
-            backgroundColor: 'rgba(255,255,255,0.02)',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            backgroundColor: 'var(--bg-hover)',
+            borderBottom: '1px solid var(--border-primary)',
           }}>
-            {['#ef4444', '#f59e0b', '#22c55e'].map((c, i) => (
+            {['var(--danger)', 'var(--warning)', 'var(--success)'].map((c, i) => (
               <div key={i} style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: c }} />
             ))}
             <div style={{
               marginLeft: '6px',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--bg-hover)',
               borderRadius: '4px', padding: '2px 8px',
-              fontSize: '8px', color: 'rgba(255,255,255,0.25)',
+              fontSize: '8px', color: 'var(--text-muted)',
               flex: 1, maxWidth: '160px',
             }}>
               aaua-admin.uniflow.com.ng
@@ -69,8 +69,8 @@ export default function LaptopMockup() {
               transition={{ duration: 2, repeat: Infinity }}
               style={{
                 marginLeft: 'auto', fontSize: '7px',
-                fontWeight: 700, color: '#22c55e',
-                backgroundColor: 'rgba(34,197,94,0.1)',
+                fontWeight: 700, color: 'var(--success)',
+                backgroundColor: 'var(--success-muted)',
                 padding: '2px 6px', borderRadius: '999px',
               }}
             >
@@ -86,7 +86,7 @@ export default function LaptopMockup() {
               display: 'flex', flexDirection: 'column', gap: '6px',
               alignItems: 'center', paddingTop: '4px',
             }}>
-              {['#6ee7b7', '#444', '#444', '#444', '#444'].map((c, i) => (
+              {['var(--brand)', '#444', '#444', '#444', '#444'].map((c, i) => (
                 <div key={i} style={{
                   width: '18px', height: '4px',
                   borderRadius: '999px',
@@ -99,10 +99,10 @@ export default function LaptopMockup() {
             <div style={{ flex: 1 }}>
               <div style={{
                 fontSize: '8px', fontWeight: 700,
-                color: '#f5f5f5', marginBottom: '8px',
+                color: 'var(--text-primary)', marginBottom: '8px',
                 letterSpacing: '-0.01em',
               }}>
-                Today's Timetable
+                Today&apos;s Timetable
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {classes.map((cls, i) => {
@@ -113,8 +113,8 @@ export default function LaptopMockup() {
                       justifyContent: 'space-between',
                       padding: '5px 7px',
                       borderRadius: '5px',
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.04)',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-primary)',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <div style={{
@@ -124,10 +124,10 @@ export default function LaptopMockup() {
                           boxShadow: `0 0 4px ${s.color}60`,
                         }} />
                         <div>
-                          <div style={{ fontSize: '7px', fontWeight: 700, color: '#6ee7b7' }}>
+                          <div style={{ fontSize: '7px', fontWeight: 700, color: 'var(--brand)' }}>
                             {cls.code}
                           </div>
-                          <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.5)' }}>
+                          <div style={{ fontSize: '7px', color: 'var(--text-muted)' }}>
                             {cls.venue} · {cls.time.split(' ')[1]}
                           </div>
                         </div>

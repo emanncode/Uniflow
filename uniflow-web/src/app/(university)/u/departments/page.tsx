@@ -24,9 +24,9 @@ interface Profile  { id: string; full_name: string; email: string }
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '480px', background: '#0d1525', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '28px' }}>
+      <div style={{ width: '100%', maxWidth: '480px', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', padding: '28px', boxShadow: 'var(--shadow-premium)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
+          <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
         </div>
         {children}
@@ -52,27 +52,27 @@ function DeptRow({
       alignItems: 'center',
       gap: '16px',
       padding: '14px 16px',
-      borderBottom: '1px solid rgba(255,255,255,0.04)',
-      transition: 'background 0.15s',
+      borderBottom: '1px solid var(--border-primary)',
+      transition: 'all var(--transition)',
     }}
-    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)'}
+    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'}
     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
     >
       {/* Name + Faculty */}
       <div>
-        <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
           {dept.name}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
           <span style={{
-            fontFamily: 'Sora, sans-serif', fontSize: '10px', fontWeight: 600,
-            color: '#8b5cf6', background: 'rgba(139,92,246,0.12)',
-            border: '1px solid rgba(139,92,246,0.2)',
+            fontSize: '10px', fontWeight: 600,
+            color: 'var(--brand)', background: 'var(--brand-muted)',
+            border: '1px solid var(--border-brand)',
             borderRadius: '4px', padding: '1px 5px',
           }}>
             {dept.code}
           </span>
-          <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
             {dept.faculty_name}
           </span>
         </div>
@@ -81,7 +81,7 @@ function DeptRow({
       {/* Faculty badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
         <BookOpen size={12} style={{ color: 'var(--text-muted)' }} />
-        <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
           {dept.faculty_name}
         </span>
       </div>
@@ -92,8 +92,8 @@ function DeptRow({
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <select
-                className="input"
-                style={{ width: '100%', appearance: 'none', padding: '6px 28px 6px 10px', fontSize: '12px' }}
+                className="select"
+                style={{ width: '100%', padding: '6px 28px 6px 10px', fontSize: '12px' }}
                 defaultValue=""
                 onChange={e => {
                   if (e.target.value) { onAssignHod(dept.id, e.target.value); setAssigning(false) }
@@ -110,15 +110,15 @@ function DeptRow({
           </div>
         ) : dept.hod_name ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #fbbf24)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '10px', fontWeight: 700, color: '#fff' }}>
+            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-primary)' }}>
                 {dept.hod_name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: 'var(--text-secondary)' }}>{dept.hod_name}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{dept.hod_name}</span>
             <button
               onClick={() => setAssigning(true)}
-              style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Sora, sans-serif', fontSize: '10px', color: 'var(--brand)' }}
+              style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', color: 'var(--brand)' }}
             >
               Change
             </button>
@@ -126,10 +126,10 @@ function DeptRow({
         ) : (
           <button
             onClick={() => setAssigning(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: '6px', padding: '5px 9px', cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--warning-muted)', border: '1px solid var(--warning-muted)', borderRadius: '6px', padding: '5px 9px', cursor: 'pointer', transition: 'all var(--transition)' }}
           >
-            <UserCheck size={11} style={{ color: 'var(--gold)' }} />
-            <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', color: 'var(--gold)', fontWeight: 500 }}>Assign HOD</span>
+            <UserCheck size={11} style={{ color: 'var(--warning)' }} />
+            <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 500 }}>Assign HOD</span>
           </button>
         )}
       </div>
@@ -188,7 +188,7 @@ export default function DepartmentsPage() {
       name:         d.name,
       code:         d.code,
       faculty_id:   d.faculty_id,
-      faculty_name: (d.faculties as any)?.name ?? facMap[d.faculty_id] ?? '—',
+      faculty_name: (d.faculties as { name: string } | null)?.name ?? facMap[d.faculty_id] ?? '—',
       hod_id:       d.hod_id,
       hod_name:     d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
       created_at:   d.created_at,
@@ -211,7 +211,7 @@ export default function DepartmentsPage() {
       setNewName(''); setNewCode(''); setNewFacultyId('')
       setShowModal(false)
       await loadData()
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message)
     } finally {
       setSaving(false)
@@ -239,8 +239,8 @@ export default function DepartmentsPage() {
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
-          <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Departments</h1>
-          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Departments</h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
             {departments.length} department{departments.length !== 1 ? 's' : ''} · Assign HODs and manage structure
           </p>
         </div>
@@ -256,7 +256,7 @@ export default function DepartmentsPage() {
           <input type="text" placeholder="Search departments..." value={search} onChange={e => setSearch(e.target.value)} className="input" style={{ width: '100%', paddingLeft: '38px', boxSizing: 'border-box' }} />
         </div>
         <div style={{ position: 'relative', width: '200px' }}>
-          <select value={filterFac} onChange={e => setFilterFac(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', paddingRight: '32px' }}>
+          <select value={filterFac} onChange={e => setFilterFac(e.target.value)} className="select" style={{ width: '100%', paddingRight: '32px' }}>
             <option value="">All Faculties</option>
             {faculties.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
@@ -265,11 +265,11 @@ export default function DepartmentsPage() {
       </div>
 
       {/* Table */}
-      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
         {/* Table Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 200px 40px', gap: '16px', padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 200px 40px', gap: '16px', padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-secondary)' }}>
           {['Department', 'Faculty', 'Head of Department', ''].map(h => (
-            <span key={h} style={{ fontFamily: 'Sora, sans-serif', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</span>
+            <span key={h} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</span>
           ))}
         </div>
 
@@ -280,7 +280,7 @@ export default function DepartmentsPage() {
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <Building2 size={32} style={{ color: 'var(--text-muted)', marginBottom: '12px' }} />
-            <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
               {search || filterFac ? 'No departments match your filters.' : 'No departments yet. Add your first department.'}
             </p>
           </div>
@@ -294,15 +294,15 @@ export default function DepartmentsPage() {
         <Modal title="Add New Department" onClose={() => { setShowModal(false); setError('') }}>
           <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {error && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '10px 12px' }}>
-                <AlertCircle size={14} style={{ color: '#ef4444' }} />
-                <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '12px', color: '#ef4444' }}>{error}</p>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'var(--danger-muted)', border: '1px solid var(--danger-muted)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
+                <AlertCircle size={14} style={{ color: 'var(--danger)' }} />
+                <p style={{ fontSize: '12px', color: 'var(--danger)' }}>{error}</p>
               </div>
             )}
             <div>
               <label className="label" style={{ display: 'block', marginBottom: '8px' }}>Faculty</label>
               <div style={{ position: 'relative' }}>
-                <select required value={newFacultyId} onChange={e => setNewFacultyId(e.target.value)} className="input" style={{ width: '100%', appearance: 'none', paddingRight: '32px', boxSizing: 'border-box' }}>
+                <select required value={newFacultyId} onChange={e => setNewFacultyId(e.target.value)} className="select" style={{ width: '100%', paddingRight: '32px', boxSizing: 'border-box' }}>
                   <option value="" disabled>Select a faculty...</option>
                   {faculties.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>

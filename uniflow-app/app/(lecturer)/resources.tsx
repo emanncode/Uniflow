@@ -76,24 +76,24 @@ const FILE_CONFIG: Record<
   { icon: React.ReactNode; color: string; background: string }
 > = {
   pdf: {
-    icon: <FileText size={18} color="#ef4444" strokeWidth={1.8} />,
-    color: "#ef4444",
-    background: "rgba(239,68,68,0.08)",
+    icon: <FileText size={18} color={C.danger} strokeWidth={1.8} />,
+    color: C.danger,
+    background: C.dangerMuted,
   },
   image: {
-    icon: <ImageIcon size={18} color="#3b82f6" strokeWidth={1.8} />,
-    color: "#3b82f6",
-    background: "rgba(59,130,246,0.08)",
+    icon: <ImageIcon size={18} color={C.info} strokeWidth={1.8} />,
+    color: C.info,
+    background: C.infoMuted,
   },
   doc: {
-    icon: <File size={18} color="#f59e0b" strokeWidth={1.8} />,
-    color: "#f59e0b",
-    background: "rgba(245,158,11,0.08)",
+    icon: <File size={18} color={C.warning} strokeWidth={1.8} />,
+    color: C.warning,
+    background: C.warningMuted,
   },
   other: {
-    icon: <File size={18} color="#94a3b8" strokeWidth={1.8} />,
-    color: "#94a3b8",
-    background: "rgba(148,163,184,0.08)",
+    icon: <File size={18} color={C.textMuted} strokeWidth={1.8} />,
+    color: C.textMuted,
+    background: 'rgba(148, 163, 184, 0.1)',
   },
 };
 

@@ -44,22 +44,22 @@ export default function PhoneMockup() {
         background: '#0d0b09',
         borderRadius: '18px',
         overflow: 'hidden',
-        border: '1px solid rgba(255,255,255,0.05)',
+        border: '1px solid var(--border-primary)',
         minHeight: '200px',
       }}>
         {/* app header */}
         <div style={{
           padding: '10px',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          background: 'rgba(110,231,183,0.04)',
+          borderBottom: '1px solid var(--border-primary)',
+          background: 'var(--brand-subtle)',
         }}>
           <div style={{
             fontSize: '9px', fontWeight: 800,
-            color: '#6ee7b7', letterSpacing: '-0.02em',
+            color: 'var(--brand)', letterSpacing: '-0.02em',
           }}>
             uniflow
           </div>
-          <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
+          <div style={{ fontSize: '7px', color: 'var(--text-muted)', marginTop: '1px' }}>
             Good morning, Tunde 👋
           </div>
         </div>
@@ -82,8 +82,8 @@ export default function PhoneMockup() {
               <div key={cls.code} style={{
                 padding: '6px 7px',
                 borderRadius: '8px',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-primary)',
                 marginBottom: '4px',
                 display: 'flex',
                 alignItems: 'center',
@@ -98,10 +98,10 @@ export default function PhoneMockup() {
                     flexShrink: 0,
                   }} />
                   <div>
-                    <div style={{ fontSize: '7px', fontWeight: 700, color: '#f5f5f5' }}>
+                    <div style={{ fontSize: '7px', fontWeight: 700, color: 'var(--text-primary)' }}>
                       {cls.title}
                     </div>
-                    <div style={{ fontSize: '6px', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>
+                    <div style={{ fontSize: '6px', color: 'var(--text-muted)', marginTop: '1px' }}>
                       {cls.time.split(' ')[1]} · {cls.venue}
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export default function PhoneMockup() {
       {/* home indicator */}
       <div style={{
         width: '30px', height: '3px',
-        backgroundColor: 'rgba(255,255,255,0.15)',
+        backgroundColor: 'var(--border-secondary)',
         borderRadius: '999px',
         margin: '8px auto 0',
       }} />

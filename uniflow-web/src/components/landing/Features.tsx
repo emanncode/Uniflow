@@ -125,7 +125,7 @@ export default function Features() {
                 color: 'var(--brand)',
                 textShadow: '0 0 30px rgba(255,92,26,0.3)',
               }}>
-                Nothing it doesn't.
+                Nothing it doesn&apos;t.
               </span>
             </motion.h2>
           </div>

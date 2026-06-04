@@ -13,38 +13,52 @@ interface Stats {
   total: number
 }
 
+interface Registration {
+  id: string
+  university_name: string
+  short_name: string
+  country: string
+  status: 'pending' | 'approved' | 'rejected'
+  created_at: string
+}
+
+const fetchData = async (
+  setStats: React.Dispatch<React.SetStateAction<Stats>>,
+  setRecent: React.Dispatch<React.SetStateAction<Registration[]>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  const { data } = await supabase
+    .from('university_registrations')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (data) {
+    const registrations = data as Registration[]
+    setStats({
+      pending: registrations.filter(r => r.status === 'pending').length,
+      approved: registrations.filter(r => r.status === 'approved').length,
+      rejected: registrations.filter(r => r.status === 'rejected').length,
+      total: registrations.length,
+    })
+    setRecent(registrations.slice(0, 5))
+  }
+  setLoading(false)
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({ pending: 0, approved: 0, rejected: 0, total: 0 })
-  const [recent, setRecent] = useState<any[]>([])
+  const [recent, setRecent] = useState<Registration[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchData()
+    fetchData(setStats, setRecent, setLoading)
   }, [])
 
-  const fetchData = async () => {
-    const { data } = await supabase
-      .from('university_registrations')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (data) {
-      setStats({
-        pending: data.filter(r => r.status === 'pending').length,
-        approved: data.filter(r => r.status === 'approved').length,
-        rejected: data.filter(r => r.status === 'rejected').length,
-        total: data.length,
-      })
-      setRecent(data.slice(0, 5))
-    }
-    setLoading(false)
-  }
-
   const statCards = [
-    { label: 'Total Applications', value: stats.total, icon: Building2, color: 'var(--text-secondary)', bg: 'rgba(255,255,255,0.04)' },
-    { label: 'Pending Review', value: stats.pending, icon: Clock, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' },
-    { label: 'Approved', value: stats.approved, icon: CheckCircle2, color: '#22c55e', bg: 'rgba(34,197,94,0.08)' },
-    { label: 'Rejected', value: stats.rejected, icon: XCircle, color: '#ef4444', bg: 'rgba(239,68,68,0.08)' },
+    { label: 'Total Applications', value: stats.total, icon: Building2, color: 'var(--text-secondary)', bg: 'var(--bg-hover)' },
+    { label: 'Pending Review', value: stats.pending, icon: Clock, color: 'var(--warning)', bg: 'var(--warning-muted)' },
+    { label: 'Approved', value: stats.approved, icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-muted)' },
+    { label: 'Rejected', value: stats.rejected, icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-muted)' },
   ]
 
   return (
@@ -173,8 +187,8 @@ export default function DashboardPage() {
                   fontSize: '10px', fontWeight: 700,
                   padding: '3px 10px', borderRadius: '999px',
                   textTransform: 'uppercase', letterSpacing: '0.06em',
-                  color: reg.status === 'pending' ? '#f59e0b' : reg.status === 'approved' ? '#22c55e' : '#ef4444',
-                  backgroundColor: reg.status === 'pending' ? 'rgba(245,158,11,0.1)' : reg.status === 'approved' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  color: reg.status === 'pending' ? 'var(--warning)' : reg.status === 'approved' ? 'var(--success)' : 'var(--danger)',
+                  backgroundColor: reg.status === 'pending' ? 'var(--warning-muted)' : reg.status === 'approved' ? 'var(--success-muted)' : 'var(--danger-muted)',
                   border: `1px solid ${reg.status === 'pending' ? 'rgba(245,158,11,0.2)' : reg.status === 'approved' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
                 }}>
                   {reg.status}

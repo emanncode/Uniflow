@@ -55,8 +55,8 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '40px', height: '40px', borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'rgba(255,92,26,0.08)',
-            border: '1px solid rgba(255,92,26,0.15)',
+            backgroundColor: 'var(--brand-subtle)',
+            border: '1px solid var(--border-brand)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
@@ -122,7 +122,7 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
                     <div key={item.label} style={{
                       padding: '12px 14px',
                       borderRadius: 'var(--radius-md)',
-                      backgroundColor: 'rgba(255,255,255,0.02)',
+                      backgroundColor: 'var(--bg-hover)',
                       border: '1px solid var(--border-primary)',
                     }}>
                       <div style={{
@@ -165,11 +165,11 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
                 <div style={{
                   padding: '12px 16px',
                   borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'rgba(239,68,68,0.06)',
-                  border: '1px solid rgba(239,68,68,0.15)',
+                  backgroundColor: 'var(--danger-muted)',
+                  border: '1px solid rgba(239, 68, 68, 0.15)',
                   marginBottom: '20px',
                 }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#ef4444', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--danger)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Rejection Reason
                   </div>
                   <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
@@ -188,10 +188,10 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
                     style={{
                       padding: '10px 24px', borderRadius: 'var(--radius-md)',
                       fontSize: '13px', fontWeight: 700,
-                      backgroundColor: 'rgba(34,197,94,0.1)',
-                      color: '#22c55e',
-                      border: '1px solid rgba(34,197,94,0.25)',
-                      cursor: 'pointer', fontFamily: 'Sora, sans-serif',
+                      backgroundColor: 'var(--success-muted)',
+                      color: 'var(--success)',
+                      border: '1px solid rgba(34, 197, 94, 0.25)',
+                      cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: '6px',
                       transition: 'all var(--transition)',
                     }}
@@ -206,10 +206,10 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
                     style={{
                       padding: '10px 24px', borderRadius: 'var(--radius-md)',
                       fontSize: '13px', fontWeight: 700,
-                      backgroundColor: 'rgba(239,68,68,0.08)',
-                      color: '#ef4444',
-                      border: '1px solid rgba(239,68,68,0.2)',
-                      cursor: 'pointer', fontFamily: 'Sora, sans-serif',
+                      backgroundColor: 'var(--danger-muted)',
+                      color: 'var(--danger)',
+                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                      cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: '6px',
                       transition: 'all var(--transition)',
                     }}

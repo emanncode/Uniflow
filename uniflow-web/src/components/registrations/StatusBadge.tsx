@@ -3,9 +3,9 @@
 import { Clock, CheckCircle2, XCircle } from 'lucide-react'
 
 const statusConfig = {
-  pending: { color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', icon: Clock, label: 'Pending' },
-  approved: { color: '#22c55e', bg: 'rgba(34,197,94,0.08)', border: 'rgba(34,197,94,0.2)', icon: CheckCircle2, label: 'Approved' },
-  rejected: { color: '#ef4444', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', icon: XCircle, label: 'Rejected' },
+  pending: { color: 'var(--warning)', bg: 'var(--warning-muted)', border: 'rgba(245,158,11,0.2)', icon: Clock, label: 'Pending' },
+  approved: { color: 'var(--success)', bg: 'var(--success-muted)', border: 'rgba(34,197,94,0.2)', icon: CheckCircle2, label: 'Approved' },
+  rejected: { color: 'var(--danger)', bg: 'var(--danger-muted)', border: 'rgba(239,68,68,0.2)', icon: XCircle, label: 'Rejected' },
 }
 
 export default function StatusBadge({ status }: { status: 'pending' | 'approved' | 'rejected' }) {

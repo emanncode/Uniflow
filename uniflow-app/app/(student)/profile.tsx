@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,53 +12,55 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   User,
   Mail,
   Phone,
   Building2,
-  Shield,
+  GraduationCap,
   ChevronRight,
   LogOut,
   Lock,
   X,
   Check,
-} from 'lucide-react-native'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/useAuthStore'
-import { Theme } from '@/constants/Theme'
+} from "lucide-react-native";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Theme } from "@/constants/Theme";
 
-const C = Theme.colors
-const R = Theme.radius
+const C = Theme.colors;
+const R = Theme.radius;
 
 // ─── Avatar ────────────────────────────────────────────────────────────────
 
 function Avatar({ name }: { name: string }) {
   const initials = name
-    .split(' ')
+    .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
+    .join("")
+    .toUpperCase();
 
   return (
     <View style={styles.avatar}>
       <Text style={styles.avatarText}>{initials}</Text>
     </View>
-  )
+  );
 }
 
 // ─── Info Row ──────────────────────────────────────────────────────────────
 
-interface InfoRowProps {
-  icon: React.ReactNode
-  label: string
-  value: string
-}
-
-function InfoRow({ icon, label, value }: InfoRowProps) {
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <View style={styles.infoRow}>
       <View style={styles.infoIcon}>{icon}</View>
@@ -67,20 +69,24 @@ function InfoRow({ icon, label, value }: InfoRowProps) {
         <Text style={styles.infoValue}>{value}</Text>
       </View>
     </View>
-  )
+  );
 }
 
 // ─── Settings Row ──────────────────────────────────────────────────────────
 
-interface SettingsRowProps {
-  icon: React.ReactNode
-  label: string
-  onPress: () => void
-  danger?: boolean
-  loading?: boolean
-}
-
-function SettingsRow({ icon, label, onPress, danger, loading }: SettingsRowProps) {
+function SettingsRow({
+  icon,
+  label,
+  onPress,
+  danger,
+  loading,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+  loading?: boolean;
+}) {
   return (
     <TouchableOpacity
       style={styles.settingsRow}
@@ -91,95 +97,102 @@ function SettingsRow({ icon, label, onPress, danger, loading }: SettingsRowProps
       <View style={[styles.settingsIcon, danger && styles.settingsIconDanger]}>
         {icon}
       </View>
-      <Text style={[styles.settingsLabel, danger && styles.settingsLabelDanger]}>
+      <Text
+        style={[styles.settingsLabel, danger && styles.settingsLabelDanger]}
+      >
         {label}
       </Text>
-      {loading
-        ? <ActivityIndicator size="small" color={danger ? C.danger : C.textMuted} />
-        : <ChevronRight size={16} color={danger ? C.danger : C.textMuted} strokeWidth={1.8} />
-      }
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={danger ? C.danger : C.textMuted}
+        />
+      ) : (
+        <ChevronRight
+          size={16}
+          color={danger ? C.danger : C.textMuted}
+          strokeWidth={1.8}
+        />
+      )}
     </TouchableOpacity>
-  )
+  );
 }
 
 // ─── Change Password Modal ─────────────────────────────────────────────────
 
-interface ChangePasswordModalProps {
-  visible: boolean
-  onClose: () => void
-}
+function ChangePasswordModal({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
-function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
-  const [current, setCurrent] = useState('')
-  const [next, setNext] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const reset = () => {
+    setCurrent("");
+    setNext("");
+    setConfirm("");
+    setError("");
+    setSuccess(false);
+    setIsLoading(false);
+  };
 
-  const reset = useCallback(() => {
-    setCurrent('')
-    setNext('')
-    setConfirm('')
-    setError('')
-    setSuccess(false)
-    setIsLoading(false)
-  }, [])
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
 
-  const handleClose = useCallback(() => {
-    reset()
-    onClose()
-  }, [reset, onClose])
-
-  const handleSubmit = useCallback(async () => {
-    setError('')
-
+  const handleSubmit = async () => {
+    setError("");
     if (!current || !next || !confirm) {
-      setError('All fields are required')
-      return
+      setError("All fields are required");
+      return;
     }
     if (next.length < 6) {
-      setError('New password must be at least 6 characters')
-      return
+      setError("New password must be at least 6 characters");
+      return;
     }
     if (next !== confirm) {
-      setError('New passwords do not match')
-      return
+      setError("New passwords do not match");
+      return;
     }
 
-    setIsLoading(true)
-
+    setIsLoading(true);
     try {
-      // Re-authenticate with current password first
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) throw new Error('Session expired')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("Session expired");
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: current,
-      })
-
+      });
       if (signInError) {
-        setError('Current password is incorrect')
-        setIsLoading(false)
-        return
+        setError("Current password is incorrect");
+        setIsLoading(false);
+        return;
       }
 
-      // Update password
       const { error: updateError } = await supabase.auth.updateUser({
         password: next,
-      })
+      });
+      if (updateError) throw updateError;
 
-      if (updateError) throw updateError
-
-      setSuccess(true)
-      setTimeout(() => handleClose(), 1500)
+      setSuccess(true);
+      setTimeout(() => handleClose(), 1500);
     } catch (e: any) {
-      setError(e.message ?? 'Failed to update password. Try again.')
+      setError(e.message ?? "Failed to update password. Try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [current, next, confirm, handleClose])
+  };
 
   return (
     <Modal
@@ -190,24 +203,24 @@ function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable style={styles.overlay} onPress={handleClose} />
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
-
-          {/* Header */}
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Change Password</Text>
-            <TouchableOpacity onPress={handleClose} hitSlop={8} style={styles.closeBtn}>
+            <TouchableOpacity
+              onPress={handleClose}
+              hitSlop={8}
+              style={styles.closeBtn}
+            >
               <X size={18} color={C.textMuted} strokeWidth={2} />
             </TouchableOpacity>
           </View>
-
           <View style={styles.sheetDivider} />
 
           <View style={styles.sheetBody}>
-            {/* Success */}
             {success ? (
               <View style={styles.successState}>
                 <View style={styles.successIcon}>
@@ -223,52 +236,40 @@ function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
                   </View>
                 ) : null}
 
-                {/* Current password */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Current Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter current password"
-                    placeholderTextColor={C.textMuted}
-                    value={current}
-                    onChangeText={setCurrent}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    editable={!isLoading}
-                  />
-                </View>
-
-                {/* New password */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>New Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Min. 6 characters"
-                    placeholderTextColor={C.textMuted}
-                    value={next}
-                    onChangeText={setNext}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    editable={!isLoading}
-                  />
-                </View>
-
-                {/* Confirm */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Confirm New Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Repeat new password"
-                    placeholderTextColor={C.textMuted}
-                    value={confirm}
-                    onChangeText={setConfirm}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    editable={!isLoading}
-                    returnKeyType="done"
-                    onSubmitEditing={handleSubmit}
-                  />
-                </View>
+                {[
+                  {
+                    label: "Current Password",
+                    value: current,
+                    onChange: setCurrent,
+                    placeholder: "Enter current password",
+                  },
+                  {
+                    label: "New Password",
+                    value: next,
+                    onChange: setNext,
+                    placeholder: "Min. 6 characters",
+                  },
+                  {
+                    label: "Confirm New Password",
+                    value: confirm,
+                    onChange: setConfirm,
+                    placeholder: "Repeat new password",
+                  },
+                ].map((field) => (
+                  <View key={field.label} style={styles.fieldGroup}>
+                    <Text style={styles.fieldLabel}>{field.label}</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder={field.placeholder}
+                      placeholderTextColor={C.textMuted}
+                      value={field.value}
+                      onChangeText={field.onChange}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      editable={!isLoading}
+                    />
+                  </View>
+                ))}
 
                 <TouchableOpacity
                   style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
@@ -276,10 +277,11 @@ function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
                   disabled={isLoading}
                   activeOpacity={0.85}
                 >
-                  {isLoading
-                    ? <ActivityIndicator size="small" color={C.textPrimary} />
-                    : <Text style={styles.submitBtnText}>Update Password</Text>
-                  }
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color={C.textPrimary} />
+                  ) : (
+                    <Text style={styles.submitBtnText}>Update Password</Text>
+                  )}
                 </TouchableOpacity>
               </>
             )}
@@ -287,46 +289,38 @@ function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
         </View>
       </KeyboardAvoidingView>
     </Modal>
-  )
+  );
 }
 
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
-export default function LecturerProfile() {
-  const insets = useSafeAreaInsets()
-  const profile = useAuthStore((s) => s.profile)
-  const signOut = useAuthStore((s) => s.signOut)
+export default function StudentProfile() {
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
+  const signOut = useAuthStore((s) => s.signOut);
 
-  const [isSigningOut, setIsSigningOut] = useState(false)
-  const [passwordModalVisible, setPasswordModalVisible] = useState(false)
-
-  // ── Sign Out ──────────────────────────────────────────────────────────
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
 
   const handleSignOut = useCallback(() => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            setIsSigningOut(true)
-            await signOut()
-            // AuthGuard in _layout.tsx handles redirect to /login
-          },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          setIsSigningOut(true);
+          await signOut();
         },
-      ]
-    )
-  }, [signOut])
+      },
+    ]);
+  }, [signOut]);
 
-  if (!profile) return null
+  if (!profile) return null;
 
-  const universityName = (profile.universities as any)?.name ?? 'Unknown University'
-  const universityShort = (profile.universities as any)?.short_name ?? ''
-
-  // ── Render ────────────────────────────────────────────────────────────
+  const universityName =
+    (profile.universities as any)?.name ?? "Unknown University";
+  const universityShort = (profile.universities as any)?.short_name ?? "";
 
   return (
     <ScrollView
@@ -337,18 +331,20 @@ export default function LecturerProfile() {
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Hero ── */}
+      {/* Hero */}
       <View style={styles.hero}>
         <Avatar name={profile.full_name} />
         <Text style={styles.heroName}>{profile.full_name}</Text>
         <View style={styles.roleBadge}>
-          <Shield size={12} color={C.brand} strokeWidth={2} />
-          <Text style={styles.roleText}>Lecturer</Text>
+          <GraduationCap size={12} color={C.brand} strokeWidth={2} />
+          <Text style={styles.roleText}>Student</Text>
         </View>
-        <Text style={styles.heroUniversity}>{universityShort || universityName}</Text>
+        <Text style={styles.heroUniversity}>
+          {universityShort || universityName}
+        </Text>
       </View>
 
-      {/* ── Account Info ── */}
+      {/* Account */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Account</Text>
         <View style={styles.card}>
@@ -376,7 +372,7 @@ export default function LecturerProfile() {
         </View>
       </View>
 
-      {/* ── University ── */}
+      {/* University */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>University</Text>
         <View style={styles.card}>
@@ -388,7 +384,7 @@ export default function LecturerProfile() {
         </View>
       </View>
 
-      {/* ── Settings ── */}
+      {/* Settings */}
       <View style={styles.section}>
         <Text style={styles.sectionLabel}>Settings</Text>
         <View style={styles.card}>
@@ -400,7 +396,7 @@ export default function LecturerProfile() {
         </View>
       </View>
 
-      {/* ── Sign Out ── */}
+      {/* Sign out */}
       <View style={styles.section}>
         <View style={styles.card}>
           <SettingsRow
@@ -413,60 +409,47 @@ export default function LecturerProfile() {
         </View>
       </View>
 
-      {/* ── App info ── */}
-      <Text style={styles.appInfo}>Uniflow Mobile · Lecturer</Text>
+      <Text style={styles.appInfo}>Uniflow Mobile · Student</Text>
 
-      {/* ── Change Password Modal ── */}
       <ChangePasswordModal
         visible={passwordModalVisible}
         onClose={() => setPasswordModalVisible(false)}
       />
     </ScrollView>
-  )
+  );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.bgDeep,
-  },
-  content: {
-    paddingHorizontal: 20,
-    gap: 20,
-  },
+  root: { flex: 1, backgroundColor: C.bgDeep },
+  content: { paddingHorizontal: 20, gap: 20 },
 
-  // Hero
-  hero: {
-    alignItems: 'center',
-    paddingVertical: 8,
-    gap: 8,
-  },
+  hero: { alignItems: "center", paddingVertical: 8, gap: 8 },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: R.full,
     backgroundColor: C.brand,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 4,
   },
   avatarText: {
     color: C.textPrimary,
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.5,
   },
   heroName: {
     color: C.textPrimary,
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.4,
   },
   roleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
     backgroundColor: C.brandMuted,
     borderRadius: R.full,
@@ -475,25 +458,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderBrand,
   },
-  roleText: {
-    color: C.brand,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroUniversity: {
-    color: C.textMuted,
-    fontSize: 13,
-  },
+  roleText: { color: C.brand, fontSize: 12, fontWeight: "700" },
+  heroUniversity: { color: C.textMuted, fontSize: 13 },
 
-  // Section
-  section: {
-    gap: 8,
-  },
+  section: { gap: 8 },
   sectionLabel: {
     color: C.textMuted,
     fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.6,
     paddingHorizontal: 4,
   },
@@ -502,50 +475,34 @@ const styles = StyleSheet.create({
     borderRadius: R.md,
     borderWidth: 1,
     borderColor: C.borderPrimary,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
-
-  // Info row
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 12,
-  },
+  infoRow: { flexDirection: "row", alignItems: "center", padding: 16, gap: 12 },
   infoIcon: {
     width: 36,
     height: 36,
     borderRadius: R.sm,
     backgroundColor: C.brandSubtle,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  infoContent: {
-    flex: 1,
-    gap: 2,
-  },
+  infoContent: { flex: 1, gap: 2 },
   infoLabel: {
     color: C.textMuted,
     fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.4,
   },
-  infoValue: {
-    color: C.textPrimary,
-    fontSize: 15,
-    fontWeight: '500',
-  },
+  infoValue: { color: C.textPrimary, fontSize: 15, fontWeight: "500" },
   rowDivider: {
     height: 1,
     backgroundColor: C.borderPrimary,
     marginHorizontal: 16,
   },
-
-  // Settings row
   settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     gap: 12,
   },
@@ -554,35 +511,25 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: R.sm,
     backgroundColor: C.bgTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  settingsIconDanger: {
-    backgroundColor: C.dangerMuted,
-  },
+  settingsIconDanger: { backgroundColor: C.dangerMuted },
   settingsLabel: {
     flex: 1,
     color: C.textPrimary,
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-  settingsLabelDanger: {
-    color: C.danger,
-  },
-
-  // App info
+  settingsLabelDanger: { color: C.danger },
   appInfo: {
     color: C.bgTertiary,
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
   },
 
-  // Modal / Sheet
-  overlay: {
-    flex: 1,
-    backgroundColor: C.overlay,
-  },
+  overlay: { flex: 1, backgroundColor: C.overlay },
   sheet: {
     backgroundColor: C.bgSecondary,
     borderTopLeftRadius: R.xl,
@@ -595,40 +542,28 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: C.borderSecondary,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginTop: 12,
     marginBottom: 4,
   },
   sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  sheetTitle: {
-    color: C.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  sheetTitle: { color: C.textPrimary, fontSize: 18, fontWeight: "700" },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: R.full,
     backgroundColor: C.bgTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  sheetDivider: {
-    height: 1,
-    backgroundColor: C.borderPrimary,
-  },
-  sheetBody: {
-    padding: 20,
-    gap: 14,
-  },
-
-  // Error
+  sheetDivider: { height: 1, backgroundColor: C.borderPrimary },
+  sheetBody: { padding: 20, gap: 14 },
   errorBanner: {
     backgroundColor: C.dangerMuted,
     borderWidth: 1,
@@ -636,20 +571,13 @@ const styles = StyleSheet.create({
     borderRadius: R.sm,
     padding: 12,
   },
-  errorText: {
-    color: C.danger,
-    fontSize: 13,
-  },
-
-  // Fields
-  fieldGroup: {
-    gap: 8,
-  },
+  errorText: { color: C.danger, fontSize: 13 },
+  fieldGroup: { gap: 8 },
   fieldLabel: {
     color: C.textSecondary,
     fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   input: {
@@ -666,32 +594,18 @@ const styles = StyleSheet.create({
     backgroundColor: C.brand,
     borderRadius: R.sm,
     paddingVertical: 15,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 4,
   },
-  submitBtnText: {
-    color: C.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-
-  // Success state
-  successState: {
-    alignItems: 'center',
-    paddingVertical: 24,
-    gap: 12,
-  },
+  submitBtnText: { color: C.textPrimary, fontSize: 15, fontWeight: "700" },
+  successState: { alignItems: "center", paddingVertical: 24, gap: 12 },
   successIcon: {
     width: 60,
     height: 60,
     borderRadius: R.full,
     backgroundColor: C.successMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  successText: {
-    color: C.success,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-})
+  successText: { color: C.success, fontSize: 16, fontWeight: "700" },
+});

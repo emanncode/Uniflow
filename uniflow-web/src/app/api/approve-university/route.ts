@@ -73,8 +73,7 @@ export async function POST(request: Request) {
     if (host.includes('lvh.me')) baseDomain = 'lvh.me:3000'
     else if (host.includes('localhost')) baseDomain = 'localhost:3000'
 
-    // Redirect to the reset-password page
-    const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/reset-password`
+    const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/login`
 
     await supabase.auth.resetPasswordForEmail(reg.official_email, {
       redirectTo,
@@ -86,7 +85,7 @@ export async function POST(request: Request) {
       .update({ status: 'approved', reviewed_at: new Date().toISOString() })
       .eq('id', registrationId)
 
-    return NextResponse.json({ success: true, tempPassword })
+    return NextResponse.json({ success: true })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'An unknown error occurred'
     return NextResponse.json({ error: message }, { status: 500 })
