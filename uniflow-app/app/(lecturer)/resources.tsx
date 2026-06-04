@@ -1,0 +1,920 @@
+import { useEffect, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+  Modal,
+  Pressable,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Linking,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  FileText,
+  Image as ImageIcon,
+  File,
+  Upload,
+  Plus,
+  Download,
+  X,
+  BookOpen,
+  HelpCircle,
+  Layers,
+} from "lucide-react-native";
+import * as DocumentPicker from "expo-document-picker";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Theme } from "@/constants/Theme";
+import type { Resource, ResourceType, FileType, Course } from "@/types";
+
+const C = Theme.colors;
+const R = Theme.radius;
+
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+// function formatBytes(bytes: number): string {
+//   if (bytes < 1024) return `${bytes} B`;
+//   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+//   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+// }
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function getFileType(mimeType?: string, fileName?: string): FileType {
+  const ext = fileName?.split(".").pop()?.toLowerCase() ?? "";
+  if (mimeType?.includes("pdf") || ext === "pdf") return "pdf";
+  if (
+    mimeType?.includes("image") ||
+    ["png", "jpg", "jpeg", "gif", "webp"].includes(ext)
+  )
+    return "image";
+  if (["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(ext)) return "doc";
+  return "other";
+}
+
+// ─── File Type Config ──────────────────────────────────────────────────────
+
+const FILE_CONFIG: Record<
+  FileType,
+  { icon: React.ReactNode; color: string; background: string }
+> = {
+  pdf: {
+    icon: <FileText size={18} color="#ef4444" strokeWidth={1.8} />,
+    color: "#ef4444",
+    background: "rgba(239,68,68,0.08)",
+  },
+  image: {
+    icon: <ImageIcon size={18} color="#3b82f6" strokeWidth={1.8} />,
+    color: "#3b82f6",
+    background: "rgba(59,130,246,0.08)",
+  },
+  doc: {
+    icon: <File size={18} color="#f59e0b" strokeWidth={1.8} />,
+    color: "#f59e0b",
+    background: "rgba(245,158,11,0.08)",
+  },
+  other: {
+    icon: <File size={18} color="#94a3b8" strokeWidth={1.8} />,
+    color: "#94a3b8",
+    background: "rgba(148,163,184,0.08)",
+  },
+};
+
+const RESOURCE_TYPE_CONFIG: Record<
+  ResourceType,
+  { icon: React.ReactNode; label: string }
+> = {
+  note: {
+    icon: <BookOpen size={14} color={C.textMuted} strokeWidth={1.8} />,
+    label: "Note",
+  },
+  past_question: {
+    icon: <HelpCircle size={14} color={C.textMuted} strokeWidth={1.8} />,
+    label: "Past Question",
+  },
+  material: {
+    icon: <Layers size={14} color={C.textMuted} strokeWidth={1.8} />,
+    label: "Material",
+  },
+  other: {
+    icon: <File size={14} color={C.textMuted} strokeWidth={1.8} />,
+    label: "Other",
+  },
+};
+
+// ─── Resource Card ─────────────────────────────────────────────────────────
+
+function ResourceCard({ resource }: { resource: Resource }) {
+  const fileConf = FILE_CONFIG[resource.file_type];
+  const typeConf = RESOURCE_TYPE_CONFIG[resource.resource_type];
+
+  const handleOpen = useCallback(async () => {
+    try {
+      await Linking.openURL(resource.file_url);
+    } catch {
+      Alert.alert("Error", "Could not open this file.");
+    }
+  }, [resource.file_url]);
+
+  return (
+    <TouchableOpacity
+      style={styles.resourceCard}
+      onPress={handleOpen}
+      activeOpacity={0.75}
+    >
+      <View style={[styles.fileIcon, { backgroundColor: fileConf.background }]}>
+        {fileConf.icon}
+      </View>
+
+      <View style={styles.resourceBody}>
+        <Text style={styles.resourceTitle} numberOfLines={1}>
+          {resource.title}
+        </Text>
+        <View style={styles.resourceMeta}>
+          {typeConf.icon}
+          <Text style={styles.resourceMetaText}>{typeConf.label}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Download size={11} color={C.textMuted} strokeWidth={1.8} />
+          <Text style={styles.resourceMetaText}>{resource.downloads}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Text style={styles.resourceMetaText}>
+            {timeAgo(resource.created_at)}
+          </Text>
+        </View>
+        {resource.description ? (
+          <Text style={styles.resourceDesc} numberOfLines={1}>
+            {resource.description}
+          </Text>
+        ) : null}
+      </View>
+
+      <View
+        style={[styles.fileTypeBadge, { backgroundColor: fileConf.background }]}
+      >
+        <Text style={[styles.fileTypeText, { color: fileConf.color }]}>
+          {resource.file_type.toUpperCase()}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ─── Upload Sheet ──────────────────────────────────────────────────────────
+
+interface UploadSheetProps {
+  visible: boolean;
+  courses: Course[];
+  onClose: () => void;
+  onUploaded: () => void;
+}
+
+function UploadSheet({
+  visible,
+  courses,
+  onClose,
+  onUploaded,
+}: UploadSheetProps) {
+  const profile = useAuthStore((s) => s.profile);
+
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>("material");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [file, setFile] = useState<{
+    uri: string;
+    name: string;
+    mimeType?: string;
+  } | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState("");
+
+  const reset = useCallback(() => {
+    setSelectedCourseId("");
+    setResourceType("material");
+    setTitle("");
+    setDescription("");
+    setFile(null);
+    setProgress("");
+    setIsUploading(false);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    reset();
+    onClose();
+  }, [reset, onClose]);
+
+  const handlePickFile = useCallback(async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      setFile({
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType ?? undefined,
+      });
+      if (!title) setTitle(asset.name.replace(/\.[^/.]+$/, ""));
+    } catch (e: any) {
+      console.error("DocumentPicker error:", e);
+      Alert.alert(
+        "File selection failed",
+        e?.message ??
+          "Could not pick file. Please check permissions and try again.",
+      );
+      return;
+    }
+  }, [title]);
+
+  const handleUpload = useCallback(async () => {
+    if (!profile) return;
+    if (!selectedCourseId) {
+      Alert.alert("Missing", "Please select a course");
+      return;
+    }
+    if (!title.trim()) {
+      Alert.alert("Missing", "Please enter a title");
+      return;
+    }
+    if (!file) {
+      Alert.alert("Missing", "Please pick a file");
+      return;
+    }
+
+    setIsUploading(true);
+    setProgress("Uploading file...");
+
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${selectedCourseId}/${Date.now()}.${ext}`;
+
+      const response = await fetch(file.uri);
+      const blob = await response.blob();
+
+      const { error: uploadError } = await supabase.storage
+        .from("resources")
+        .upload(fileName, blob, {
+          contentType: file.mimeType ?? "application/octet-stream",
+        });
+
+      if (uploadError) throw uploadError;
+
+      setProgress("Saving record...");
+
+      const { data: urlData } = supabase.storage
+        .from("resources")
+        .getPublicUrl(fileName);
+
+      const fileType = getFileType(file.mimeType, file.name);
+
+      const { error: insertError } = await supabase.from("resources").insert({
+        course_id: selectedCourseId,
+        uploaded_by: profile.id,
+        university_id: profile.university_id,
+        title: title.trim(),
+        description: description.trim() || null,
+        file_url: urlData.publicUrl,
+        file_type: fileType,
+        resource_type: resourceType,
+        academic_session:
+          new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
+        is_approved: true,
+      });
+
+      if (insertError) throw insertError;
+
+      setProgress("Done!");
+      setTimeout(() => {
+        reset();
+        onClose();
+        onUploaded();
+      }, 800);
+    } catch (e: any) {
+      Alert.alert("Upload Failed", e.message ?? "Please try again.");
+      setIsUploading(false);
+      setProgress("");
+    }
+  }, [
+    profile,
+    selectedCourseId,
+    title,
+    description,
+    file,
+    resourceType,
+    reset,
+    onClose,
+    onUploaded,
+  ]);
+
+  const RESOURCE_TYPES: ResourceType[] = [
+    "material",
+    "note",
+    "past_question",
+    "other",
+  ];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={handleClose}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Pressable style={styles.overlay} onPress={handleClose} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+
+          {/* Header */}
+          <View style={styles.sheetHeader}>
+            <Text style={styles.sheetTitle}>Upload Resource</Text>
+            <TouchableOpacity
+              onPress={handleClose}
+              hitSlop={8}
+              style={styles.closeBtn}
+            >
+              <X size={18} color={C.textMuted} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.sheetDivider} />
+
+          <ScrollView
+            style={styles.sheetScroll}
+            contentContainerStyle={styles.sheetScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Course selector */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Course</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.pillScroll}
+              >
+                {courses.map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[
+                      styles.coursePill,
+                      selectedCourseId === c.id && styles.coursePillActive,
+                    ]}
+                    onPress={() => setSelectedCourseId(c.id)}
+                  >
+                    <Text
+                      style={[
+                        styles.coursePillText,
+                        selectedCourseId === c.id &&
+                          styles.coursePillTextActive,
+                      ]}
+                    >
+                      {c.code}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Type selector */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Type</Text>
+              <View style={styles.typeGrid}>
+                {RESOURCE_TYPES.map((t) => (
+                  <TouchableOpacity
+                    key={t}
+                    style={[
+                      styles.typePill,
+                      resourceType === t && styles.typePillActive,
+                    ]}
+                    onPress={() => setResourceType(t)}
+                  >
+                    <Text
+                      style={[
+                        styles.typePillText,
+                        resourceType === t && styles.typePillTextActive,
+                      ]}
+                    >
+                      {RESOURCE_TYPE_CONFIG[t].label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Title */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Title</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g. Week 5 Lecture Notes"
+                placeholderTextColor={C.textMuted}
+                value={title}
+                onChangeText={setTitle}
+                editable={!isUploading}
+              />
+            </View>
+
+            {/* Description */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Description (optional)</Text>
+              <TextInput
+                style={[styles.input, styles.inputMultiline]}
+                placeholder="Brief description..."
+                placeholderTextColor={C.textMuted}
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+                editable={!isUploading}
+              />
+            </View>
+
+            {/* File picker */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>File</Text>
+              <TouchableOpacity
+                style={styles.filePicker}
+                onPress={handlePickFile}
+                activeOpacity={0.75}
+                disabled={isUploading}
+              >
+                {file ? (
+                  <View style={styles.filePickerSelected}>
+                    <FileText size={20} color={C.brand} strokeWidth={1.8} />
+                    <Text style={styles.filePickerName} numberOfLines={1}>
+                      {file.name}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.filePickerEmpty}>
+                    <Upload size={22} color={C.textMuted} strokeWidth={1.5} />
+                    <Text style={styles.filePickerHint}>
+                      Tap to pick a file
+                    </Text>
+                    <Text style={styles.filePickerSub}>
+                      PDF, DOC, images, etc.
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Submit */}
+            <TouchableOpacity
+              style={[styles.uploadBtn, isUploading && { opacity: 0.7 }]}
+              onPress={handleUpload}
+              disabled={isUploading}
+              activeOpacity={0.85}
+            >
+              {isUploading ? (
+                <View style={styles.uploadBtnLoading}>
+                  <ActivityIndicator size="small" color={C.textPrimary} />
+                  <Text style={styles.uploadBtnText}>{progress}</Text>
+                </View>
+              ) : (
+                <Text style={styles.uploadBtnText}>Upload Resource</Text>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ─── Main Screen ───────────────────────────────────────────────────────────
+
+export default function LecturerResources() {
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [uploadVisible, setUploadVisible] = useState(false);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────
+
+  const fetchData = useCallback(async () => {
+    if (!profile) return;
+    try {
+      // Get assigned course IDs
+      const { data: lecturerCourses } = await supabase
+        .from("lecturer_courses")
+        .select("course_id")
+        .eq("lecturer_id", profile.id)
+        .eq("is_active", true);
+
+      if (!lecturerCourses?.length) {
+        setCourses([]);
+        setResources([]);
+        return;
+      }
+
+      const courseIds = lecturerCourses.map((lc) => lc.course_id);
+
+      // Fetch courses
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("*")
+        .in("id", courseIds)
+        .eq("is_active", true)
+        .order("code");
+
+      if (courseData) setCourses(courseData);
+
+      // Fetch resources uploaded by this lecturer
+      const { data: resourceData } = await supabase
+        .from("resources")
+        .select("*")
+        .eq("uploaded_by", profile.id)
+        .in("course_id", courseIds)
+        .order("created_at", { ascending: false });
+
+      if (resourceData) setResources(resourceData);
+    } catch (e) {
+      console.error("Resources fetch error:", e);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    fetchData().finally(() => setIsLoading(false));
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  }, [fetchData]);
+
+  // ── Filtered resources ────────────────────────────────────────────────
+
+  const filtered =
+    selectedCourseId === "all"
+      ? resources
+      : resources.filter((r) => r.course_id === selectedCourseId);
+
+  // ── Loading ───────────────────────────────────────────────────────────
+
+  if (isLoading) {
+    return (
+      <View style={[styles.root, styles.centered]}>
+        <ActivityIndicator size="large" color={C.brand} />
+      </View>
+    );
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────
+
+  return (
+    <View style={styles.root}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View>
+          <Text style={styles.headerTitle}>Resources</Text>
+          <Text style={styles.headerSub}>
+            {resources.length} file{resources.length !== 1 ? "s" : ""} uploaded
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.uploadFab}
+          onPress={() => setUploadVisible(true)}
+          activeOpacity={0.85}
+        >
+          <Plus size={18} color={C.textPrimary} strokeWidth={2.5} />
+          <Text style={styles.uploadFabText}>Upload</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Course filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterStrip}
+      >
+        <TouchableOpacity
+          style={[
+            styles.filterPill,
+            selectedCourseId === "all" && styles.filterPillActive,
+          ]}
+          onPress={() => setSelectedCourseId("all")}
+        >
+          <Text
+            style={[
+              styles.filterPillText,
+              selectedCourseId === "all" && styles.filterPillTextActive,
+            ]}
+          >
+            All
+          </Text>
+        </TouchableOpacity>
+        {courses.map((c) => (
+          <TouchableOpacity
+            key={c.id}
+            style={[
+              styles.filterPill,
+              selectedCourseId === c.id && styles.filterPillActive,
+            ]}
+            onPress={() => setSelectedCourseId(c.id)}
+          >
+            <Text
+              style={[
+                styles.filterPillText,
+                selectedCourseId === c.id && styles.filterPillTextActive,
+              ]}
+            >
+              {c.code}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Resource list */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 32 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={C.brand}
+          />
+        }
+      >
+        {filtered.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Upload size={32} color={C.textMuted} strokeWidth={1.5} />
+            <Text style={styles.emptyTitle}>No resources yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Tap Upload to share notes, past questions, or materials
+            </Text>
+          </View>
+        ) : (
+          filtered.map((r) => <ResourceCard key={r.id} resource={r} />)
+        )}
+      </ScrollView>
+
+      {/* Upload sheet */}
+      <UploadSheet
+        visible={uploadVisible}
+        courses={courses}
+        onClose={() => setUploadVisible(false)}
+        onUploaded={fetchData}
+      />
+    </View>
+  );
+}
+
+// ─── Styles ────────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bgDeep },
+  centered: { alignItems: "center", justifyContent: "center" },
+
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headerTitle: {
+    color: C.textPrimary,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+  },
+  headerSub: { color: C.textMuted, fontSize: 13, marginTop: 2 },
+
+  uploadFab: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: C.brand,
+    borderRadius: R.full,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  uploadFabText: { color: C.textPrimary, fontSize: 13, fontWeight: "700" },
+
+  filterStrip: {
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    gap: 8,
+    flexDirection: "row",
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: R.full,
+    backgroundColor: C.bgCard,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+  },
+  filterPillActive: { backgroundColor: C.brand, borderColor: C.brand },
+  filterPillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
+  filterPillTextActive: { color: C.textPrimary },
+
+  list: { paddingHorizontal: 20, gap: 10 },
+
+  emptyCard: {
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    padding: 40,
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  emptyTitle: {
+    color: C.textSecondary,
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  emptySubtitle: {
+    color: C.textMuted,
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 19,
+  },
+
+  resourceCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    padding: 14,
+    gap: 12,
+  },
+  fileIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: R.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  resourceBody: { flex: 1, gap: 3 },
+  resourceTitle: { color: C.textPrimary, fontSize: 14, fontWeight: "600" },
+  resourceMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexWrap: "wrap",
+  },
+  resourceMetaText: { color: C.textMuted, fontSize: 11 },
+  metaDot: { color: C.textMuted, fontSize: 11 },
+  resourceDesc: { color: C.textMuted, fontSize: 12, fontStyle: "italic" },
+  fileTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: R.sm,
+    flexShrink: 0,
+  },
+  fileTypeText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
+
+  // Sheet
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
+  sheet: {
+    backgroundColor: C.bgSecondary,
+    borderTopLeftRadius: R.xl,
+    borderTopRightRadius: R.xl,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    maxHeight: "90%",
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: C.borderSecondary,
+    alignSelf: "center",
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  sheetTitle: { color: C.textPrimary, fontSize: 18, fontWeight: "700" },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: R.full,
+    backgroundColor: C.bgTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sheetDivider: { height: 1, backgroundColor: C.borderPrimary },
+  sheetScroll: { flex: 1 },
+  sheetScrollContent: { padding: 20, gap: 16, paddingBottom: 32 },
+
+  fieldGroup: { gap: 8 },
+  fieldLabel: {
+    color: C.textSecondary,
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  pillScroll: { flexGrow: 0 },
+  coursePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: R.full,
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    marginRight: 8,
+  },
+  coursePillActive: { backgroundColor: C.brand, borderColor: C.brand },
+  coursePillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
+  coursePillTextActive: { color: C.textPrimary },
+
+  typeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  typePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: R.full,
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+  },
+  typePillActive: { backgroundColor: C.brandMuted, borderColor: C.borderBrand },
+  typePillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
+  typePillTextActive: { color: C.brand },
+
+  input: {
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    borderRadius: R.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: C.textPrimary,
+    fontSize: 15,
+  },
+  inputMultiline: { height: 88, textAlignVertical: "top", paddingTop: 12 },
+
+  filePicker: {
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    borderRadius: R.md,
+    borderStyle: "dashed",
+    minHeight: 90,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  filePickerEmpty: { alignItems: "center", gap: 6 },
+  filePickerSelected: { flexDirection: "row", alignItems: "center", gap: 10 },
+  filePickerHint: { color: C.textSecondary, fontSize: 14, fontWeight: "600" },
+  filePickerSub: { color: C.textMuted, fontSize: 12 },
+  filePickerName: { color: C.brand, fontSize: 14, fontWeight: "600", flex: 1 },
+
+  uploadBtn: {
+    backgroundColor: C.brand,
+    borderRadius: R.sm,
+    paddingVertical: 15,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  uploadBtnLoading: { flexDirection: "row", alignItems: "center", gap: 10 },
+  uploadBtnText: { color: C.textPrimary, fontSize: 15, fontWeight: "700" },
+});
