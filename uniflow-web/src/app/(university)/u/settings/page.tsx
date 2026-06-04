@@ -16,22 +16,22 @@ export default function UniversitySettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    const loadProfile = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", session.user.id)
+        .single();
+      if (data) setProfile({ full_name: data.full_name, email: data.email });
+      setLoading(false);
+    };
 
-  async function fetchProfile() {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) return;
-    const { data } = await supabase
-      .from("profiles")
-      .select("full_name, email")
-      .eq("id", session.user.id)
-      .single();
-    if (data) setProfile({ full_name: data.full_name, email: data.email });
-    setLoading(false);
-  }
+    void loadProfile();
+  }, []);
 
   async function handleSave() {
     setSaving(true);
