@@ -188,7 +188,7 @@ export default function DepartmentsPage() {
       name:         d.name,
       code:         d.code,
       faculty_id:   d.faculty_id,
-      faculty_name: (d.faculties as { name: string } | null)?.name ?? facMap[d.faculty_id] ?? '—',
+      faculty_name: (Array.isArray(d.faculties) ? d.faculties[0]?.name : (d.faculties as { name: string } | null)?.name) ?? facMap[d.faculty_id] ?? '—',
       hod_id:       d.hod_id,
       hod_name:     d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
       created_at:   d.created_at,
@@ -212,7 +212,7 @@ export default function DepartmentsPage() {
       setShowModal(false)
       await loadData()
     } catch (err: unknown) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setSaving(false)
     }

@@ -440,7 +440,7 @@ export default function FacultiesPage() {
       setShowModal(false);
       await loadData();
     } catch (err: unknown) {
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setSaving(false);
     }

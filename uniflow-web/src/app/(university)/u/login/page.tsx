@@ -69,7 +69,7 @@ export default function UniversityLoginPage() {
 
       router.push('/')
     } catch (err: unknown) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setLoading(false)
     }
@@ -90,7 +90,7 @@ export default function UniversityLoginPage() {
 
       router.push('/')
     } catch (err: unknown) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setLoading(false)
     }

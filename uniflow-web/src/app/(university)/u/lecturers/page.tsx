@@ -158,7 +158,7 @@ export default function LecturersPage() {
       setShowModal(false)
       await loadData()
     } catch (err: unknown) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setSaving(false)
     }
@@ -203,7 +203,7 @@ export default function LecturersPage() {
       setShowModal(false)
       await loadData()
     } catch (err: unknown) {
-      setError(err.message)
+      setError((err as Error).message)
     } finally {
       setSaving(false)
     }

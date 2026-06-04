@@ -257,7 +257,7 @@ export default function TimetablePage() {
       setShowModal(false)
       await loadData()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      setError((err as Error).message)
     } finally {
       setSaving(false)
     }
