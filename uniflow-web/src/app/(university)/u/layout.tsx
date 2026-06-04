@@ -34,6 +34,7 @@ const NAV_ITEMS: Record<Role, { label: string; href: string; icon: React.Element
     { label: 'Lecturers', href: '/u/lecturers', icon: Users },
     { label: 'Timetable', href: '/u/timetable', icon: CalendarDays },
     { label: 'Settings', href: '/u/settings', icon: Settings },
+    { label: 'Notifications', href: '/u/notifications', icon: Bell },
   ],
   dean: [
     { label: 'Overview', href: '/u', icon: LayoutDashboard },

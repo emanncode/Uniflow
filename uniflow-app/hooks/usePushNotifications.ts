@@ -2,19 +2,23 @@ import { useEffect } from 'react'
 import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
+import Constants from 'expo-constants' // Added
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 
 // ─── Notification Handler ──────────────────────────────────────────────────
 // Controls how notifications appear when the app is in the foreground
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-})
+// Only set handler if not in Expo Go to avoid errors
+if (Constants.appOwnership !== 'expo') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  })
+}
 
 // ─── Hook ──────────────────────────────────────────────────────────────────
 
@@ -23,6 +27,12 @@ export function usePushNotifications() {
   const updateProfile = useAuthStore((s) => s.updateProfile)
 
   useEffect(() => {
+    // Only run if not in Expo Go
+    if (Constants.appOwnership === 'expo') {
+      console.log('[Push] Skipping – Expo Go not supported')
+      return
+    }
+
     if (!profile) return
 
     let mounted = true
