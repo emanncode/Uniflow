@@ -67,6 +67,10 @@ export default function RegistrationsPage() {
         throw new Error(result.error || 'Failed to approve university')
       }
 
+      if (result.tempPassword) {
+        alert(`University approved successfully!\n\nTemporary Password: ${result.tempPassword}\n\nPlease share this with the university admin. They can change it in settings once logged in.`)
+      }
+
       await fetchRegistrations()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred'

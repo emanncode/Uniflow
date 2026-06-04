@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { getSubdomain } from '@/lib/subdomain'
 import UniflowLogo from '@/components/ui/UniflowLogo'
 import {
   LayoutDashboard,
@@ -17,7 +18,7 @@ import {
   ChevronRight,
   Bell,
   Settings,
-  GraduationCap,
+  GraduationCap, AlertCircle,
 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -234,9 +235,33 @@ export default function UniversityPortalLayout({ children }: { children: React.R
   const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
+  const isAuthPage = pathname === '/u/login' || pathname === '/u/reset-password'
 
   useEffect(() => {
     async function loadSession() {
+        // 0. Verify university exists from subdomain
+        const subdomain = getSubdomain(window.location.hostname)
+        if (!subdomain || subdomain === 'super') {
+          setNotFound(true)
+          setLoading(false)
+          return
+        }
+        const shortName = subdomain.replace('-admin', '')
+        const { data: uniCheck } = await supabase
+          .from('universities')
+          .select('id')
+          .eq('short_name', shortName)
+          .eq('status', 'approved')
+          .single()
+
+        if (!uniCheck) {
+          setNotFound(true)
+          setLoading(false)
+          return
+        }
+
       try {
         console.log('Loading session for path:', pathname)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -250,7 +275,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         console.log('Session status:', !!session)
         
         if (!session) {
-          if (pathname !== '/u/login') {
+          if (!isAuthPage) {
             console.log('No session, redirecting to login')
             router.push('/u/login')
           } else {
@@ -269,7 +294,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         if (profileError) {
           console.error('Profile fetch error:', profileError)
           // On login page, don't block if profile fetch fails
-          if (pathname === '/u/login') {
+          if (isAuthPage) {
             setLoading(false)
             return
           }
@@ -281,7 +306,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         if (!profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
           console.log('Invalid profile or role:', profile?.role)
           await supabase.auth.signOut()
-          if (pathname !== '/u/login') {
+          if (!isAuthPage) {
             router.push('/u/login')
           } else {
             setLoading(false)
@@ -310,11 +335,30 @@ export default function UniversityPortalLayout({ children }: { children: React.R
       }
     }
     loadSession()
-  }, [pathname, router])
+  }, [pathname, router, isAuthPage])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.push('/u/login')
+  }
+
+  if (notFound) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ textAlign: 'center', maxWidth: '400px' }}>
+          <div style={{ width: '64px', height: '64px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <AlertCircle size={32} color="#ef4444" />
+          </div>
+          <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>Portal Not Found</h1>
+          <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+            The university portal you are looking for does not exist or has not been approved yet.
+          </p>
+          <button onClick={() => window.location.href = 'https://uniflow.com.ng'} className="btn-primary" style={{ padding: '12px 24px' }}>
+            Return to Homepage
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (loading) return (
@@ -327,7 +371,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
   )
 
   // Skip sidebar/topbar for login page
-  if (pathname === '/u/login') return <>{children}</>
+  if (isAuthPage) return <>{children}</>
 
   // If session loaded but no user data (e.g. fetch failed), still try to render children
   // though many pages might need the user object.
