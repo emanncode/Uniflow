@@ -32,6 +32,7 @@ const NAV_ITEMS: Record<Role, { label: string; href: string; icon: React.Element
     { label: 'Faculties', href: '/u/faculties', icon: BookOpen },
     { label: 'Departments', href: '/u/departments', icon: Building2 },
     { label: 'Lecturers', href: '/u/lecturers', icon: Users },
+    { label: 'Students', href: '/u/students', icon: GraduationCap },
     { label: 'Timetable', href: '/u/timetable', icon: CalendarDays },
     { label: 'Settings', href: '/u/settings', icon: Settings },
     { label: 'Notifications', href: '/u/notifications', icon: Bell },
@@ -141,6 +142,11 @@ const Sidebar = ({
               key={href}
               href={href}
               onClick={() => setSidebarOpen(false)}
+              className={`group border transition-all duration-150 ease-in-out ${
+                active
+                  ? 'border-[var(--border-brand)] bg-[var(--brand-muted)]'
+                  : 'border-transparent hover:bg-[var(--bg-hover)] hover:border-[var(--border-secondary)]'
+              }`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -149,20 +155,28 @@ const Sidebar = ({
                 borderRadius: '10px',
                 marginBottom: '2px',
                 textDecoration: 'none',
-                background: active ? 'var(--brand-muted)' : 'transparent',
-                border: active ? '1px solid var(--border-brand)' : '1px solid transparent',
-                transition: 'all 0.15s ease',
               }}
             >
               <Icon
                 size={16}
-                style={{ color: active ? 'var(--brand)' : 'var(--text-muted)', flexShrink: 0 }}
+                style={{ flexShrink: 0 }}
+                className={`transition-colors duration-150 ${
+                  active
+                    ? 'text-[var(--brand)]'
+                    : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'
+                }`}
               />
-              <span style={{
-                fontSize: '13px',
-                fontWeight: active ? 600 : 400,
-                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-              }}>
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: active ? 600 : 400,
+                }}
+                className={`transition-colors duration-150 ${
+                  active
+                    ? 'text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'
+                }`}
+              >
                 {label}
               </span>
               {active && (
@@ -197,6 +211,7 @@ const Sidebar = ({
         </div>
         <button
           onClick={onSignOut}
+          className="group w-100 border transition-all duration-150 ease-in-out bg-[var(--danger-muted)] border-[var(--danger-muted)] hover:bg-[var(--danger)] hover:border-[var(--danger)]"
           style={{
             width: '100%',
             display: 'flex',
@@ -204,14 +219,11 @@ const Sidebar = ({
             gap: '8px',
             padding: '9px 12px',
             borderRadius: '8px',
-            background: 'var(--danger-muted)',
-            border: '1px solid var(--danger-muted)',
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
           }}
         >
-          <LogOut size={14} style={{ color: 'var(--danger)' }} />
-          <span style={{ fontSize: '13px', color: 'var(--danger)', fontWeight: 500 }}>
+          <LogOut size={14} className="text-[var(--danger)] group-hover:text-white transition-colors duration-150" />
+          <span style={{ fontSize: '13px', fontWeight: 500 }} className="text-[var(--danger)] group-hover:text-white transition-colors duration-150">
             Sign Out
           </span>
         </button>

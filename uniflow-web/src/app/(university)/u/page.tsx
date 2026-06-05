@@ -20,6 +20,7 @@ interface Stats {
   faculties: number
   departments: number
   lecturers: number
+  students: number
   timetableSlots: number
 }
 
@@ -189,26 +190,30 @@ export default function UniversityOverviewPage() {
       if (uni) setUniName(uni.name)
 
       // Load stats in parallel
-      const [facRes, deptRes, lecRes, ttRes] = await Promise.all([
+      const [facRes, deptRes, ttRes, staffRes] = await Promise.all([
         supabase.from('faculties').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id),
         supabase.from('departments').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id).eq('role', 'lecturer'),
         supabase.from('timetable').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id),
+        fetch(`/api/staff?university_id=${profile.university_id}`).then(res => res.json())
       ])
+
+      const allProfiles = staffRes.data || [];
+      const lecturers = allProfiles.filter((p: any) => (p.role || '').toLowerCase().trim() === 'lecturer');
 
       setStats({
         faculties: facRes.count ?? 0,
         departments: deptRes.count ?? 0,
-        lecturers: lecRes.count ?? 0,
+        lecturers: lecturers.length,
         timetableSlots: ttRes.count ?? 0,
       })
 
       // Build recent activity from latest records
-      const [recentFac, recentDept, recentLec] = await Promise.all([
+      const [recentFac, recentDept] = await Promise.all([
         supabase.from('faculties').select('name, created_at').eq('university_id', profile.university_id).order('created_at', { ascending: false }).limit(3),
         supabase.from('departments').select('name, created_at').eq('university_id', profile.university_id).order('created_at', { ascending: false }).limit(3),
-        supabase.from('profiles').select('full_name, created_at').eq('university_id', profile.university_id).eq('role', 'lecturer').order('created_at', { ascending: false }).limit(3),
       ])
+
+      const recentLec = lecturers.slice(0, 3);
 
       const allActivity: RecentActivity[] = [
         ...(recentFac.data ?? []).map(r => ({
@@ -223,7 +228,7 @@ export default function UniversityOverviewPage() {
           label: `Department added — ${r.name}`,
           time: formatTime(r.created_at),
         })),
-        ...(recentLec.data ?? []).map(r => ({
+        ...(recentLec).map(r => ({
           id: r.full_name + r.created_at,
           type: 'lecturer_added' as const,
           label: `Lecturer onboarded — ${r.full_name}`,

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import {
-  Users,
+  GraduationCap,
   Plus,
   Search,
   X,
@@ -18,7 +18,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-interface Lecturer {
+interface Student {
   id: string
   full_name: string
   email: string
@@ -122,14 +122,14 @@ const STATUS_COLORS: Record<
   },
 };
 
-function LecturerRow({
-  lecturer,
+function StudentRow({
+  student,
   onDelete,
 }: {
-  lecturer: Lecturer;
+  student: Student;
   onDelete: (id: string) => void;
 }) {
-  const s = STATUS_COLORS[lecturer.status] ?? STATUS_COLORS.pending;
+  const s = STATUS_COLORS[student.status] ?? STATUS_COLORS.pending;
   return (
     <div
       style={{
@@ -155,7 +155,7 @@ function LecturerRow({
             width: "34px",
             height: "34px",
             borderRadius: "50%",
-            background: "var(--brand)",
+            background: "var(--brand-secondary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -163,7 +163,7 @@ function LecturerRow({
           }}
         >
           <span style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
-            {lecturer.full_name.charAt(0).toUpperCase()}
+            {student.full_name.charAt(0).toUpperCase()}
           </span>
         </div>
         <div>
@@ -174,10 +174,10 @@ function LecturerRow({
               color: "var(--text-primary)",
             }}
           >
-            {lecturer.full_name}
+            {student.full_name}
           </p>
           <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-            {lecturer.email} · <span style={{ color: 'var(--brand-lighter)', textTransform: 'capitalize' }}>{lecturer.role}</span>
+            {student.email}
           </p>
         </div>
       </div>
@@ -189,7 +189,7 @@ function LecturerRow({
           style={{ color: "var(--text-muted)", flexShrink: 0 }}
         />
         <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-          {lecturer.department_name ?? "—"}
+          {student.department_name ?? "—"}
         </span>
       </div>
 
@@ -208,12 +208,12 @@ function LecturerRow({
           letterSpacing: "0.05em",
         }}
       >
-        {lecturer.status}
+        {student.status}
       </span>
 
       {/* Delete */}
       <button
-        onClick={() => onDelete(lecturer.id)}
+        onClick={() => onDelete(student.id)}
         style={{
           background: "none",
           border: "none",
@@ -230,8 +230,8 @@ function LecturerRow({
   );
 }
 
-export default function LecturersPage() {
-  const [lecturers, setLecturers] = useState<Lecturer[]>([]);
+export default function StudentsPage() {
+  const [students, setStudents] = useState<Student[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [search, setSearch] = useState("");
   const [filterDept, setFilterDept] = useState("");
@@ -241,7 +241,6 @@ export default function LecturersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
-  const [totalDebugCount, setTotalDebugCount] = useState<number>(0);
   const [csvMode, setCsvMode] = useState(false);
   const [csvRows, setCsvRows] = useState<
     { name: string; email: string; dept: string }[]
@@ -251,7 +250,6 @@ export default function LecturersPage() {
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newDeptId, setNewDeptId] = useState("");
-  const [newRole, setNewRole] = useState<'lecturer' | 'dean' | 'hod'>('lecturer')
 
   useEffect(() => {
     loadData();
@@ -262,69 +260,43 @@ export default function LecturersPage() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) {
-      console.warn("No session found in loadData");
-      return;
-    }
+    if (!session) return;
 
-    const { data: profile, error: pErr } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
-      .select("university_id, role, department_id")
+      .select("university_id")
       .eq("id", session.user.id)
       .single();
-    
-    if (pErr) {
-      console.error("Error fetching user profile:", pErr);
-      setError("Failed to load profile: " + pErr.message);
-      setLoading(false);
-      return;
-    }
-    
-    if (!profile?.university_id) {
-      console.warn("User has no university_id associated with their profile");
-      setLoading(false);
-      return;
-    }
-    
+    if (!profile) return;
     setUniId(profile.university_id);
-    console.log("Loading data for university:", profile.university_id);
 
     try {
-      // 1. Fetch staff via API (service role proxy) to bypass RLS
-      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
-      const { data: allProfiles, error: sErr } = await staffRes.json()
-
-      if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch staff via API')
-
-      console.log(`LecturersPage: Found ${allProfiles?.length ?? 0} total profiles via API`);
-      setTotalDebugCount(allProfiles?.length ?? 0);
-
-      // 2. Fetch departments via Supabase (browser client)
-      const { data: deptData, error: deptErr } = await supabase
+      // 1. Fetch departments via Supabase
+      const { data: deptData } = await supabase
           .from("departments")
           .select("id, name, short_name")
           .eq("university_id", profile.university_id)
           .order("name");
 
-      if (deptErr) console.error("Error fetching departments:", deptErr);
-
       const deptMap: Record<string, string> = {};
       (deptData ?? []).forEach((d) => {
         deptMap[d.id] = d.name;
       });
-
-      const lecRoles = ['lecturer', 'dean', 'hod'];
-      const lecturersData = (allProfiles || []).filter(p => {
-        const normalizedRole = (p.role || "").toLowerCase().trim();
-        return lecRoles.includes(normalizedRole);
-      });
-
       setDepartments(deptData ?? []);
-      setLecturers(
-        lecturersData.map((l) => ({
+
+      // 2. Fetch students via API (service role proxy) to bypass RLS
+      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
+      const { data: allProfiles, error: sErr } = await staffRes.json()
+
+      if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch students via API')
+
+      const studentsData = (allProfiles || []).filter((p: any) => (p.role || "").toLowerCase().trim() === "student");
+
+      setStudents(
+        studentsData.map((l: any) => ({
           id: l.id,
-          full_name: l.full_name || "Unknown",
-          email: l.email || "",
+          full_name: l.full_name,
+          email: l.email,
           role: l.role,
           department_id: l.department_id,
           department_name: l.department_id
@@ -335,8 +307,8 @@ export default function LecturersPage() {
         })),
       );
     } catch (err: any) {
-      console.error("LecturersPage: Data loading failed:", err);
-      setError("Failed to load staff list: " + err.message);
+      console.error("StudentsPage: Data loading failed:", err);
+      setError("Failed to load student list: " + err.message);
     }
     
     setLoading(false);
@@ -347,7 +319,7 @@ export default function LecturersPage() {
     setError('')
     setSaving(true)
     try {
-      if (!uniId) throw new Error("University ID not found. Please refresh the page.");
+      if (!uniId) throw new Error("University ID not found.");
       
       const res = await fetch('/api/create-staff', {
         method: 'POST',
@@ -355,14 +327,14 @@ export default function LecturersPage() {
         body: JSON.stringify({
           full_name: newName.trim(),
           email: newEmail.trim().toLowerCase(),
-          role: newRole,
+          role: 'student',
           department_id: newDeptId || null,
           university_id: uniId,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      setNewName(''); setNewEmail(''); setNewDeptId(''); setNewRole('lecturer')
+      setNewName(''); setNewEmail(''); setNewDeptId('');
       setShowModal(false)
       await loadData()
     } catch (err: any) {
@@ -409,7 +381,6 @@ export default function LecturersPage() {
       let failCount = 0;
       let lastError = "";
 
-      // We process sequentially to avoid overwhelming the auth rate limits
       for (const row of csvRows) {
         try {
           const res = await fetch('/api/create-staff', {
@@ -420,7 +391,7 @@ export default function LecturersPage() {
               email: row.email.toLowerCase(),
               department_id: row.dept ? (deptMap[row.dept.toLowerCase()] ?? null) : null,
               university_id: uniId,
-              role: "lecturer",
+              role: "student",
             }),
           });
           
@@ -438,7 +409,7 @@ export default function LecturersPage() {
       }
 
       if (failCount > 0) {
-        setError(`Imported ${successCount} staff members. ${failCount} failed. Last error: ${lastError}`);
+        setError(`Imported ${successCount} students. ${failCount} failed. Last error: ${lastError}`);
       } else {
         setCsvMode(false);
         setCsvRows([]);
@@ -454,12 +425,12 @@ export default function LecturersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Remove this lecturer from the portal?")) return;
+    if (!confirm("Remove this student from the portal?")) return;
     await supabase.from("profiles").delete().eq("id", id);
     await loadData();
   }
 
-  const filtered = lecturers.filter((l) => {
+  const filtered = students.filter((l) => {
     const matchSearch =
       (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
       (l.email || "").toLowerCase().includes(search.toLowerCase());
@@ -467,12 +438,6 @@ export default function LecturersPage() {
     const matchStatus = !filterStatus || l.status === filterStatus;
     return matchSearch && matchDept && matchStatus;
   });
-
-  const counts = {
-    total: lecturers.length,
-    active: lecturers.filter((l) => l.status === "active").length,
-    pending: lecturers.filter((l) => l.status === "pending").length,
-  };
 
   return (
     <div>
@@ -495,11 +460,10 @@ export default function LecturersPage() {
               marginBottom: "4px",
             }}
           >
-            Staff
+            Students
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {counts.total} total · {counts.active} active · {counts.pending}{" "}
-            pending
+            {students.length} total students · Manage and onboard
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -536,7 +500,7 @@ export default function LecturersPage() {
               flexShrink: 0,
             }}
           >
-            <Plus size={15} /> Add Staff
+            <Plus size={15} /> Add Student
           </button>
         </div>
       </div>
@@ -563,7 +527,7 @@ export default function LecturersPage() {
           />
           <input
             type="text"
-            placeholder="Search lecturers..."
+            placeholder="Search students..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="input"
@@ -645,7 +609,7 @@ export default function LecturersPage() {
             background: "var(--bg-secondary)",
           }}
         >
-          {["Staff", "Department", "Status", ""].map((h) => (
+          {["Student", "Department", "Status", ""].map((h) => (
             <span
               key={h}
               style={{
@@ -677,19 +641,19 @@ export default function LecturersPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 0" }}>
-            <Users
+            <GraduationCap
               size={32}
               style={{ color: "var(--text-muted)", marginBottom: "12px" }}
             />
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
               {search || filterDept || filterStatus
-                ? "No staff match your filters."
-                : "No staff yet. Add or upload a CSV to get started."}
+                ? "No students match your filters."
+                : "No students yet. Add or upload a CSV to get started."}
             </p>
           </div>
         ) : (
           filtered.map((l) => (
-            <LecturerRow key={l.id} lecturer={l} onDelete={handleDelete} />
+            <StudentRow key={l.id} student={l} onDelete={handleDelete} />
           ))
         )}
       </div>
@@ -713,7 +677,7 @@ export default function LecturersPage() {
       {showModal && (
         <Modal
           title={
-            csvMode ? `Import ${csvRows.length} Staff` : "Add Staff"
+            csvMode ? `Import ${csvRows.length} Students` : "Add Student"
           }
           onClose={() => {
             setShowModal(false);
@@ -812,7 +776,7 @@ export default function LecturersPage() {
                   {saving ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    `Import ${csvRows.length} Staff`
+                    `Import ${csvRows.length} Students`
                   )}
                 </button>
               </div>
@@ -863,7 +827,7 @@ export default function LecturersPage() {
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Dr. John Adeyemi"
+                    placeholder="John Doe"
                     className="input"
                     style={{
                       width: "100%",
@@ -896,49 +860,12 @@ export default function LecturersPage() {
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="lecturer@university.edu"
+                    placeholder="student@university.edu"
                     className="input"
                     style={{
                       width: "100%",
                       paddingLeft: "36px",
                       boxSizing: "border-box",
-                    }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  className="label"
-                  style={{ display: "block", marginBottom: "8px" }}
-                >
-                  Role
-                </label>
-                <div style={{ position: "relative" }}>
-                  <select
-                    value={newRole}
-                    onChange={(e) =>
-                      setNewRole(e.target.value as "lecturer" | "dean" | "hod")
-                    }
-                    className="select"
-                    style={{
-                      width: "100%",
-                      paddingRight: "32px",
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    <option value="lecturer">Lecturer</option>
-                    <option value="dean">Dean</option>
-                    <option value="hod">Head of Department (HOD)</option>
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                      pointerEvents: "none",
                     }}
                   />
                 </div>
@@ -1011,7 +938,7 @@ export default function LecturersPage() {
                   {saving ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    "Add Staff"
+                    "Add Student"
                   )}
                 </button>
               </div>

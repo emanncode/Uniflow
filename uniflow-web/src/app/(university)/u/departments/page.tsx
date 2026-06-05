@@ -184,42 +184,46 @@ export default function DepartmentsPage() {
     setUniId(profile.university_id)
     console.log("DepartmentsPage: Loading data for university:", profile.university_id);
 
-    const [facRes, deptRes, hodRes] = await Promise.all([
-      supabase.from('faculties').select('id, name, short_name').eq('university_id', profile.university_id).order('name'),
-      supabase.from('departments').select('id, name, short_name, faculty_id, hod_id, created_at, faculties(name)').eq('university_id', profile.university_id).order('created_at', { ascending: false }),
-      supabase.from('profiles').select('id, full_name, email, role, status').eq('university_id', profile.university_id).eq('role', 'hod'),
-    ])
+    try {
+      // 1. Fetch faculties via Supabase
+      const facRes = await supabase.from('faculties').select('id, name, short_name').eq('university_id', profile.university_id).order('name');
+      if (facRes.error) console.error("Error fetching faculties:", facRes.error);
 
-    if (hodRes.error) {
-      console.error("Error fetching HODs:", hodRes.error);
-    } else {
-      console.log(`Fetched ${hodRes.data?.length ?? 0} HODs`);
-      if (hodRes.data && hodRes.data.length > 0) {
-        console.log("Sample HOD data:", hodRes.data[0]);
-      }
+      // 2. Fetch departments via Supabase
+      const deptRes = await supabase.from('departments').select('id, name, short_name, faculty_id, hod_id, created_at, faculties(name)').eq('university_id', profile.university_id).order('created_at', { ascending: false });
+      if (deptRes.error) console.error("Error fetching departments:", deptRes.error);
+
+      // 3. Fetch staff via API (service role proxy) to bypass RLS
+      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
+      const { data: allProfiles, error: sErr } = await staffRes.json()
+
+      if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch staff via API')
+
+      const hodData = (allProfiles || []).filter(p => (p.role || "").toLowerCase().trim() === "hod");
+      console.log(`DepartmentsPage: Filtered ${hodData.length} HODs via API`);
+
+      const facMap: Record<string, string> = {}
+      ;(facRes.data ?? []).forEach(f => { facMap[f.id] = f.name })
+
+      const hodMap: Record<string, string> = {}
+      hodData.forEach(h => { hodMap[h.id] = h.full_name })
+
+      setFaculties(facRes.data ?? [])
+      setHods(hodData)
+      setDepartments((deptRes.data ?? []).map(d => ({
+        id:           d.id,
+        name:         d.name,
+        short_name:   d.short_name,
+        faculty_id:   d.faculty_id,
+        faculty_name: (Array.isArray(d.faculties) ? d.faculties[0]?.name : (d.faculties as { name: string } | null)?.name) ?? facMap[d.faculty_id] ?? '—',
+        hod_id:       d.hod_id,
+        hod_name:     d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
+        created_at:   d.created_at,
+      })))
+    } catch (err: any) {
+      console.error("DepartmentsPage: Data loading failed:", err);
     }
-
-    if (facRes.error) console.error("Error fetching faculties:", facRes.error);
-    if (deptRes.error) console.error("Error fetching departments:", deptRes.error);
-
-    const facMap: Record<string, string> = {}
-    ;(facRes.data ?? []).forEach(f => { facMap[f.id] = f.name })
-
-    const hodMap: Record<string, string> = {}
-    ;(hodRes.data ?? []).forEach(h => { hodMap[h.id] = h.full_name })
-
-    setFaculties(facRes.data ?? [])
-    setHods(hodRes.data ?? [])
-    setDepartments((deptRes.data ?? []).map(d => ({
-      id:           d.id,
-      name:         d.name,
-      short_name:   d.short_name,
-      faculty_id:   d.faculty_id,
-      faculty_name: (Array.isArray(d.faculties) ? d.faculties[0]?.name : (d.faculties as { name: string } | null)?.name) ?? facMap[d.faculty_id] ?? '—',
-      hod_id:       d.hod_id,
-      hod_name:     d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
-      created_at:   d.created_at,
-    })))
+    
     setLoading(false)
   }
 

@@ -19,6 +19,7 @@ interface Faculty {
   id: string;
   name: string;
   short_name: string;
+  logo_url: string | null;
   dean_id: string | null;
   dean_name: string | null;
   dept_count: number;
@@ -62,6 +63,8 @@ function Modal({
           border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: "16px",
           padding: "28px",
+          maxHeight: "90vh",
+          overflowY: "auto",
         }}
       >
         <div
@@ -104,13 +107,27 @@ function FacultyCard({
   deans,
   onAssignDean,
   onDelete,
+  onLogoUpload,
 }: {
   faculty: Faculty;
   deans: Profile[];
   onAssignDean: (facultyId: string, deanId: string) => void;
   onDelete: (id: string) => void;
+  onLogoUpload: (id: string, file: File) => Promise<void>;
 }) {
   const [assigning, setAssigning] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await onLogoUpload(faculty.id, file);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div
@@ -144,18 +161,45 @@ function FacultyCard({
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div
             style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "10px",
+              width: "48px",
+              height: "48px",
+              borderRadius: "12px",
               background: "var(--brand-muted)",
               border: "1px solid var(--border-brand)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              overflow: "hidden",
+              position: "relative",
             }}
           >
-            <BookOpen size={18} style={{ color: "var(--brand)" }} />
+            {faculty.logo_url ? (
+              <img 
+                src={faculty.logo_url} 
+                alt={faculty.name} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              <BookOpen size={24} style={{ color: "var(--brand)" }} />
+            )}
+            
+            <label style={{
+              position: 'absolute', inset: 0, 
+              background: 'rgba(0,0,0,0.5)', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: uploading ? 1 : 0, 
+              cursor: 'pointer', transition: 'opacity 0.2s',
+            }}
+            className="hover-opacity"
+            >
+              {uploading ? (
+                <Loader2 size={16} className="animate-spin" color="#fff" />
+              ) : (
+                <Plus size={16} color="#fff" />
+              )}
+              <input type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} disabled={uploading} />
+            </label>
           </div>
           <div>
             <p
@@ -346,6 +390,10 @@ function FacultyCard({
           </div>
         )}
       </div>
+
+      <style>{`
+        .hover-opacity:hover { opacity: 1 !important; }
+      `}</style>
     </div>
   );
 }
@@ -397,62 +445,58 @@ export default function FacultiesPage() {
     setUniId(profile.university_id);
     console.log("FacultiesPage: Loading data for university:", profile.university_id);
 
-    const { data: facData, error: fErr } = await supabase
-      .from("faculties")
-      .select(`id, name, short_name, dean_id, created_at`)
-      .eq("university_id", profile.university_id)
-      .order("created_at", { ascending: false });
+    try {
+      // 1. Fetch faculties via Supabase (browser client)
+      const { data: facData, error: fErr } = await supabase
+        .from("faculties")
+        .select(`id, name, short_name, logo_url, dean_id, created_at`)
+        .eq("university_id", profile.university_id)
+        .order("created_at", { ascending: false });
 
-    if (fErr) console.error("Error fetching faculties:", fErr);
+      if (fErr) console.error("Error fetching faculties:", fErr);
 
-    // get dept counts separately
-    const { data: deptCounts } = await supabase
-      .from("departments")
-      .select("faculty_id")
-      .eq("university_id", profile.university_id);
+      // 2. Fetch departments via Supabase
+      const { data: deptCounts } = await supabase
+        .from("departments")
+        .select("faculty_id")
+        .eq("university_id", profile.university_id);
 
-    const countMap: Record<string, number> = {};
-    (deptCounts ?? []).forEach((d) => {
-      countMap[d.faculty_id] = (countMap[d.faculty_id] ?? 0) + 1;
-    });
+      const countMap: Record<string, number> = {};
+      (deptCounts ?? []).forEach((d) => {
+        countMap[d.faculty_id] = (countMap[d.faculty_id] ?? 0) + 1;
+      });
 
-    const { data: allProfiles, error: sErr } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, role, status, university_id")
-      .eq("university_id", profile.university_id);
+      // 3. Fetch staff via API (service role proxy) to bypass RLS
+      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
+      const { data: allProfiles, error: sErr } = await staffRes.json()
 
-    if (sErr) {
-      console.error("FacultiesPage: Error fetching ALL staff profiles:", sErr);
-    } else {
-      console.log(`FacultiesPage: Found ${allProfiles?.length ?? 0} total profiles for uni ${profile.university_id}`);
+      if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch staff via API')
+
+      const deanData = (allProfiles || []).filter(p => (p.role || "").toLowerCase().trim() === "dean");
+      console.log(`FacultiesPage: Filtered ${deanData.length} deans via API`);
+
+      const deanMap: Record<string, string> = {};
+      deanData.forEach((d) => {
+        deanMap[d.id] = d.full_name;
+      });
+
+      setFaculties(
+        (facData ?? []).map((f) => ({
+          id: f.id,
+          name: f.name,
+          short_name: f.short_name,
+          logo_url: f.logo_url,
+          dean_id: f.dean_id,
+          dean_name: f.dean_id ? (deanMap[f.dean_id] ?? null) : null,
+          dept_count: countMap[f.id] ?? 0,
+          created_at: f.created_at,
+        })),
+      );
+      setDeans(deanData);
+    } catch (err: any) {
+      console.error("FacultiesPage: Data loading failed:", err);
     }
-
-    const deanData = allProfiles?.filter(p => {
-      const normalizedRole = (p.role || "").toLowerCase().trim();
-      const isMatch = normalizedRole === "dean";
-      console.log(`FacultiesPage: Checking profile ${p.full_name}: role='${p.role}', normalized='${normalizedRole}', match=${isMatch}`);
-      return isMatch;
-    }) ?? [];
-
-    console.log(`FacultiesPage: Filtered ${deanData.length} deans`);
-
-    const deanMap: Record<string, string> = {};
-    deanData.forEach((d) => {
-      deanMap[d.id] = d.full_name;
-    });
-
-    setFaculties(
-      (facData ?? []).map((f) => ({
-        id: f.id,
-        name: f.name,
-        short_name: f.short_name,
-        dean_id: f.dean_id,
-        dean_name: f.dean_id ? (deanMap[f.dean_id] ?? null) : null,
-        dept_count: countMap[f.id] ?? 0,
-        created_at: f.created_at,
-      })),
-    );
-    setDeans(deanData);
+    
     setLoading(false);
   }
 
@@ -484,6 +528,34 @@ export default function FacultiesPage() {
       .update({ dean_id: deanId })
       .eq("id", facultyId);
     await loadData();
+  }
+
+  async function handleLogoUpload(facultyId: string, file: File) {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `faculties/${facultyId}-${Math.random()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('resources')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('resources')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('faculties')
+        .update({ logo_url: publicUrl })
+        .eq('id', facultyId);
+
+      if (updateError) throw updateError;
+      
+      await loadData();
+    } catch (err: any) {
+      alert("Logo upload failed: " + err.message);
+    }
   }
 
   async function handleDelete(id: string) {
@@ -619,6 +691,7 @@ export default function FacultiesPage() {
               deans={deans}
               onAssignDean={handleAssignDean}
               onDelete={handleDelete}
+              onLogoUpload={handleLogoUpload}
             />
           ))}
         </div>
