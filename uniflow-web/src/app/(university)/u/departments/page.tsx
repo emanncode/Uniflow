@@ -10,7 +10,7 @@ import {
 interface Department {
   id:          string
   name:        string
-  code:        string
+  short_name:  string
   faculty_id:  string
   faculty_name: string
   hod_id:      string | null
@@ -18,7 +18,7 @@ interface Department {
   created_at:  string
 }
 
-interface Faculty  { id: string; name: string; code: string }
+interface Faculty  { id: string; name: string; short_name: string }
 interface Profile  { id: string; full_name: string; email: string }
 
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -70,7 +70,7 @@ function DeptRow({
             border: '1px solid var(--border-brand)',
             borderRadius: '4px', padding: '1px 5px',
           }}>
-            {dept.code}
+            {dept.short_name}
           </span>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
             {dept.faculty_name}
@@ -154,26 +154,53 @@ export default function DepartmentsPage() {
   const [error,       setError]       = useState('')
   const [uniId,       setUniId]       = useState<string | null>(null)
 
-  const [newName,      setNewName]      = useState('')
-  const [newCode,      setNewCode]      = useState('')
-  const [newFacultyId, setNewFacultyId] = useState('')
+  const [newName,         setNewName]      = useState('')
+  const [newShortName,    setNewShortName] = useState('')
+  const [newFacultyId,    setNewFacultyId] = useState('')
 
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
     setLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
+    if (!session) {
+      console.warn("No session found in DepartmentsPage loadData");
+      return;
+    }
 
-    const { data: profile } = await supabase.from('profiles').select('university_id, role, faculty_id').eq('id', session.user.id).single()
-    if (!profile) return
+    const { data: profile, error: pErr } = await supabase.from('profiles').select('university_id, role, faculty_id').eq('id', session.user.id).single()
+    if (pErr) {
+      console.error("Error fetching profile in DepartmentsPage:", pErr);
+      setLoading(false);
+      return;
+    }
+    
+    if (!profile?.university_id) {
+      console.warn("User has no university_id in DepartmentsPage");
+      setLoading(false);
+      return;
+    }
+
     setUniId(profile.university_id)
+    console.log("DepartmentsPage: Loading data for university:", profile.university_id);
 
     const [facRes, deptRes, hodRes] = await Promise.all([
-      supabase.from('faculties').select('id, name, code').eq('university_id', profile.university_id).order('name'),
-      supabase.from('departments').select('id, name, code, faculty_id, hod_id, created_at, faculties(name)').eq('university_id', profile.university_id).order('created_at', { ascending: false }),
-      supabase.from('profiles').select('id, full_name, email').eq('university_id', profile.university_id).eq('role', 'hod'),
+      supabase.from('faculties').select('id, name, short_name').eq('university_id', profile.university_id).order('name'),
+      supabase.from('departments').select('id, name, short_name, faculty_id, hod_id, created_at, faculties(name)').eq('university_id', profile.university_id).order('created_at', { ascending: false }),
+      supabase.from('profiles').select('id, full_name, email, role, status').eq('university_id', profile.university_id).eq('role', 'hod'),
     ])
+
+    if (hodRes.error) {
+      console.error("Error fetching HODs:", hodRes.error);
+    } else {
+      console.log(`Fetched ${hodRes.data?.length ?? 0} HODs`);
+      if (hodRes.data && hodRes.data.length > 0) {
+        console.log("Sample HOD data:", hodRes.data[0]);
+      }
+    }
+
+    if (facRes.error) console.error("Error fetching faculties:", facRes.error);
+    if (deptRes.error) console.error("Error fetching departments:", deptRes.error);
 
     const facMap: Record<string, string> = {}
     ;(facRes.data ?? []).forEach(f => { facMap[f.id] = f.name })
@@ -186,7 +213,7 @@ export default function DepartmentsPage() {
     setDepartments((deptRes.data ?? []).map(d => ({
       id:           d.id,
       name:         d.name,
-      code:         d.code,
+      short_name:   d.short_name,
       faculty_id:   d.faculty_id,
       faculty_name: (Array.isArray(d.faculties) ? d.faculties[0]?.name : (d.faculties as { name: string } | null)?.name) ?? facMap[d.faculty_id] ?? '—',
       hod_id:       d.hod_id,
@@ -203,12 +230,12 @@ export default function DepartmentsPage() {
     try {
       const { error: err } = await supabase.from('departments').insert({
         name: newName.trim(),
-        code: newCode.trim().toUpperCase(),
+        short_name: newShortName.trim().toUpperCase(),
         faculty_id: newFacultyId,
         university_id: uniId,
       })
       if (err) throw new Error(err.message)
-      setNewName(''); setNewCode(''); setNewFacultyId('')
+      setNewName(''); setNewShortName(''); setNewFacultyId('')
       setShowModal(false)
       await loadData()
     } catch (err: unknown) {
@@ -230,7 +257,7 @@ export default function DepartmentsPage() {
   }
 
   const filtered = departments.filter(d => {
-    const matchSearch = d.name.toLowerCase().includes(search.toLowerCase()) || d.code.toLowerCase().includes(search.toLowerCase())
+    const matchSearch = d.name.toLowerCase().includes(search.toLowerCase()) || d.short_name.toLowerCase().includes(search.toLowerCase())
     const matchFac    = !filterFac || d.faculty_id === filterFac
     return matchSearch && matchFac
   })
@@ -314,8 +341,8 @@ export default function DepartmentsPage() {
               <input required type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="e.g. Computer Science" className="input" style={{ width: '100%', boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label className="label" style={{ display: 'block', marginBottom: '8px' }}>Department Code</label>
-              <input required type="text" value={newCode} onChange={e => setNewCode(e.target.value)} placeholder="e.g. CSC" className="input" style={{ width: '100%', boxSizing: 'border-box' }} maxLength={10} />
+              <label className="label" style={{ display: 'block', marginBottom: '8px' }}>Short Name</label>
+              <input required type="text" value={newShortName} onChange={e => setNewShortName(e.target.value)} placeholder="e.g. CSC" className="input" style={{ width: '100%', boxSizing: 'border-box' }} maxLength={10} />
             </div>
             <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
               <button type="button" onClick={() => { setShowModal(false); setError('') }} className="btn-secondary" style={{ flex: 1 }}>Cancel</button>

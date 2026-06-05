@@ -371,21 +371,39 @@ export default function FacultiesPage() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      console.warn("No session found in FacultiesPage loadData");
+      return;
+    }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: pErr } = await supabase
       .from("profiles")
       .select("university_id")
       .eq("id", session.user.id)
       .single();
-    if (!profile) return;
-    setUniId(profile.university_id);
+    
+    if (pErr) {
+      console.error("Error fetching admin profile:", pErr);
+      setLoading(false);
+      return;
+    }
 
-    const { data: facData } = await supabase
+    if (!profile?.university_id) {
+      console.warn("Admin has no university_id");
+      setLoading(false);
+      return;
+    }
+
+    setUniId(profile.university_id);
+    console.log("FacultiesPage: Loading data for university:", profile.university_id);
+
+    const { data: facData, error: fErr } = await supabase
       .from("faculties")
       .select(`id, name, short_name, dean_id, created_at`)
       .eq("university_id", profile.university_id)
       .order("created_at", { ascending: false });
+
+    if (fErr) console.error("Error fetching faculties:", fErr);
 
     // get dept counts separately
     const { data: deptCounts } = await supabase
@@ -398,14 +416,28 @@ export default function FacultiesPage() {
       countMap[d.faculty_id] = (countMap[d.faculty_id] ?? 0) + 1;
     });
 
-    const { data: deanData } = await supabase
+    const { data: allProfiles, error: sErr } = await supabase
       .from("profiles")
-      .select("id, full_name, email")
-      .eq("university_id", profile.university_id)
-      .eq("role", "dean");
+      .select("id, full_name, email, role, status, university_id")
+      .eq("university_id", profile.university_id);
+
+    if (sErr) {
+      console.error("FacultiesPage: Error fetching ALL staff profiles:", sErr);
+    } else {
+      console.log(`FacultiesPage: Found ${allProfiles?.length ?? 0} total profiles for uni ${profile.university_id}`);
+    }
+
+    const deanData = allProfiles?.filter(p => {
+      const normalizedRole = (p.role || "").toLowerCase().trim();
+      const isMatch = normalizedRole === "dean";
+      console.log(`FacultiesPage: Checking profile ${p.full_name}: role='${p.role}', normalized='${normalizedRole}', match=${isMatch}`);
+      return isMatch;
+    }) ?? [];
+
+    console.log(`FacultiesPage: Filtered ${deanData.length} deans`);
 
     const deanMap: Record<string, string> = {};
-    (deanData ?? []).forEach((d) => {
+    deanData.forEach((d) => {
       deanMap[d.id] = d.full_name;
     });
 
@@ -420,7 +452,7 @@ export default function FacultiesPage() {
         created_at: f.created_at,
       })),
     );
-    setDeans(deanData ?? []);
+    setDeans(deanData);
     setLoading(false);
   }
 

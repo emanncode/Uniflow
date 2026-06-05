@@ -290,7 +290,7 @@ export default function UniversityPortalLayout({ children }: { children: React.R
           .from('universities')
           .select('name, short_name')
           .eq('id', profile.university_id)
-          .single()
+          .maybeSingle()
 
         if (uniError) {
           console.error('University fetch error:', uniError)

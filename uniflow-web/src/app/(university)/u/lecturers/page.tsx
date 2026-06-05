@@ -32,7 +32,7 @@ interface Lecturer {
 interface Department {
   id: string
   name: string
-  code: string
+  short_name: string
 }
 
 function Modal({
@@ -241,6 +241,7 @@ export default function LecturersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
+  const [totalDebugCount, setTotalDebugCount] = useState<number>(0);
   const [csvMode, setCsvMode] = useState(false);
   const [csvRows, setCsvRows] = useState<
     { name: string; email: string; dept: string }[]
@@ -261,41 +262,77 @@ export default function LecturersPage() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) {
+      console.warn("No session found in loadData");
+      return;
+    }
 
-    const { data: profile } = await supabase
+    const { data: profile, error: pErr } = await supabase
       .from("profiles")
       .select("university_id, role, department_id")
       .eq("id", session.user.id)
       .single();
-    if (!profile) return;
+    
+    if (pErr) {
+      console.error("Error fetching user profile:", pErr);
+      setError("Failed to load profile: " + pErr.message);
+      setLoading(false);
+      return;
+    }
+    
+    if (!profile?.university_id) {
+      console.warn("User has no university_id associated with their profile");
+      setLoading(false);
+      return;
+    }
+    
     setUniId(profile.university_id);
+    console.log("Loading data for university:", profile.university_id);
 
-    const [lecRes, deptRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, full_name, email, department_id, status, role, created_at")
-        .in("role", ['lecturer', 'dean', 'hod'])
-        .eq("university_id", profile.university_id)
-        .order("created_at", { ascending: false }),
-      supabase
+    const { data: allProfiles, error: sErr } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, department_id, status, role, created_at, university_id")
+      .eq("university_id", profile.university_id);
+
+    if (sErr) {
+      console.error("Error fetching staff profiles:", sErr);
+      setError("Failed to load staff list: " + sErr.message);
+      setLoading(false);
+      return;
+    }
+
+    console.log(`LecturersPage: Found ${allProfiles?.length ?? 0} total profiles for uni ${profile.university_id}`);
+    setTotalDebugCount(allProfiles?.length ?? 0);
+
+    const lecRoles = ['lecturer', 'dean', 'hod'];
+    const lecturersData = allProfiles?.filter(p => {
+      const normalizedRole = (p.role || "").toLowerCase().trim();
+      const isMatch = lecRoles.includes(normalizedRole);
+      console.log(`Checking profile ${p.full_name}: role='${p.role}', normalized='${normalizedRole}', match=${isMatch}`);
+      return isMatch;
+    }) ?? [];
+
+    console.log(`LecturersPage: Filtered ${lecturersData.length} lecturers/deans/hods`);
+
+    const { data: deptData, error: deptErr } = await supabase
         .from("departments")
-        .select("id, name, code")
+        .select("id, name, short_name")
         .eq("university_id", profile.university_id)
-        .order("name"),
-    ]);
+        .order("name");
+
+    if (deptErr) console.error("Error fetching departments:", deptErr);
 
     const deptMap: Record<string, string> = {};
-    (deptRes.data ?? []).forEach((d) => {
+    (deptData ?? []).forEach((d) => {
       deptMap[d.id] = d.name;
     });
 
-    setDepartments(deptRes.data ?? []);
+    setDepartments(deptData ?? []);
     setLecturers(
-      (lecRes.data ?? []).map((l) => ({
+      lecturersData.map((l) => ({
         id: l.id,
-        full_name: l.full_name,
-        email: l.email,
+        full_name: l.full_name || "Unknown",
+        email: l.email || "",
         role: l.role,
         department_id: l.department_id,
         department_name: l.department_id
@@ -309,29 +346,32 @@ export default function LecturersPage() {
   }
 
   async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setSaving(true);
+    e.preventDefault()
+    setError('')
+    setSaving(true)
     try {
-      const { error: err } = await supabase.from("profiles").insert({
-        full_name: newName.trim(),
-        email: newEmail.trim().toLowerCase(),
-        department_id: newDeptId || null,
-        university_id: uniId,
-        role: newRole,
-        status: "pending",
-      });
-      if (err) throw new Error(err.message);
-      setNewName("");
-      setNewEmail("");
-      setNewDeptId("");
-      setNewRole("lecturer");
-      setShowModal(false);
-      await loadData();
-    } catch (err: unknown) {
-      setError((err as Error).message);
+      if (!uniId) throw new Error("University ID not found. Please refresh the page.");
+      
+      const res = await fetch('/api/create-staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: newName.trim(),
+          email: newEmail.trim().toLowerCase(),
+          role: newRole,
+          department_id: newDeptId || null,
+          university_id: uniId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setNewName(''); setNewEmail(''); setNewDeptId(''); setNewRole('lecturer')
+      setShowModal(false)
+      await loadData()
+    } catch (err: any) {
+      setError(err.message)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
   }
 
@@ -360,26 +400,54 @@ export default function LecturersPage() {
     setSaving(true);
     setError("");
     try {
+      if (!uniId) throw new Error("University ID not found.");
+
       const deptMap: Record<string, string> = {};
       departments.forEach((d) => {
         deptMap[d.name.toLowerCase()] = d.id;
-        deptMap[d.code.toLowerCase()] = d.id;
+        deptMap[d.short_name.toLowerCase()] = d.id;
       });
 
-      const inserts = csvRows.map((r) => ({
-        full_name: r.name,
-        email: r.email.toLowerCase(),
-        department_id: r.dept ? (deptMap[r.dept.toLowerCase()] ?? null) : null,
-        university_id: uniId,
-        role: "lecturer",
-        status: "pending",
-      }));
+      let successCount = 0;
+      let failCount = 0;
+      let lastError = "";
 
-      const { error: err } = await supabase.from("profiles").insert(inserts);
-      if (err) throw new Error(err.message);
-      setCsvMode(false);
-      setCsvRows([]);
-      setShowModal(false);
+      // We process sequentially to avoid overwhelming the auth rate limits
+      for (const row of csvRows) {
+        try {
+          const res = await fetch('/api/create-staff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              full_name: row.name,
+              email: row.email.toLowerCase(),
+              department_id: row.dept ? (deptMap[row.dept.toLowerCase()] ?? null) : null,
+              university_id: uniId,
+              role: "lecturer",
+            }),
+          });
+          
+          if (res.ok) {
+            successCount++;
+          } else {
+            const data = await res.json();
+            failCount++;
+            lastError = data.error;
+          }
+        } catch (err) {
+          failCount++;
+          lastError = (err as Error).message;
+        }
+      }
+
+      if (failCount > 0) {
+        setError(`Imported ${successCount} staff members. ${failCount} failed. Last error: ${lastError}`);
+      } else {
+        setCsvMode(false);
+        setCsvRows([]);
+        setShowModal(false);
+      }
+      
       await loadData();
     } catch (err: unknown) {
       setError((err as Error).message);
@@ -396,8 +464,8 @@ export default function LecturersPage() {
 
   const filtered = lecturers.filter((l) => {
     const matchSearch =
-      l.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      l.email.toLowerCase().includes(search.toLowerCase());
+      (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (l.email || "").toLowerCase().includes(search.toLowerCase());
     const matchDept = !filterDept || l.department_id === filterDept;
     const matchStatus = !filterStatus || l.status === filterStatus;
     return matchSearch && matchDept && matchStatus;
@@ -411,6 +479,28 @@ export default function LecturersPage() {
 
   return (
     <div>
+      {/* Debug Panel */}
+      <div style={{ 
+        marginBottom: '20px', 
+        padding: '12px', 
+        background: 'rgba(59, 130, 246, 0.1)', 
+        border: '1px solid rgba(59, 130, 246, 0.2)', 
+        borderRadius: '8px',
+        fontSize: '12px',
+        color: 'var(--text-muted)'
+      }}>
+        <p><strong>Debug Info:</strong></p>
+        <p>Uni ID: {uniId || "Loading..."}</p>
+        <p>Filtered Staff Count: {lecturers.length}</p>
+        <p>Total University Profiles: {totalDebugCount}</p>
+        
+        {totalDebugCount === 1 && (
+          <div style={{ marginTop: '10px', padding: '8px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '4px', color: 'var(--warning)' }}>
+            <p><strong>⚠️ RLS Policy Detected:</strong> The database only returned your own profile. You likely need to add an RLS policy in Supabase to allow admins to view other staff in the same university.</p>
+          </div>
+        )}
+      </div>
+
       <div
         style={{
           display: "flex",
