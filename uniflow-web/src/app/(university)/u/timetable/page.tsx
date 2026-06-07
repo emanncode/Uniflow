@@ -165,15 +165,13 @@ function SlotCard({
   slot: TimetableSlot;
   onDelete: (id: string) => void;
 }) {
-  const color = DAY_COLORS[slot.day] ?? "var(--info)";
-  const mutedColor = DAY_MUTED_COLORS[slot.day] ?? "var(--info-muted)";
   return (
     <div
       style={{
         background: slot.conflict ? "var(--danger-muted)" : "var(--bg-card)",
-        border: `1px solid ${slot.conflict ? "rgba(239,68,68,0.3)" : "var(--border-primary)"}`,
-        borderRadius: "var(--radius-md)",
-        padding: "14px",
+        border: `1px solid ${slot.conflict ? "rgba(239,68,68,0.2)" : "var(--border-primary)"}`,
+        borderRadius: "var(--radius-sm)",
+        padding: "12px",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -183,16 +181,12 @@ function SlotCard({
         if (!slot.conflict) {
           (e.currentTarget as HTMLElement).style.borderColor =
             "var(--border-secondary)";
-          (e.currentTarget as HTMLElement).style.backgroundColor =
-            "var(--bg-hover)";
         }
       }}
       onMouseLeave={(e) => {
         if (!slot.conflict) {
           (e.currentTarget as HTMLElement).style.borderColor =
             "var(--border-primary)";
-          (e.currentTarget as HTMLElement).style.backgroundColor =
-            "var(--bg-card)";
         }
       }}
     >
@@ -203,16 +197,16 @@ function SlotCard({
             alignItems: "center",
             gap: "5px",
             background: "rgba(239,68,68,0.1)",
-            border: "1px solid rgba(239,68,68,0.2)",
-            borderRadius: "6px",
-            padding: "4px 8px",
+            border: "1px solid rgba(239,68,68,0.15)",
+            borderRadius: "4px",
+            padding: "2px 6px",
             alignSelf: "flex-start",
           }}
         >
           <AlertTriangle size={11} style={{ color: "var(--danger)" }} />
           <span
             style={{
-              fontSize: "10px",
+              fontSize: "9px",
               fontWeight: 600,
               color: "var(--danger)",
               textTransform: "uppercase",
@@ -234,8 +228,9 @@ function SlotCard({
           <p
             style={{
               fontSize: "13px",
-              fontWeight: 700,
+              fontWeight: 600,
               color: "var(--text-primary)",
+              lineHeight: 1.2,
             }}
           >
             {slot.course_name}
@@ -244,11 +239,14 @@ function SlotCard({
             style={{
               fontSize: "10px",
               fontWeight: 600,
-              color,
-              background: mutedColor,
-              border: "1px solid rgba(255,255,255,0.1)",
+              color: "var(--text-secondary)",
+              background: "var(--bg-tertiary)",
+              border: "1px solid var(--border-primary)",
               borderRadius: "4px",
               padding: "1px 5px",
+              display: "inline-block",
+              marginTop: "4px",
+              fontFamily: "monospace",
             }}
           >
             {slot.course_code}

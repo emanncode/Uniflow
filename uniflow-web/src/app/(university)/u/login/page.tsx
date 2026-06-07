@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSubdomain } from '@/lib/subdomain'
-import { Mail, Lock, ArrowRight, Loader2, KeyRound, GraduationCap, AlertCircle } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Loader2, KeyRound, GraduationCap, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 type Step = 'credentials' | 'otp'
 
@@ -14,6 +14,7 @@ export default function UniversityLoginPage() {
   const [step, setStep] = useState<Step>('credentials')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -67,6 +68,7 @@ export default function UniversityLoginPage() {
         throw new Error('Your account does not have access to this portal.')
       }
 
+      // OTP logic disabled temporarily. DO NOT UNCOMMENT YET.
       router.push('/')
     } catch (err: unknown) {
       setError((err as Error).message)
@@ -75,6 +77,8 @@ export default function UniversityLoginPage() {
     }
   }
 
+  // OTP functions disabled temporarily. DO NOT UNCOMMENT YET.
+  /*
   async function handleOtp(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -101,6 +105,7 @@ export default function UniversityLoginPage() {
     await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
     setResendTimer(60)
   }
+  */
 
   return (
     <div style={{
@@ -228,14 +233,26 @@ export default function UniversityLoginPage() {
                 <div style={{ position: 'relative' }}>
                   <Lock size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="input"
-                    style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', paddingLeft: '40px', paddingRight: '40px', boxSizing: 'border-box' }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{
+                      position: 'absolute', right: '14px', top: '50%',
+                      transform: 'translateY(-50%)', background: 'none',
+                      border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+                      padding: 0, display: 'flex', alignItems: 'center'
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
                 </div>
               </div>
 

@@ -102,18 +102,18 @@ const Sidebar = ({
         </div>
         {university && (
           <div style={{
-            background: 'var(--brand-subtle)',
-            border: '1px solid var(--border-brand)',
-            borderRadius: '10px',
+            background: 'var(--bg-secondary)',
+            border: '1px solid var(--border-primary)',
+            borderRadius: 'var(--radius-sm)',
             padding: '10px 12px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <GraduationCap size={14} style={{ color: 'var(--brand)' }} />
-              <span style={{ fontSize: '11px', color: 'var(--brand)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <GraduationCap size={14} style={{ color: 'var(--text-secondary)' }} />
+              <span style={{ fontSize: '11px', color: 'var(--text-primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {university.short_name}
               </span>
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px', marginLeft: '22px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', marginLeft: '22px' }}>
               {university.name}
             </p>
           </div>
@@ -144,21 +144,21 @@ const Sidebar = ({
               onClick={() => setSidebarOpen(false)}
               className={`group border transition-all duration-150 ease-in-out ${
                 active
-                  ? 'border-[var(--border-brand)] bg-[var(--brand-muted)]'
+                  ? 'border-[var(--border-secondary)] bg-[var(--bg-hover)]'
                   : 'border-transparent hover:bg-[var(--bg-hover)] hover:border-[var(--border-secondary)]'
               }`}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                padding: '10px 12px',
-                borderRadius: '10px',
+                padding: '8px 12px',
+                borderRadius: 'var(--radius-sm)',
                 marginBottom: '2px',
                 textDecoration: 'none',
               }}
             >
               <Icon
-                size={16}
+                size={15}
                 style={{ flexShrink: 0 }}
                 className={`transition-colors duration-150 ${
                   active

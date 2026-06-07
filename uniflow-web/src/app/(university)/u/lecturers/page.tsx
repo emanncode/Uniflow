@@ -137,7 +137,7 @@ function LecturerRow({
         gridTemplateColumns: "2fr 1fr 120px 40px",
         alignItems: "center",
         gap: "16px",
-        padding: "14px 16px",
+        padding: "10px 16px",
         borderBottom: "1px solid var(--border-primary)",
         transition: "all var(--transition)",
       }}
@@ -152,17 +152,18 @@ function LecturerRow({
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <div
           style={{
-            width: "34px",
-            height: "34px",
+            width: "24px",
+            height: "24px",
             borderRadius: "50%",
-            background: "var(--brand)",
+            background: "var(--bg-tertiary)",
+            border: "1px solid var(--border-primary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>
+          <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>
             {lecturer.full_name.charAt(0).toUpperCase()}
           </span>
         </div>
@@ -170,14 +171,14 @@ function LecturerRow({
           <p
             style={{
               fontSize: "13px",
-              fontWeight: 600,
+              fontWeight: 500,
               color: "var(--text-primary)",
             }}
           >
             {lecturer.full_name}
           </p>
           <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-            {lecturer.email} · <span style={{ color: 'var(--brand-lighter)', textTransform: 'capitalize' }}>{lecturer.role}</span>
+            {lecturer.email} · <span style={{ color: 'var(--text-muted)', textTransform: 'capitalize' }}>{lecturer.role}</span>
           </p>
         </div>
       </div>
@@ -194,22 +195,24 @@ function LecturerRow({
       </div>
 
       {/* Status */}
-      <span
-        style={{
-          fontSize: "10px",
-          fontWeight: 600,
-          color: s.text,
-          background: s.bg,
-          border: `1px solid ${s.border}`,
-          borderRadius: "6px",
-          padding: "3px 8px",
-          display: "inline-block",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-        }}
-      >
-        {lecturer.status}
-      </span>
+      <div>
+        <span
+          style={{
+            fontSize: "10px",
+            fontWeight: 500,
+            color: s.text,
+            background: s.bg,
+            border: `1px solid ${s.border}`,
+            borderRadius: "4px",
+            padding: "2px 6px",
+            display: "inline-block",
+            textTransform: "uppercase",
+            letterSpacing: "0.03em",
+          }}
+        >
+          {lecturer.status}
+        </span>
+      </div>
 
       {/* Delete */}
       <button
@@ -222,6 +225,7 @@ function LecturerRow({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          marginLeft: "auto",
         }}
       >
         <Trash2 size={13} style={{ color: "var(--text-muted)" }} />

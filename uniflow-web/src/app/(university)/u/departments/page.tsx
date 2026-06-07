@@ -48,40 +48,37 @@ function DeptRow({
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '1fr 160px 200px 40px',
+      gridTemplateColumns: '1fr 180px 200px 40px',
       alignItems: 'center',
       gap: '16px',
-      padding: '14px 16px',
+      padding: '12px 16px',
       borderBottom: '1px solid var(--border-primary)',
       transition: 'all var(--transition)',
     }}
     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'}
     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
     >
-      {/* Name + Faculty */}
-      <div>
-        <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+      {/* Name + Short Name code */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{
+          fontSize: '11px', fontWeight: 600,
+          color: 'var(--text-secondary)', background: 'var(--bg-tertiary)',
+          border: '1px solid var(--border-primary)',
+          borderRadius: '4px', padding: '2px 6px',
+          fontFamily: 'monospace',
+          flexShrink: 0,
+        }}>
+          {dept.short_name}
+        </span>
+        <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           {dept.name}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
-          <span style={{
-            fontSize: '10px', fontWeight: 600,
-            color: 'var(--brand)', background: 'var(--brand-muted)',
-            border: '1px solid var(--border-brand)',
-            borderRadius: '4px', padding: '1px 5px',
-          }}>
-            {dept.short_name}
-          </span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {dept.faculty_name}
-          </span>
-        </div>
+        </span>
       </div>
 
-      {/* Faculty badge */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+      {/* Faculty */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <BookOpen size={12} style={{ color: 'var(--text-muted)' }} />
-        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
           {dept.faculty_name}
         </span>
       </div>
@@ -110,12 +107,12 @@ function DeptRow({
           </div>
         ) : dept.hod_name ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '9px', fontWeight: 600, color: 'var(--text-secondary)' }}>
                 {dept.hod_name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{dept.hod_name}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{dept.hod_name}</span>
             <button
               onClick={() => setAssigning(true)}
               style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '10px', color: 'var(--brand)' }}
@@ -126,7 +123,7 @@ function DeptRow({
         ) : (
           <button
             onClick={() => setAssigning(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'var(--warning-muted)', border: '1px solid var(--warning-muted)', borderRadius: '6px', padding: '5px 9px', cursor: 'pointer', transition: 'all var(--transition)' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--warning-muted)', border: '1px solid rgba(245, 158, 11, 0.15)', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', transition: 'all var(--transition)' }}
           >
             <UserCheck size={11} style={{ color: 'var(--warning)' }} />
             <span style={{ fontSize: '11px', color: 'var(--warning)', fontWeight: 500 }}>Assign HOD</span>
@@ -135,7 +132,7 @@ function DeptRow({
       </div>
 
       {/* Delete */}
-      <button onClick={() => onDelete(dept.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <button onClick={() => onDelete(dept.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: 'auto' }}>
         <Trash2 size={13} style={{ color: 'var(--text-muted)' }} />
       </button>
     </div>
@@ -298,7 +295,7 @@ export default function DepartmentsPage() {
       {/* Table */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
         {/* Table Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 200px 40px', gap: '16px', padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-secondary)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px 200px 40px', gap: '16px', padding: '12px 16px', borderBottom: '1px solid var(--border-primary)', background: 'var(--bg-secondary)' }}>
           {['Department', 'Faculty', 'Head of Department', ''].map(h => (
             <span key={h} style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{h}</span>
           ))}

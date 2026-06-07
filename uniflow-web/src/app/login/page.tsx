@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [step, setStep] = useState<Step>('credentials')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
   const [otpError, setError] = useState('')
@@ -48,6 +50,8 @@ export default function LoginPage() {
       return
     }
 
+    // OTP logic disabled temporarily. DO NOT UNCOMMENT YET.
+    /*
     // sign out temporarily — they must complete OTP
     await supabase.auth.signOut()
 
@@ -67,6 +71,9 @@ export default function LoginPage() {
 
     setMessage(`Verification code sent to ${email}`)
     setStep('otp')
+    */
+    
+    router.push('/dashboard')
     setLoading(false)
   }
 
@@ -138,40 +145,46 @@ export default function LoginPage() {
               </p>
 
               {otpError && (
-                <div
-                  className="mb-6! px-4! py-3! rounded-lg text-sm"
-                  style={{
-                    backgroundColor: 'var(--danger-muted)',
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    color: 'var(--danger)',
-                  }}
-                >
+                <div className="alert-error mb-6!">
                   {otpError}
                 </div>
               )}
 
               <div className="space-y-5">
                 <div>
-                  <label className="label">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email"
-                    className="input"
-                  />
+                  <label className="label">Email Address</label>
+                  <div className="relative">
+                    <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="admin@uniflow.com.ng"
+                      className="input pl-10!"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="label">Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="input"
-                    onKeyDown={(e) => e.key === 'Enter' && handleCredentials()}
-                  />
+                  <div className="relative">
+                    <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input pl-10! pr-10!"
+                      onKeyDown={(e) => e.key === 'Enter' && handleCredentials()}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
@@ -189,7 +202,7 @@ export default function LoginPage() {
                 {/* back button */}
                 <button
                   onClick={() => { setStep('credentials'); setError(''); setOtp('') }}
-                  className="text-xs text-muted hover:text-brand transition-colors mb-6! flex items-center gap-1"
+                  className="text-xs hover:text-brand transition-colors mb-6! flex items-center gap-1"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   ← Back
@@ -205,27 +218,13 @@ export default function LoginPage() {
               </div>
 
               {otpError && (
-                <div
-                  className="mb-6! px-4! py-3! rounded-lg text-sm"
-                  style={{
-                    backgroundColor: 'var(--danger-muted)',
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    color: 'var(--danger)',
-                  }}
-                >
+                <div className="alert-error mb-6!">
                   {otpError}
                 </div>
               )}
 
               {message && (
-                <div
-                  className="mb-6! px-4! py-3! rounded-lg text-sm"
-                  style={{
-                    backgroundColor: 'var(--success-muted)',
-                    border: '1px solid rgba(34,197,94,0.2)',
-                    color: 'var(--success)',
-                  }}
-                >
+                <div className="alert-success mb-6!">
                   {message}
                 </div>
               )}

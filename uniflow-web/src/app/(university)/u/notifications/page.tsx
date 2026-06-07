@@ -146,30 +146,28 @@ export default function NotificationsPage() {
             <div
               key={n.id}
               style={{
-                padding: "16px 18px",
-                borderRadius: "var(--radius-md)",
-                border: `1px solid ${n.is_read ? "var(--border-primary)" : "rgba(96,165,250,0.2)"}`,
+                padding: "14px 16px",
+                borderRadius: "8px",
+                border: n.is_read ? "1px solid var(--border-primary)" : "1px solid var(--border-brand)",
                 background: n.is_read
                   ? "var(--bg-card)"
-                  : "rgba(96,165,250,0.04)",
+                  : "var(--brand-subtle)",
                 display: "flex",
                 gap: "12px",
                 alignItems: "flex-start",
+                transition: "all var(--transition)",
               }}
             >
               <div
                 style={{
-                  width: "8px",
-                  height: "8px",
+                  width: "6px",
+                  height: "6px",
                   borderRadius: "50%",
                   flexShrink: 0,
-                  marginTop: "5px",
+                  marginTop: "6px",
                   background: n.is_read
-                    ? "var(--border-secondary)"
-                    : (TYPE_COLORS[n.type] ?? "#60a5fa"),
-                  boxShadow: n.is_read
-                    ? "none"
-                    : `0 0 6px ${TYPE_COLORS[n.type] ?? "#60a5fa"}`,
+                    ? "var(--text-muted)"
+                    : "var(--brand)",
                 }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -186,7 +184,7 @@ export default function NotificationsPage() {
                 <p
                   style={{
                     fontSize: "12px",
-                    color: "var(--text-muted)",
+                    color: "var(--text-secondary)",
                     lineHeight: 1.5,
                   }}
                 >

@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase-admin'
+import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
     const supabase = createAdminClient()
 
     // 1. create auth user with temp password
-    const tempPassword = Math.random().toString(36).slice(-10) + 'Aa1!'
+    const tempPassword = generateTempPassword()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password: tempPassword,
