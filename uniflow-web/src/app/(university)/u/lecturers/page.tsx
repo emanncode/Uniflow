@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   Plus,
@@ -16,6 +17,10 @@ import {
   ChevronDown,
   AlertCircle,
   CheckCircle2,
+  Key,
+  Copy,
+  Check,
+  AlertTriangle
 } from "lucide-react";
 
 interface Lecturer {
@@ -125,16 +130,18 @@ const STATUS_COLORS: Record<
 function LecturerRow({
   lecturer,
   onDelete,
+  onResetPassword,
 }: {
   lecturer: Lecturer;
   onDelete: (id: string) => void;
+  onResetPassword: (lecturer: Lecturer) => void;
 }) {
   const s = STATUS_COLORS[lecturer.status] ?? STATUS_COLORS.pending;
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "2fr 1fr 120px 40px",
+        gridTemplateColumns: "2fr 1fr 120px 80px",
         alignItems: "center",
         gap: "16px",
         padding: "10px 16px",
@@ -164,7 +171,7 @@ function LecturerRow({
           }}
         >
           <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>
-            {lecturer.full_name.charAt(0).toUpperCase()}
+            {(lecturer.full_name || "U").charAt(0).toUpperCase()}
           </span>
         </div>
         <div>
@@ -214,22 +221,32 @@ function LecturerRow({
         </span>
       </div>
 
-      {/* Delete */}
-      <button
-        onClick={() => onDelete(lecturer.id)}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "4px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginLeft: "auto",
-        }}
-      >
-        <Trash2 size={13} style={{ color: "var(--text-muted)" }} />
-      </button>
+      {/* Actions */}
+      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <button
+          onClick={() => onResetPassword(lecturer)}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            padding: "4px", color: "var(--text-muted)", transition: "color 0.2s"
+          }}
+          title="Reset Password"
+        >
+          <Key size={14} />
+        </button>
+        <button
+          onClick={() => onDelete(lecturer.id)}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "4px",
+            color: "var(--text-muted)",
+            transition: "color 0.2s",
+          }}
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -245,7 +262,6 @@ export default function LecturersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
-  const [totalDebugCount, setTotalDebugCount] = useState<number>(0);
   const [csvMode, setCsvMode] = useState(false);
   const [csvRows, setCsvRows] = useState<
     { name: string; email: string; dept: string }[]
@@ -257,60 +273,41 @@ export default function LecturersPage() {
   const [newDeptId, setNewDeptId] = useState("");
   const [newRole, setNewRole] = useState<'lecturer' | 'dean' | 'hod'>('lecturer')
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
+  const [confirmReset, setConfirmReset] = useState<Lecturer | null>(null)
+  const [copied, setCopied] = useState(false)
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (!session) {
-      console.warn("No session found in loadData");
       return;
     }
 
-    const { data: profile, error: pErr } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
-      .select("university_id, role, department_id")
+      .select("university_id")
       .eq("id", session.user.id)
       .single();
     
-    if (pErr) {
-      console.error("Error fetching user profile:", pErr);
-      setError("Failed to load profile: " + pErr.message);
-      setLoading(false);
-      return;
-    }
-    
     if (!profile?.university_id) {
-      console.warn("User has no university_id associated with their profile");
       setLoading(false);
       return;
     }
     
     setUniId(profile.university_id);
-    console.log("Loading data for university:", profile.university_id);
 
     try {
-      // 1. Fetch staff via API (service role proxy) to bypass RLS
       const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
-      const { data: allProfiles, error: sErr } = await staffRes.json()
+      const { data: allProfiles } = await staffRes.json()
 
-      if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch staff via API')
-
-      console.log(`LecturersPage: Found ${allProfiles?.length ?? 0} total profiles via API`);
-      setTotalDebugCount(allProfiles?.length ?? 0);
-
-      // 2. Fetch departments via Supabase (browser client)
-      const { data: deptData, error: deptErr } = await supabase
+      const { data: deptData } = await supabase
           .from("departments")
           .select("id, name, short_name")
           .eq("university_id", profile.university_id)
           .order("name");
-
-      if (deptErr) console.error("Error fetching departments:", deptErr);
 
       const deptMap: Record<string, string> = {};
       (deptData ?? []).forEach((d) => {
@@ -318,14 +315,14 @@ export default function LecturersPage() {
       });
 
       const lecRoles = ['lecturer', 'dean', 'hod'];
-      const lecturersData = (allProfiles || []).filter(p => {
+      const lecturersData = (allProfiles || []).filter((p: { role: string }) => {
         const normalizedRole = (p.role || "").toLowerCase().trim();
         return lecRoles.includes(normalizedRole);
       });
 
       setDepartments(deptData ?? []);
       setLecturers(
-        lecturersData.map((l) => ({
+        lecturersData.map((l: any) => ({
           id: l.id,
           full_name: l.full_name || "Unknown",
           email: l.email || "",
@@ -338,13 +335,19 @@ export default function LecturersPage() {
           created_at: l.created_at,
         })),
       );
-    } catch (err: any) {
-      console.error("LecturersPage: Data loading failed:", err);
-      setError("Failed to load staff list: " + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred'
+      console.error("LecturersPage: Data loading failed:", message);
+      setError("Failed to load staff list: " + message);
     }
     
     setLoading(false);
-  }
+  }, [uniId]); // Changed dependency to uniId to avoid recursive issues if loadData is used elsewhere
+
+  useEffect(() => {
+    // Avoid redundant setLoading(true) if already true
+    loadData();
+  }, [loadData]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -366,11 +369,39 @@ export default function LecturersPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+
+      // No longer showing the password to the admin.
+      // The user will generate it themselves on the login page.
+      
       setNewName(''); setNewEmail(''); setNewDeptId(''); setNewRole('lecturer')
       setShowModal(false)
+      alert(`Success! ${newName} has been added. They can now generate their login password on the login page using their email.`)
       await loadData()
     } catch (err: any) {
       setError(err.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleResetPassword = async (lecturer: Lecturer) => {
+    setConfirmReset(null)
+    setSaving(true)
+    try {
+      const res = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: lecturer.email })
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        alert(`Password reset for ${lecturer.full_name}. They should now use the "Forgot Password" tool on the login page to get a new temporary password.`)
+      } else {
+        alert(data.error || 'Failed to reset password')
+      }
+    } catch (err) {
+      alert('An error occurred while resetting password')
     } finally {
       setSaving(false)
     }
@@ -413,7 +444,6 @@ export default function LecturersPage() {
       let failCount = 0;
       let lastError = "";
 
-      // We process sequentially to avoid overwhelming the auth rate limits
       for (const row of csvRows) {
         try {
           const res = await fetch('/api/create-staff', {
@@ -463,6 +493,12 @@ export default function LecturersPage() {
     await loadData();
   }
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   const filtered = lecturers.filter((l) => {
     const matchSearch =
       (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -479,550 +515,719 @@ export default function LecturersPage() {
   };
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          marginBottom: "24px",
-          gap: "16px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: "20px",
-              fontWeight: 700,
-              color: "var(--text-primary)",
-              marginBottom: "4px",
-            }}
-          >
-            Staff
-          </h1>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {counts.total} total · {counts.active} active · {counts.pending}{" "}
-            pending
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <label
-            className="btn-secondary"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 14px",
-              cursor: "pointer",
-              fontSize: "13px",
-            }}
-          >
-            <Upload size={14} /> Upload CSV
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv"
-              onChange={handleCsvUpload}
-              style={{ display: "none" }}
-            />
-          </label>
-          <button
-            onClick={() => {
-              setShowModal(true);
-              setCsvMode(false);
-            }}
-            className="btn-primary"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              flexShrink: 0,
-            }}
-          >
-            <Plus size={15} /> Add Staff
-          </button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div
-        style={{
-          display: "flex",
-          gap: "12px",
-          marginBottom: "20px",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
-          <Search
-            size={14}
-            style={{
-              position: "absolute",
-              left: "14px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-muted)",
-            }}
-          />
-          <input
-            type="text"
-            placeholder="Search lecturers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input"
-            style={{
-              width: "100%",
-              paddingLeft: "38px",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
-        <div style={{ position: "relative" }}>
-          <select
-            value={filterDept}
-            onChange={(e) => setFilterDept(e.target.value)}
-            className="select"
-            style={{ paddingRight: "32px", minWidth: "160px" }}
-          >
-            <option value="">All Departments</option>
-            {departments.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            style={{
-              position: "absolute",
-              right: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-muted)",
-              pointerEvents: "none",
-            }}
-          />
-        </div>
-        <div style={{ position: "relative" }}>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="select"
-            style={{ paddingRight: "32px" }}
-          >
-            <option value="">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <ChevronDown
-            size={14}
-            style={{
-              position: "absolute",
-              right: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-muted)",
-              pointerEvents: "none",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Table */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-primary)",
-          borderRadius: "var(--radius-md)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 120px 40px",
-            gap: "16px",
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--border-primary)",
-            background: "var(--bg-secondary)",
-          }}
-        >
-          {["Staff", "Department", "Status", ""].map((h) => (
-            <span
-              key={h}
+    <>
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmReset && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '24px', position: 'relative',
               }}
             >
-              {h}
-            </span>
-          ))}
-        </div>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                backgroundColor: 'rgba(245,158,11,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
+              }}>
+                <AlertTriangle size={24} color="#f59e0b" />
+              </div>
 
-        {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "60px",
-            }}
-          >
-            <Loader2
-              size={24}
-              className="animate-spin"
-              style={{ color: "var(--brand)" }}
-            />
+              <h3 style={{
+                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}>
+                Reset Password?
+              </h3>
+              <p style={{
+                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
+                lineHeight: 1.5,
+              }}>
+                Are you sure you want to reset the password for <strong>{confirmReset.full_name}</strong>? 
+                A new temporary password will be generated immediately.
+              </p>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setConfirmReset(null)}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'transparent', color: 'var(--text-secondary)',
+                    fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleResetPassword(confirmReset)}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--brand)', color: 'white',
+                    fontWeight: 700, fontSize: '14px', border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Yes, Reset
+                </button>
+              </div>
+            </motion.div>
           </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 0" }}>
-            <Users
-              size={32}
-              style={{ color: "var(--text-muted)", marginBottom: "12px" }}
-            />
-            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              {search || filterDept || filterStatus
-                ? "No staff match your filters."
-                : "No staff yet. Add or upload a CSV to get started."}
-            </p>
-          </div>
-        ) : (
-          filtered.map((l) => (
-            <LecturerRow key={l.id} lecturer={l} onDelete={handleDelete} />
-          ))
         )}
-      </div>
+      </AnimatePresence>
 
-      {/* CSV download template hint */}
-      <p
-        style={{
-          fontSize: "11px",
-          color: "var(--text-muted)",
-          marginTop: "10px",
-        }}
-      >
-        CSV format:{" "}
-        <code style={{ color: "var(--text-secondary)" }}>
-          Name, Email, Department Code
-        </code>{" "}
-        (header row required)
-      </p>
+      {/* Password Result Modal */}
+      <AnimatePresence>
+        {tempPassword && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '24px', position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => setTempPassword(null)}
+                style={{
+                  position: 'absolute', right: '16px', top: '16px',
+                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                  cursor: 'pointer', padding: '4px',
+                }}
+              >
+                <X size={18} />
+              </button>
 
-      {/* Add Modal */}
-      {showModal && (
-        <Modal
-          title={
-            csvMode ? `Import ${csvRows.length} Staff` : "Add Staff"
-          }
-          onClose={() => {
-            setShowModal(false);
-            setCsvMode(false);
-            setCsvRows([]);
-            setError("");
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                backgroundColor: 'rgba(34,197,94,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)',
+              }}>
+                <Key size={24} color="#22c55e" />
+              </div>
+
+              <h3 style={{
+                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}>
+                Temporary Credentials
+              </h3>
+              <p style={{
+                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px',
+              }}>
+                A temporary password has been generated for <strong>{tempPassword.name}</strong> ({tempPassword.email}).
+                Please share this with them manually.
+              </p>
+
+              <div style={{
+                padding: '16px', borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(0,0,0,0.2)',
+                border: '1px solid var(--border-primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '12px', marginBottom: '20px',
+              }}>
+                <code style={{
+                  fontSize: '16px', fontWeight: 700, color: 'var(--brand)',
+                  letterSpacing: '0.05em',
+                }}>
+                  {tempPassword.password}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(tempPassword.password)}
+                  style={{
+                    background: "none", border: "none", color: "var(--text-muted)",
+                    cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
+                  }}
+                >
+                  {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setTempPassword(null)}
+                style={{
+                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--brand)', color: 'white',
+                  fontWeight: 700, fontSize: '14px', border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Done
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: "24px",
+            gap: "16px",
+            flexWrap: "wrap",
           }}
         >
-          {csvMode ? (
-            <div>
-              {error && (
+          <div>
+            <h1
+              style={{
+                fontSize: "20px",
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                marginBottom: "4px",
+              }}
+            >
+              Staff
+            </h1>
+            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+              {counts.total} total · {counts.active} active · {counts.pending}{" "}
+              pending
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <label
+              className="btn-secondary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 14px",
+                cursor: "pointer",
+                fontSize: "13px",
+              }}
+            >
+              <Upload size={14} /> Upload CSV
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv"
+                onChange={handleCsvUpload}
+                style={{ display: "none" }}
+              />
+            </label>
+            <button
+              onClick={() => {
+                setShowModal(true);
+                setCsvMode(false);
+              }}
+              className="btn-primary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                flexShrink: 0,
+              }}
+            >
+              <Plus size={15} /> Add Staff
+            </button>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            marginBottom: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
+            <Search
+              size={14}
+              style={{
+                position: "absolute",
+                left: "14px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-muted)",
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search lecturers..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input"
+              style={{
+                width: "100%",
+                paddingLeft: "38px",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <div style={{ position: "relative" }}>
+            <select
+              value={filterDept}
+              onChange={(e) => setFilterDept(e.target.value)}
+              className="select"
+              style={{ paddingRight: "32px", minWidth: "160px" }}
+            >
+              <option value="">All Departments</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-muted)",
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+          <div style={{ position: "relative" }}>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="select"
+              style={{ paddingRight: "32px" }}
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <ChevronDown
+              size={14}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-muted)",
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div
+          style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-primary)",
+            borderRadius: "var(--radius-md)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 120px 80px",
+              gap: "16px",
+              padding: "12px 16px",
+              borderBottom: "1px solid var(--border-primary)",
+              background: "var(--bg-secondary)",
+            }}
+          >
+            {["Staff", "Department", "Status", ""].map((h) => (
+              <span
+                key={h}
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  color: "var(--text-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                }}
+              >
+                {h}
+              </span>
+            ))}
+          </div>
+
+          {loading ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: "60px",
+              }}
+            >
+              <Loader2
+                size={24}
+                className="animate-spin"
+                style={{ color: "var(--brand)" }}
+              />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 0" }}>
+              <Users
+                size={32}
+                style={{ color: "var(--text-muted)", marginBottom: "12px" }}
+              />
+              <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                {search || filterDept || filterStatus
+                  ? "No staff match your filters."
+                  : "No staff yet. Add or upload a CSV to get started."}
+              </p>
+            </div>
+          ) : (
+            filtered.map((l) => (
+              <LecturerRow key={l.id} lecturer={l} onDelete={handleDelete} onResetPassword={setConfirmReset} />
+            ))
+          )}
+        </div>
+
+        {/* CSV download template hint */}
+        <p
+          style={{
+            fontSize: "11px",
+            color: "var(--text-muted)",
+            marginTop: "10px",
+          }}
+        >
+          CSV format:{" "}
+          <code style={{ color: "var(--text-secondary)" }}>
+            Name, Email, Department Code
+          </code>{" "}
+          (header row required)
+        </p>
+
+        {/* Add Modal */}
+        {showModal && (
+          <Modal
+            title={
+              csvMode ? `Import ${csvRows.length} Staff` : "Add Staff"
+            }
+            onClose={() => {
+              setShowModal(false);
+              setCsvMode(false);
+              setCsvRows([]);
+              setError("");
+            }}
+          >
+            {csvMode ? (
+              <div>
+                {error && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      background: "var(--danger-muted)",
+                      border: "1px solid rgba(239, 68, 68, 0.15)",
+                      borderRadius: "var(--radius-md)",
+                      padding: "10px 12px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <AlertCircle size={14} style={{ color: "var(--danger)" }} />
+                    <p style={{ fontSize: "12px", color: "var(--danger)" }}>
+                      {error}
+                    </p>
+                  </div>
+                )}
                 <div
                   style={{
-                    display: "flex",
-                    gap: "8px",
-                    alignItems: "center",
-                    background: "var(--danger-muted)",
-                    border: "1px solid rgba(239, 68, 68, 0.15)",
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-primary)",
                     borderRadius: "var(--radius-md)",
-                    padding: "10px 12px",
+                    maxHeight: "240px",
+                    overflowY: "auto",
                     marginBottom: "16px",
                   }}
                 >
-                  <AlertCircle size={14} style={{ color: "var(--danger)" }} />
-                  <p style={{ fontSize: "12px", color: "var(--danger)" }}>
-                    {error}
-                  </p>
+                  {csvRows.map((r, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "10px 12px",
+                        borderBottom: "1px solid var(--border-primary)",
+                      }}
+                    >
+                      <CheckCircle2
+                        size={13}
+                        style={{ color: "var(--success)", flexShrink: 0 }}
+                      />
+                      <div>
+                        <p
+                          style={{
+                            fontSize: "12px",
+                            color: "var(--text-primary)",
+                          }}
+                        >
+                          {r.name}
+                        </p>
+                        <p
+                          style={{ fontSize: "11px", color: "var(--text-muted)" }}
+                        >
+                          {r.email} {r.dept && `· ${r.dept}`}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-              <div
-                style={{
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border-primary)",
-                  borderRadius: "var(--radius-md)",
-                  maxHeight: "240px",
-                  overflowY: "auto",
-                  marginBottom: "16px",
-                }}
-              >
-                {csvRows.map((r, i) => (
-                  <div
-                    key={i}
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={() => {
+                      setCsvMode(false);
+                      setCsvRows([]);
+                    }}
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBulkImport}
+                    disabled={saving}
+                    className="btn-primary"
                     style={{
+                      flex: 1,
                       display: "flex",
                       alignItems: "center",
-                      gap: "10px",
+                      justifyContent: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    {saving ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      `Import ${csvRows.length} Staff`
+                    )}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form
+                onSubmit={handleCreate}
+                style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+              >
+                {error && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      background: "var(--danger-muted)",
+                      border: "1px solid rgba(239, 68, 68, 0.15)",
+                      borderRadius: "var(--radius-md)",
                       padding: "10px 12px",
-                      borderBottom: "1px solid var(--border-primary)",
                     }}
                   >
-                    <CheckCircle2
-                      size={13}
-                      style={{ color: "var(--success)", flexShrink: 0 }}
-                    />
-                    <div>
-                      <p
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {r.name}
-                      </p>
-                      <p
-                        style={{ fontSize: "11px", color: "var(--text-muted)" }}
-                      >
-                        {r.email} {r.dept && `· ${r.dept}`}
-                      </p>
-                    </div>
+                    <AlertCircle size={14} style={{ color: "var(--danger)" }} />
+                    <p style={{ fontSize: "12px", color: "var(--danger)" }}>
+                      {error}
+                    </p>
                   </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  onClick={() => {
-                    setCsvMode(false);
-                    setCsvRows([]);
-                  }}
-                  className="btn-secondary"
-                  style={{ flex: 1 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleBulkImport}
-                  disabled={saving}
-                  className="btn-primary"
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                  }}
-                >
-                  {saving ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    `Import ${csvRows.length} Staff`
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <form
-              onSubmit={handleCreate}
-              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-            >
-              {error && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "8px",
-                    alignItems: "center",
-                    background: "var(--danger-muted)",
-                    border: "1px solid rgba(239, 68, 68, 0.15)",
-                    borderRadius: "var(--radius-md)",
-                    padding: "10px 12px",
-                  }}
-                >
-                  <AlertCircle size={14} style={{ color: "var(--danger)" }} />
-                  <p style={{ fontSize: "12px", color: "var(--danger)" }}>
-                    {error}
-                  </p>
+                )}
+                <div>
+                  <label
+                    className="label"
+                    style={{ display: "block", marginBottom: "8px" }}
+                  >
+                    Full Name
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <User
+                      size={14}
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                      }}
+                    />
+                    <input
+                      required
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Dr. John Adeyemi"
+                      className="input"
+                      style={{
+                        width: "100%",
+                        paddingLeft: "36px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
                 </div>
-              )}
-              <div>
-                <label
-                  className="label"
-                  style={{ display: "block", marginBottom: "8px" }}
-                >
-                  Full Name
-                </label>
-                <div style={{ position: "relative" }}>
-                  <User
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      left: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                    }}
-                  />
-                  <input
-                    required
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Dr. John Adeyemi"
-                    className="input"
-                    style={{
-                      width: "100%",
-                      paddingLeft: "36px",
-                      boxSizing: "border-box",
-                    }}
-                  />
+                <div>
+                  <label
+                    className="label"
+                    style={{ display: "block", marginBottom: "8px" }}
+                  >
+                    Email Address
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <Mail
+                      size={14}
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                      }}
+                    />
+                    <input
+                      required
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="lecturer@university.edu"
+                      className="input"
+                      style={{
+                        width: "100%",
+                        paddingLeft: "36px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label
-                  className="label"
-                  style={{ display: "block", marginBottom: "8px" }}
-                >
-                  Email Address
-                </label>
-                <div style={{ position: "relative" }}>
-                  <Mail
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      left: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                    }}
-                  />
-                  <input
-                    required
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="lecturer@university.edu"
-                    className="input"
-                    style={{
-                      width: "100%",
-                      paddingLeft: "36px",
-                      boxSizing: "border-box",
-                    }}
-                  />
+                <div>
+                  <label
+                    className="label"
+                    style={{ display: "block", marginBottom: "8px" }}
+                  >
+                    Role
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <select
+                      value={newRole}
+                      onChange={(e) =>
+                        setNewRole(e.target.value as "lecturer" | "dean" | "hod")
+                      }
+                      className="select"
+                      style={{
+                        width: "100%",
+                        paddingRight: "32px",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <option value="lecturer">Lecturer</option>
+                      <option value="dean">Dean</option>
+                      <option value="hod">Head of Department (HOD)</option>
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      style={{
+                        position: "absolute",
+                        right: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label
-                  className="label"
-                  style={{ display: "block", marginBottom: "8px" }}
-                >
-                  Role
-                </label>
-                <div style={{ position: "relative" }}>
-                  <select
-                    value={newRole}
-                    onChange={(e) =>
-                      setNewRole(e.target.value as "lecturer" | "dean" | "hod")
-                    }
-                    className="select"
+                <div>
+                  <label
+                    className="label"
+                    style={{ display: "block", marginBottom: "8px" }}
+                  >
+                    Department{" "}
+                    <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
+                      (optional)
+                    </span>
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <select
+                      value={newDeptId}
+                      onChange={(e) => setNewDeptId(e.target.value)}
+                      className="select"
+                      style={{
+                        width: "100%",
+                        paddingRight: "32px",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <option value="">No department</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      style={{
+                        position: "absolute",
+                        right: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false);
+                      setError("");
+                    }}
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="btn-primary"
                     style={{
-                      width: "100%",
-                      paddingRight: "32px",
-                      boxSizing: "border-box",
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
                     }}
                   >
-                    <option value="lecturer">Lecturer</option>
-                    <option value="dean">Dean</option>
-                    <option value="hod">Head of Department (HOD)</option>
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                      pointerEvents: "none",
-                    }}
-                  />
+                    {saving ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      "Add Staff"
+                    )}
+                  </button>
                 </div>
-              </div>
-              <div>
-                <label
-                  className="label"
-                  style={{ display: "block", marginBottom: "8px" }}
-                >
-                  Department{" "}
-                  <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
-                    (optional)
-                  </span>
-                </label>
-                <div style={{ position: "relative" }}>
-                  <select
-                    value={newDeptId}
-                    onChange={(e) => setNewDeptId(e.target.value)}
-                    className="select"
-                    style={{
-                      width: "100%",
-                      paddingRight: "32px",
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    <option value="">No department</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowModal(false);
-                    setError("");
-                  }}
-                  className="btn-secondary"
-                  style={{ flex: 1 }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="btn-primary"
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                  }}
-                >
-                  {saving ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    "Add Staff"
-                  )}
-                </button>
-              </div>
-            </form>
-          )}
-        </Modal>
-      )}
-    </div>
+              </form>
+            )}
+          </Modal>
+        )}
+      </div>
+    </>
   );
 }

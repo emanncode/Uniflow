@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSubdomain } from '@/lib/subdomain'
-import { Mail, Lock, ArrowRight, Loader2, KeyRound, GraduationCap, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Mail, Lock, ArrowRight, Loader2, GraduationCap, AlertCircle, Eye, EyeOff, Key, X, Copy, Check, Info } from 'lucide-react'
 
 type Step = 'credentials' | 'otp'
 
@@ -15,11 +16,17 @@ export default function UniversityLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
   const [resendTimer, setResendTimer] = useState(0)
+
+  // Self-service password states
+  const [showPassGen, setShowPassGen] = useState(false)
+  const [genEmail, setPassGenEmail] = useState('')
+  const [genLoading, setGenLoading] = useState(false)
+  const [tempPassword, setTempPassword] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   // Detect university from subdomain
   useEffect(() => {
@@ -62,7 +69,7 @@ export default function UniversityLoginPage() {
         .eq('id', data.user.id)
         .single()
 
-      const portalRoles = ['university_admin', 'dean', 'hod']
+      const portalRoles = ['university_admin', 'dean', 'hod', 'lecturer']
       if (!profile || !portalRoles.includes(profile.role)) {
         await supabase.auth.signOut()
         throw new Error('Your account does not have access to this portal.')
@@ -107,6 +114,33 @@ export default function UniversityLoginPage() {
   }
   */
 
+  async function handleGenerateTempPass(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setGenLoading(true)
+    try {
+      const res = await fetch('/api/public/generate-temp-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: genEmail })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      
+      setTempPassword(data.tempPassword)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setGenLoading(false)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -140,7 +174,7 @@ export default function UniversityLoginPage() {
               uni<span style={{ color: 'var(--brand)' }}>flow</span>
             </h1>
             <p style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-              Admin Portal
+              Portal Login
             </p>
           </div>
 
@@ -163,7 +197,7 @@ export default function UniversityLoginPage() {
           ) : null}
 
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            {step === 'credentials' ? 'Sign in to your admin portal' : 'Verify your identity'}
+            {step === 'credentials' ? 'Sign in to your portal' : 'Verify your identity'}
           </p>
         </div>
 
@@ -177,21 +211,8 @@ export default function UniversityLoginPage() {
           boxShadow: 'var(--shadow-premium)',
         }}>
 
-          {/* Step indicator */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '28px' }}>
-            {(['credentials', 'otp'] as Step[]).map((s, i) => (
-              <div key={s} style={{
-                flex: 1, height: '3px', borderRadius: 'var(--radius-full)',
-                background: i === 0
-                  ? 'var(--brand)'
-                  : step === 'otp' ? 'var(--brand)' : 'var(--border-primary)',
-                transition: 'background 0.3s ease',
-              }} />
-            ))}
-          </div>
-
           {/* Error */}
-          {error && (
+          {error && !showPassGen && (
             <div style={{
               display: 'flex',
               gap: '8px',
@@ -229,7 +250,16 @@ export default function UniversityLoginPage() {
               </div>
 
               <div>
-                <label className="label">Password</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label className="label" style={{ marginBottom: 0 }}>Password</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassGen(true)}
+                    style={{ background: 'none', border: 'none', color: 'var(--brand)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div style={{ position: 'relative' }}>
                   <Lock size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
@@ -264,79 +294,18 @@ export default function UniversityLoginPage() {
               >
                 {loading
                   ? <Loader2 size={16} className="animate-spin" />
-                  : <>Continue <ArrowRight size={15} /></>
+                  : <>Sign In <ArrowRight size={15} /></>
                 }
               </button>
             </form>
           )}
 
-          {/* Step 2 — OTP */}
+          {/* Step 2 — OTP (Left in for future use if step is toggled) */}
           {step === 'otp' && (
-            <form onSubmit={handleOtp} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{
-                background: 'var(--info-muted)',
-                border: '1px solid rgba(59, 130, 246, 0.2)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-              }}>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                  A 6-digit verification code was sent to <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>
-                </p>
-              </div>
-
-              <div>
-                <label className="label">Verification Code</label>
-                <div style={{ position: 'relative' }}>
-                  <KeyRound size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={otp}
-                    onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="000000"
-                    className="input"
-                    style={{ width: '100%', paddingLeft: '40px', letterSpacing: '0.3em', fontSize: '18px', boxSizing: 'border-box' }}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || otp.length < 6}
-                className="btn-primary"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              >
-                {loading
-                  ? <Loader2 size={16} className="animate-spin" />
-                  : <>Verify & Sign In <ArrowRight size={15} /></>
-                }
-              </button>
-
-              <div style={{ textAlign: 'center' }}>
-                {resendTimer > 0 ? (
-                  <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    Resend in {resendTimer}s
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--brand)' }}
-                  >
-                    Resend code
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => { setStep('credentials'); setOtp(''); setError('') }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}
-              >
-                ← Back to sign in
-              </button>
-            </form>
+            <div style={{ textAlign: 'center', padding: '20px' }}>
+              <p style={{ color: 'var(--text-muted)' }}>OTP is currently disabled.</p>
+              <button onClick={() => setStep('credentials')} className="btn-secondary" style={{ marginTop: '12px' }}>Back</button>
+            </div>
           )}
         </div>
 
@@ -344,6 +313,157 @@ export default function UniversityLoginPage() {
           Powered by Uniflow · University Portal
         </p>
       </div>
+
+      {/* Self-Service Password Generation Modal */}
+      <AnimatePresence>
+        {showPassGen && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '28px', position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => { setShowPassGen(false); setTempPassword(null); setError('') }}
+                style={{
+                  position: 'absolute', right: '16px', top: '16px',
+                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                  cursor: 'pointer', padding: '4px',
+                }}
+              >
+                <X size={18} />
+              </button>
+
+              {!tempPassword ? (
+                <>
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '12px',
+                    backgroundColor: 'rgba(255,92,26,0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: '20px', border: '1px solid rgba(255,92,26,0.2)',
+                  }}>
+                    <Key size={24} color="var(--brand)" />
+                  </div>
+
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                    Generate Temporary Password
+                  </h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
+                    If you haven't set a password or can't access your email, enter your registered email below to get a temporary login password.
+                  </p>
+
+                  <form onSubmit={handleGenerateTempPass} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div>
+                      <label className="label">Registered Email</label>
+                      <input
+                        type="email"
+                        required
+                        value={genEmail}
+                        onChange={e => setPassGenEmail(e.target.value)}
+                        placeholder="yourname@university.edu"
+                        className="input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+
+                    {error && (
+                      <div style={{
+                        display: 'flex', gap: '8px', padding: '10px',
+                        background: 'var(--danger-muted)', borderRadius: 'var(--radius-md)',
+                        fontSize: '12px', color: 'var(--danger)'
+                      }}>
+                        <AlertCircle size={14} style={{ flexShrink: 0 }} />
+                        {error}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={genLoading}
+                      className="btn-primary"
+                      style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                      {genLoading ? <Loader2 size={16} className="animate-spin" /> : 'Generate Password'}
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '50%',
+                    backgroundColor: 'rgba(34,197,94,0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: '20px', border: '1px solid rgba(34,197,94,0.2)',
+                  }}>
+                    <Check size={24} color="#22c55e" />
+                  </div>
+
+                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                    Password Generated
+                  </h3>
+                  
+                  <div style={{
+                    padding: '12px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
+                    border: '1px solid rgba(59, 130, 246, 0.1)',
+                    display: 'flex', gap: '10px', marginBottom: '20px'
+                  }}>
+                    <Info size={16} color="#3b82f6" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <p style={{ fontSize: '12px', color: '#3b82f6', lineHeight: 1.5, margin: 0 }}>
+                      <strong>Security Note:</strong> This temporary password will be invalidated immediately after your first successful login.
+                    </p>
+                  </div>
+
+                  <div style={{
+                    padding: '16px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    border: '1px solid var(--border-primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: '12px', marginBottom: '24px',
+                  }}>
+                    <code style={{ fontSize: '18px', fontWeight: 700, color: 'var(--brand)', letterSpacing: '0.05em' }}>
+                      {tempPassword}
+                    </code>
+                    <button
+                      onClick={() => copyToClipboard(tempPassword)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                    >
+                      {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setEmail(genEmail)
+                      setShowPassGen(false)
+                      setTempPassword(null)
+                    }}
+                    style={{
+                      width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--brand)', color: 'white',
+                      fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer',
+                    }}
+                  >
+                    Done, Proceed to Login
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -196,18 +196,18 @@ export default function DepartmentsPage() {
 
       if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch staff via API')
 
-      const hodData = (allProfiles || []).filter(p => (p.role || "").toLowerCase().trim() === "hod");
+      const hodData = (allProfiles || []).filter((p: any) => (p.role || "").toLowerCase().trim() === "hod");
       console.log(`DepartmentsPage: Filtered ${hodData.length} HODs via API`);
 
       const facMap: Record<string, string> = {}
-      ;(facRes.data ?? []).forEach(f => { facMap[f.id] = f.name })
+      ;(facRes.data ?? []).forEach((f: any) => { facMap[f.id] = f.name })
 
       const hodMap: Record<string, string> = {}
-      hodData.forEach(h => { hodMap[h.id] = h.full_name })
+      hodData.forEach((h: any) => { hodMap[h.id] = h.full_name })
 
       setFaculties(facRes.data ?? [])
       setHods(hodData)
-      setDepartments((deptRes.data ?? []).map(d => ({
+      setDepartments((deptRes.data ?? []).map((d: any) => ({
         id:           d.id,
         name:         d.name,
         short_name:   d.short_name,
@@ -217,8 +217,9 @@ export default function DepartmentsPage() {
         hod_name:     d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
         created_at:   d.created_at,
       })))
-    } catch (err: any) {
-      console.error("DepartmentsPage: Data loading failed:", err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred'
+      console.error("DepartmentsPage: Data loading failed:", message);
     }
     
     setLoading(false)

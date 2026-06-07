@@ -9,12 +9,12 @@ import {
   CalendarDays,
   TrendingUp,
   Clock,
-  CheckCircle2,
   ArrowUpRight,
+  GraduationCap,
 } from 'lucide-react'
 import Link from 'next/link'
 
-type Role = 'university_admin' | 'dean' | 'hod'
+type Role = 'university_admin' | 'dean' | 'hod' | 'lecturer'
 
 interface Stats {
   faculties: number
@@ -145,7 +145,7 @@ function formatTime(iso: string) {
 
 export default function UniversityOverviewPage() {
   const [role, setRole] = useState<Role | null>(null)
-  const [stats, setStats] = useState<Stats>({ faculties: 0, departments: 0, lecturers: 0, timetableSlots: 0 })
+  const [stats, setStats] = useState<Stats>({ faculties: 0, departments: 0, lecturers: 0, students: 0, timetableSlots: 0 })
   const [activity, setActivity] = useState<RecentActivity[]>([])
   const [uniName, setUniName] = useState('')
   const [loading, setLoading] = useState(true)
@@ -180,13 +180,15 @@ export default function UniversityOverviewPage() {
         fetch(`/api/staff?university_id=${profile.university_id}`).then(res => res.json())
       ])
 
-      const allProfiles = staffRes.data || [];
-      const lecturers = allProfiles.filter((p: any) => (p.role || '').toLowerCase().trim() === 'lecturer');
+      const allProfiles = (staffRes.data || []) as { role: string; full_name: string; created_at: string }[];
+      const lecturersData = allProfiles.filter(p => ['lecturer', 'dean', 'hod'].includes((p.role || '').toLowerCase().trim()));
+      const studentsData = allProfiles.filter(p => (p.role || '').toLowerCase().trim() === 'student');
 
       setStats({
         faculties: facRes.count ?? 0,
         departments: deptRes.count ?? 0,
-        lecturers: lecturers.length,
+        lecturers: lecturersData.length,
+        students: studentsData.length,
         timetableSlots: ttRes.count ?? 0,
       })
 
@@ -196,7 +198,7 @@ export default function UniversityOverviewPage() {
         supabase.from('departments').select('name, created_at').eq('university_id', profile.university_id).order('created_at', { ascending: false }).limit(3),
       ])
 
-      const recentLec = lecturers.slice(0, 3);
+      const recentLec = lecturersData.slice(0, 3);
 
       const allActivity: RecentActivity[] = [
         ...(recentFac.data ?? []).map(r => ({
@@ -218,7 +220,7 @@ export default function UniversityOverviewPage() {
           time: formatTime(r.created_at),
         })),
       ]
-        .sort((a, b) => a.time.localeCompare(b.time))
+        .sort((a, b) => b.time.localeCompare(a.time))
         .slice(0, 8)
 
       setActivity(allActivity)
@@ -399,4 +401,3 @@ function QuickAction({ href, icon: Icon, label, colorKey }: { href: string; icon
     </Link>
   )
 }
-

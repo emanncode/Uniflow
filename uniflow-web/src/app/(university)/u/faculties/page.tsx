@@ -411,11 +411,11 @@ export default function FacultiesPage() {
       const { data: allProfiles } = await staffRes.json();
 
       const deanData = (allProfiles || []).filter(
-        (p: any) => (p.role || "").toLowerCase().trim() === "dean",
+        (p: { role: string }) => (p.role || "").toLowerCase().trim() === "dean",
       );
 
       const deanMap: Record<string, string> = {};
-      deanData.forEach((d: any) => {
+      deanData.forEach((d: { id: string; full_name: string }) => {
         deanMap[d.id] = d.full_name;
       });
 
@@ -431,8 +431,9 @@ export default function FacultiesPage() {
         })),
       );
       setDeans(deanData);
-    } catch (err: any) {
-      console.error("Data loading failed:", err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'An unknown error occurred'
+      console.error("Data loading failed:", message);
     }
 
     setLoading(false);

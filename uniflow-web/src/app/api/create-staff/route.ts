@@ -45,11 +45,17 @@ export async function POST(req: Request) {
     console.log(`API Create Staff: Profile created successfully for ${email}`);
 
     // 3. send password reset so they set their own password
-    await supabase.auth.resetPasswordForEmail(email)
+    // NOTE: This might fail if SMTP is not configured, but we proceed anyway as we return tempPassword
+    try {
+      await supabase.auth.resetPasswordForEmail(email)
+    } catch (e: unknown) {
+      console.warn("API Create Staff: Failed to send reset email, but user was created.")
+    }
 
-    return NextResponse.json({ success: true })
-  } catch (err: any) {
-    console.error("API Create Staff: Internal error:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return NextResponse.json({ success: true, tempPassword })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'An unknown error occurred'
+    console.error("API Create Staff: Internal error:", message);
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

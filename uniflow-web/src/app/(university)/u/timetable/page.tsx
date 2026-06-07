@@ -473,16 +473,16 @@ export default function TimetablePage() {
         .order("name"),
     ]);
 
-    const rawSlots: TimetableSlot[] = (ttRes.data ?? []).map((t) => ({
+    const rawSlots: TimetableSlot[] = (ttRes.data ?? []).map((t: any) => ({
       id: t.id,
-      course_name: (t.courses as any)?.name ?? "—",
-      course_code: (t.courses as any)?.code ?? "—",
-      lecturer_name: (t.profiles as any)?.full_name ?? "—",
+      course_name: t.courses?.name ?? "—",
+      course_code: t.courses?.code ?? "—",
+      lecturer_name: t.profiles?.full_name ?? "—",
       venue: t.venue,
       day: t.day,
       start_time: t.start_time,
       end_time: t.end_time,
-      department_name: (t.departments as any)?.name ?? "—",
+      department_name: t.departments?.name ?? "—",
     }));
 
     setSlots(detectConflicts(rawSlots));
