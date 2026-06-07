@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       .update({ status: 'approved', reviewed_at: new Date().toISOString() })
       .eq('id', registrationId)
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, tempPassword })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'An unknown error occurred'
     return NextResponse.json({ error: message }, { status: 500 })

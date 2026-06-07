@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import {
   Building2, Globe, Users, Mail,
-  ExternalLink, Search, CheckCircle2, Key, Loader2, X, Copy, Check
+  ExternalLink, Search, CheckCircle2, Key, Loader2, X, Copy, Check, AlertTriangle
 } from 'lucide-react'
 
 interface University {
@@ -42,13 +42,13 @@ export default function UniversitiesPage() {
   const [search, setSearch] = useState('')
   const [resettingId, setResettingId] = useState<string | null>(null)
   const [tempPassword, setTempPassword] = useState<{ password: string, email: string } | null>(null)
+  const [confirmReset, setConfirmReset] = useState<{ email: string, id: string } | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => { fetchUniversities(setUniversities, setLoading) }, [])
 
   const handleResetPassword = async (email: string, id: string) => {
-    if (!confirm(`Are you sure you want to reset the admin password for ${email}?`)) return
-
+    setConfirmReset(null)
     setResettingId(id)
     try {
       const res = await fetch('/api/reset-password', {
@@ -102,21 +102,24 @@ export default function UniversitiesPage() {
           </p>
         </div>
 
-        {/* stat badge */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '8px',
-          padding: '8px 16px', borderRadius: 'var(--radius-md)',
-          backgroundColor: 'rgba(34,197,94,0.06)',
-          border: '1px solid rgba(34,197,94,0.15)',
-        }}>
-          <CheckCircle2 size={14} color="#22c55e" />
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>
-            {universities.length} Active
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* stat badge */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: '8px',
+            padding: '8px 16px', borderRadius: 'var(--radius-md)',
+            backgroundColor: 'rgba(34,197,94,0.06)',
+            border: '1px solid rgba(34,197,94,0.15)',
+          }}>
+            <CheckCircle2 size={14} color="#22c55e" />
+            <span style={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}>
+              {universities.length} Active
+            </span>
+          </div>
         </div>
       </div>
 
       {/* search */}
+...
       <div style={{ position: 'relative', marginBottom: '24px', maxWidth: '400px' }}>
         <Search
           size={15} color="var(--text-muted)"
@@ -291,7 +294,7 @@ export default function UniversitiesPage() {
                 marginTop: '4px',
               }}>
                 <button
-                  onClick={() => handleResetPassword(uni.official_email, uni.id)}
+                  onClick={() => setConfirmReset({ email: uni.official_email, id: uni.id })}
                   disabled={resettingId === uni.id}
                   style={{
                     flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
@@ -327,7 +330,80 @@ export default function UniversitiesPage() {
         </div>
       )}
 
-      {/* Password Modal */}
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {confirmReset && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '24px', position: 'relative',
+              }}
+            >
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                backgroundColor: 'rgba(245,158,11,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
+              }}>
+                <AlertTriangle size={24} color="#f59e0b" />
+              </div>
+
+              <h3 style={{
+                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}>
+                Reset Password?
+              </h3>
+              <p style={{
+                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
+                lineHeight: 1.5,
+              }}>
+                Are you sure you want to reset the admin password for <strong>{confirmReset.email}</strong>? 
+                A new temporary password will be generated immediately.
+              </p>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setConfirmReset(null)}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'transparent', color: 'var(--text-secondary)',
+                    fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleResetPassword(confirmReset.email, confirmReset.id)}
+                  style={{
+                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--brand)', color: 'white',
+                    fontWeight: 700, fontSize: '14px', border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Yes, Reset
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Password Result Modal */}
       <AnimatePresence>
         {tempPassword && (
           <div style={{

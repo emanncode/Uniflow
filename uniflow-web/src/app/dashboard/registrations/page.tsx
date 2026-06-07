@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import RejectModal from '@/components/registrations/RejectModal'
 import RegistrationRow from '@/components/registrations/RegistrationRow'
-import { Building2 } from 'lucide-react'
+import { Building2, Key, X, Copy, Check, Loader2 } from 'lucide-react'
 
 export const dynamic = 'error';
 
@@ -34,6 +34,8 @@ export default function RegistrationsPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
+  const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const fetchRegistrations = useCallback(async () => {
     const { data } = await supabase
@@ -50,6 +52,11 @@ export default function RegistrationsPage() {
   }, [fetchRegistrations])
 
   const handleApprove = async (id: string) => {
+    const reg = registrations.find(r => r.id === id)
+    if (!reg) return
+
+    if (!confirm(`Are you sure you want to approve ${reg.university_name}?`)) return
+
     setActionLoading(true)
 
     try {
@@ -67,6 +74,11 @@ export default function RegistrationsPage() {
         throw new Error(result.error || 'Failed to approve university')
       }
 
+      setTempPassword({ 
+        password: result.tempPassword, 
+        email: reg.official_email,
+        name: reg.university_name
+      })
       await fetchRegistrations()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An unknown error occurred'
@@ -92,6 +104,12 @@ export default function RegistrationsPage() {
     setActionLoading(false)
   }
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   const filtered = filter === 'all'
     ? registrations
     : registrations.filter(r => r.status === filter)
@@ -115,6 +133,99 @@ export default function RegistrationsPage() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {tempPassword && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '24px', position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => setTempPassword(null)}
+                style={{
+                  position: 'absolute', right: '16px', top: '16px',
+                  background: 'none', border: 'none', color: 'var(--text-muted)',
+                  cursor: 'pointer', padding: '4px',
+                }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                backgroundColor: 'rgba(34,197,94,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)',
+              }}>
+                <Key size={24} color="#22c55e" />
+              </div>
+
+              <h3 style={{
+                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}>
+                University Approved
+              </h3>
+              <p style={{
+                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px',
+              }}>
+                <strong>{tempPassword.name}</strong> has been approved. 
+                A temporary password has been generated for <strong>{tempPassword.email}</strong>.
+              </p>
+
+              <div style={{
+                padding: '16px', borderRadius: 'var(--radius-md)',
+                backgroundColor: 'rgba(0,0,0,0.2)',
+                border: '1px solid var(--border-primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '12px', marginBottom: '20px',
+              }}>
+                <code style={{
+                  fontSize: '16px', fontWeight: 700, color: 'var(--brand)',
+                  letterSpacing: '0.05em',
+                }}>
+                  {tempPassword.password}
+                </code>
+                <button
+                  onClick={() => copyToClipboard(tempPassword.password)}
+                  style={{
+                    background: 'none', border: 'none', color: 'var(--text-muted)',
+                    cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
+                  }}
+                >
+                  {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setTempPassword(null)}
+                style={{
+                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--brand)', color: 'white',
+                  fontWeight: 700, fontSize: '14px', border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Done
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <div>
         {/* header */}
         <div style={{ marginBottom: '28px' }}>
@@ -128,7 +239,6 @@ export default function RegistrationsPage() {
             Review and manage university registration applications.
           </p>
         </div>
-
         {/* filter tabs */}
         <div style={{
           display: 'flex', gap: '4px', marginBottom: '24px',
@@ -168,6 +278,7 @@ export default function RegistrationsPage() {
         {/* list */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)', fontSize: '13px' }}>
+            <Loader2 size={24} className="animate-spin" style={{ margin: '0 auto 12px', display: 'block' }} />
             Loading registrations...
           </div>
         ) : filtered.length === 0 ? (
@@ -192,7 +303,7 @@ export default function RegistrationsPage() {
               >
                 <RegistrationRow
                   reg={reg}
-                  onApprove={handleApprove}
+                  onApprove={() => handleApprove(reg.id)}
                   onReject={(id) => setRejectTarget(id)}
                 />
               </motion.div>
