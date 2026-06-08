@@ -205,7 +205,7 @@ export default function UniversityLoginPage() {
         <div style={{
           background: 'var(--bg-card)',
           border: '1px solid var(--border-secondary)',
-          borderRadius: 'var(--radius-lg)',
+          borderRadius: 'var(--radius-xl)',
           padding: '32px',
           backdropFilter: 'blur(24px)',
           boxShadow: 'var(--shadow-premium)',

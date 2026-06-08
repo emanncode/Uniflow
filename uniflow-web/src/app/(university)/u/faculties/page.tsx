@@ -31,75 +31,7 @@ interface Profile {
   email: string;
 }
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "480px",
-          background: "#0d1525",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "16px",
-          padding: "28px",
-          maxHeight: "90vh",
-          overflowY: "auto",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "24px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "16px",
-              fontWeight: 700,
-              color: "var(--text-primary)",
-            }}
-          >
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "4px",
-            }}
-          >
-            <X size={18} style={{ color: "var(--text-muted)" }} />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
+import Modal from "@/components/ui/Modal";
 
 function FacultyCard({
   faculty,
@@ -366,6 +298,75 @@ export default function FacultiesPage() {
   const [newName, setNewName] = useState("");
   const [newShortName, setNewShortName] = useState("");
 
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importSuccess, setImportSuccess] = useState(0);
+
+  const CSV_TEMPLATE = `name,short_name\nFaculty of Science,FOS\nFaculty of Arts,FOA\nFaculty of Engineering,FOE`;
+
+  function downloadTemplate() {
+    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "faculties_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !uniId) return;
+    setImporting(true);
+    setImportErrors([]);
+    setImportSuccess(0);
+
+    try {
+      const text = await file.text();
+      const lines = text.trim().split("\n").filter(l => l.trim());
+      if (lines.length < 2) throw new Error("CSV is empty or missing data rows");
+
+      const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
+      const rows = lines.slice(1);
+
+      const errors: string[] = [];
+      let successCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const vals = rows[i].split(",").map(v => v.trim());
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => { row[h] = vals[idx] ?? ""; });
+        const lineNum = i + 2;
+
+        if (!row.name || !row.short_name) {
+          errors.push(`Row ${lineNum}: Missing name or short_name`);
+          continue;
+        }
+
+        const { error: insErr } = await supabase.from("faculties").insert({
+          name: row.name,
+          short_name: row.short_name.toUpperCase(),
+          university_id: uniId,
+        });
+
+        if (insErr) {
+          errors.push(`Row ${lineNum}: ${insErr.message}`);
+          continue;
+        }
+        successCount++;
+      }
+
+      setImportErrors(errors);
+      setImportSuccess(successCount);
+      if (successCount > 0) await loadData();
+    } catch (err: any) {
+      setImportErrors([err.message]);
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  }
+
   useEffect(() => {
     loadData();
   }, []);
@@ -493,10 +494,107 @@ export default function FacultiesPage() {
             {faculties.length} {faculties.length === 1 ? "faculty" : "faculties"} · Manage and assign deans
           </p>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-          <Plus size={15} /> Add Faculty
-        </button>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
+          <button
+            onClick={downloadTemplate}
+            className="btn-secondary"
+            style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}
+          >
+            ↓ CSV Template
+          </button>
+          <label style={{ cursor: importing ? "not-allowed" : "pointer" }}>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleCSVImport}
+              style={{ display: "none" }}
+              disabled={importing}
+            />
+            <span
+              className="btn-secondary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "13px",
+                cursor: importing ? "not-allowed" : "pointer",
+                opacity: importing ? 0.6 : 1,
+              }}
+            >
+              {importing ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Importing...
+                </>
+              ) : (
+                "↑ Import CSV"
+              )}
+            </span>
+          </label>
+          <button onClick={() => setShowModal(true)} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Plus size={15} /> Add Faculty
+          </button>
+        </div>
       </div>
+
+      {/* Import success */}
+      {importSuccess > 0 && importErrors.length === 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "var(--success-muted)",
+            border: "1px solid rgba(34,197,94,0.2)",
+            borderRadius: "12px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <p style={{ fontSize: "13px", color: "var(--success)" }}>
+            ✓ {importSuccess} facult{importSuccess !== 1 ? "ies" : "y"} imported successfully
+          </p>
+          <button
+            onClick={() => setImportSuccess(0)}
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <X size={14} style={{ color: "var(--success)" }} />
+          </button>
+        </div>
+      )}
+
+      {/* Import errors */}
+      {importErrors.length > 0 && (
+        <div
+          style={{
+            background: "var(--danger-muted)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "12px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--danger)" }}>
+              {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
+              {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
+            </p>
+            <button
+              onClick={() => {
+                setImportErrors([]);
+                setImportSuccess(0);
+              }}
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
+              <X size={14} style={{ color: "var(--danger)" }} />
+            </button>
+          </div>
+          {importErrors.map((err, i) => (
+            <p key={i} style={{ fontSize: "12px", color: "var(--danger)", lineHeight: 1.6 }}>
+              • {err}
+            </p>
+          ))}
+        </div>
+      )}
 
       <div style={{ position: "relative", maxWidth: "360px", marginBottom: "24px" }}>
         <Search size={14} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />

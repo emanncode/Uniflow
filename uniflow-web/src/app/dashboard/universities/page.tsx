@@ -119,7 +119,6 @@ export default function UniversitiesPage() {
       </div>
 
       {/* search */}
-...
       <div style={{ position: 'relative', marginBottom: '24px', maxWidth: '400px' }}>
         <Search
           size={15} color="var(--text-muted)"

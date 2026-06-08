@@ -10,13 +10,11 @@ import {
   X,
   Loader2,
   Trash2,
-  Upload,
   Mail,
   User,
   Building2,
   ChevronDown,
   AlertCircle,
-  CheckCircle2,
   Key,
   AlertTriangle
 } from "lucide-react";
@@ -38,71 +36,7 @@ interface Department {
   short_name: string
 }
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "500px",
-          background: "var(--bg-secondary)",
-          border: "1px solid var(--border-primary)",
-          borderRadius: "var(--radius-lg)",
-          padding: "28px",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "var(--shadow-premium)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "24px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "16px",
-              fontWeight: 700,
-              color: "var(--text-primary)",
-            }}
-          >
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            <X size={18} style={{ color: "var(--text-muted)" }} />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
+import Modal from "@/components/ui/Modal";
 
 const STATUS_COLORS: Record<
   string,
@@ -153,7 +87,6 @@ function StudentRow({
         ((e.currentTarget as HTMLElement).style.background = "transparent")
       }
     >
-      {/* Name + Email */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <div
           style={{
@@ -188,7 +121,6 @@ function StudentRow({
         </div>
       </div>
 
-      {/* Department */}
       <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
         <Building2
           size={11}
@@ -199,7 +131,6 @@ function StudentRow({
         </span>
       </div>
 
-      {/* Status */}
       <div>
         <span
           style={{
@@ -219,7 +150,6 @@ function StudentRow({
         </span>
       </div>
 
-      {/* Actions */}
       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
         <button
           onClick={() => onResetPassword(student)}
@@ -258,13 +188,11 @@ export default function StudentsPage() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importSuccess, setImportSuccess] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
-  const [csvMode, setCsvMode] = useState(false);
-  const [csvRows, setCsvRows] = useState<
-    { name: string; email: string; dept: string }[]
-  >([]);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -272,11 +200,83 @@ export default function StudentsPage() {
 
   const [confirmReset, setConfirmReset] = useState<Student | null>(null)
 
+  const CSV_TEMPLATE = `full_name,email,department_short_name\nJohn Doe,john@uni.edu,CSC\nJane Smith,jane@uni.edu,FOA\nMike Ade,mike@uni.edu,MTH`;
+
+  function downloadTemplate() {
+    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "students_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !uniId) return;
+    setImporting(true);
+    setImportErrors([]);
+    setImportSuccess(0);
+
+    try {
+      const text = await file.text();
+      const lines = text.trim().split("\n").filter(l => l.trim());
+      if (lines.length < 2) throw new Error("CSV is empty or missing data rows");
+
+      const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
+      const rows = lines.slice(1);
+
+      const errors: string[] = [];
+      let successCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const vals = rows[i].split(",").map(v => v.trim());
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => { row[h] = vals[idx] ?? ""; });
+        const lineNum = i + 2;
+
+        if (!row.full_name || !row.email) {
+          errors.push(`Row ${lineNum}: Missing full_name or email`);
+          continue;
+        }
+
+        const dept = departments.find(d => d.short_name.toLowerCase() === row.department_short_name?.toLowerCase());
+        
+        try {
+          const res = await fetch('/api/create-staff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              full_name: row.full_name,
+              email: row.email.toLowerCase(),
+              role: 'student',
+              department_id: dept?.id || null,
+              university_id: uniId,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          successCount++;
+        } catch (err: any) {
+          errors.push(`Row ${lineNum}: ${err.message}`);
+        }
+      }
+
+      setImportErrors(errors);
+      setImportSuccess(successCount);
+      if (successCount > 0) await loadData();
+    } catch (err: any) {
+      setImportErrors([err.message]);
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  }
+
   const loadData = useCallback(async () => {
     setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
 
     const { data: profile } = await supabase
@@ -387,86 +387,6 @@ export default function StudentsPage() {
     }
   }
 
-  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const lines = text.split("\n").slice(1).filter(Boolean);
-      const rows = lines
-        .map((line) => {
-          const [name, email, dept] = line
-            .split(",")
-            .map((s) => s.trim().replace(/"/g, ""));
-          return { name, email, dept };
-        })
-        .filter((r) => r.name && r.email);
-      setCsvRows(rows);
-      setCsvMode(true);
-    };
-    reader.readAsText(file);
-  }
-
-  async function handleBulkImport() {
-    setSaving(true);
-    setError("");
-    try {
-      if (!uniId) throw new Error("University ID not found.");
-
-      const deptMap: Record<string, string> = {};
-      departments.forEach((d) => {
-        deptMap[d.name.toLowerCase()] = d.id;
-        deptMap[d.short_name.toLowerCase()] = d.id;
-      });
-
-      let successCount = 0;
-      let failCount = 0;
-      let lastError = "";
-
-      for (const row of csvRows) {
-        try {
-          const res = await fetch('/api/create-staff', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              full_name: row.name,
-              email: row.email.toLowerCase(),
-              department_id: row.dept ? (deptMap[row.dept.toLowerCase()] ?? null) : null,
-              university_id: uniId,
-              role: "student",
-            }),
-          });
-          
-          if (res.ok) {
-            successCount++;
-          } else {
-            const data = await res.json();
-            failCount++;
-            lastError = data.error;
-          }
-        } catch (err) {
-          failCount++;
-          lastError = (err as Error).message;
-        }
-      }
-
-      if (failCount > 0) {
-        setError(`Imported ${successCount} students. ${failCount} failed. Last error: ${lastError}`);
-      } else {
-        setCsvMode(false);
-        setCsvRows([]);
-        setShowModal(false);
-      }
-      
-      await loadData();
-    } catch (err: unknown) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function handleDelete(id: string) {
     if (!confirm("Remove this student from the portal?")) return;
     await supabase.from("profiles").delete().eq("id", id);
@@ -484,78 +404,56 @@ export default function StudentsPage() {
 
   return (
     <>
-      {/* Confirmation Modal */}
-      <AnimatePresence>
-        {confirmReset && (
+      {confirmReset && (
+        <Modal
+          title="Reset Password?"
+          onClose={() => setConfirmReset(null)}
+          maxWidth="400px"
+        >
           <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
+            width: '48px', height: '48px', borderRadius: '50%',
+            backgroundColor: 'rgba(245,158,11,0.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(4px)',
+            marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
+            marginLeft: 'auto', marginRight: 'auto',
           }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+            <AlertTriangle size={24} color="#f59e0b" />
+          </div>
+
+          <p style={{
+            fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
+            lineHeight: 1.5, textAlign: 'center'
+          }}>
+            Are you sure you want to reset the password for <strong>{confirmReset.full_name}</strong>? 
+            A new temporary password will be generated immediately.
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => setConfirmReset(null)}
               style={{
-                width: '100%', maxWidth: '400px',
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-primary)',
-                padding: '24px', position: 'relative',
+                flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                backgroundColor: 'transparent', color: 'var(--text-secondary)',
+                fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
+                cursor: 'pointer',
               }}
             >
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%',
-                backgroundColor: 'rgba(245,158,11,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
-              }}>
-                <AlertTriangle size={24} color="#f59e0b" />
-              </div>
-
-              <h3 style={{
-                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Reset Password?
-              </h3>
-              <p style={{
-                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
-                lineHeight: 1.5,
-              }}>
-                Are you sure you want to reset the password for <strong>{confirmReset.full_name}</strong>? 
-                A new temporary password will be generated immediately.
-              </p>
-
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                  onClick={() => setConfirmReset(null)}
-                  style={{
-                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'transparent', color: 'var(--text-secondary)',
-                    fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleResetPassword(confirmReset)}
-                  style={{
-                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--brand)', color: 'white',
-                    fontWeight: 700, fontSize: '14px', border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Yes, Reset
-                </button>
-              </div>
-            </motion.div>
+              Cancel
+            </button>
+            <button
+              onClick={() => handleResetPassword(confirmReset)}
+              style={{
+                flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--brand)', color: 'white',
+                fontWeight: 700, fontSize: '14px', border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Yes, Reset
+            </button>
           </div>
-        )}
-      </AnimatePresence>
+        </Modal>
+      )}
 
       <div>
         <div
@@ -583,31 +481,45 @@ export default function StudentsPage() {
               {students.length} total students · Manage and onboard
             </p>
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <label
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
+            <button
+              onClick={downloadTemplate}
               className="btn-secondary"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "8px 14px",
-                cursor: "pointer",
-                fontSize: "13px",
-              }}
+              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}
             >
-              <Upload size={14} /> Upload CSV
+              ↓ CSV Template
+            </button>
+            <label style={{ cursor: importing ? "not-allowed" : "pointer" }}>
               <input
-                ref={fileRef}
                 type="file"
                 accept=".csv"
-                onChange={handleCsvUpload}
+                onChange={handleCSVImport}
                 style={{ display: "none" }}
+                disabled={importing}
               />
+              <span
+                className="btn-secondary"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "13px",
+                  cursor: importing ? "not-allowed" : "pointer",
+                  opacity: importing ? 0.6 : 1,
+                }}
+              >
+                {importing ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" /> Importing...
+                  </>
+                ) : (
+                  "↑ Import CSV"
+                )}
+              </span>
             </label>
             <button
               onClick={() => {
                 setShowModal(true);
-                setCsvMode(false);
               }}
               className="btn-primary"
               style={{
@@ -621,6 +533,66 @@ export default function StudentsPage() {
             </button>
           </div>
         </div>
+
+        {/* Import success */}
+        {importSuccess > 0 && importErrors.length === 0 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "var(--success-muted)",
+              border: "1px solid rgba(34,197,94,0.2)",
+              borderRadius: "12px",
+              padding: "12px 16px",
+              marginBottom: "20px",
+            }}
+          >
+            <p style={{ fontSize: "13px", color: "var(--success)" }}>
+              ✓ {importSuccess} student{importSuccess !== 1 ? "s" : ""} imported successfully
+            </p>
+            <button
+              onClick={() => setImportSuccess(0)}
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
+              <X size={14} style={{ color: "var(--success)" }} />
+            </button>
+          </div>
+        )}
+
+        {/* Import errors */}
+        {importErrors.length > 0 && (
+          <div
+            style={{
+              background: "var(--danger-muted)",
+              border: "1px solid rgba(239,68,68,0.2)",
+              borderRadius: "12px",
+              padding: "14px 16px",
+              marginBottom: "20px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--danger)" }}>
+                {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
+                {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
+              </p>
+              <button
+                onClick={() => {
+                  setImportErrors([]);
+                  setImportSuccess(0);
+                }}
+                style={{ background: "none", border: "none", cursor: "pointer" }}
+              >
+                <X size={14} style={{ color: "var(--danger)" }} />
+              </button>
+            </div>
+            {importErrors.map((err, i) => (
+              <p key={i} style={{ fontSize: "12px", color: "var(--danger)", lineHeight: 1.6 }}>
+                • {err}
+              </p>
+            ))}
+          </div>
+        )}
 
         {/* Filters */}
         <div
@@ -775,130 +747,15 @@ export default function StudentsPage() {
           )}
         </div>
 
-        {/* CSV format info */}
-        <p
-          style={{
-            fontSize: "11px",
-            color: "var(--text-muted)",
-            marginTop: "10px",
-          }}
-        >
-          CSV format:{" "}
-          <code style={{ color: "var(--text-secondary)" }}>
-            Name, Email, Department Code
-          </code>{" "}
-          (header row required)
-        </p>
-
         {/* Add Modal */}
         {showModal && (
           <Modal
-            title={
-              csvMode ? `Import ${csvRows.length} Students` : "Add Student"
-            }
+            title="Add Student"
             onClose={() => {
               setShowModal(false);
-              setCsvMode(false);
-              setCsvRows([]);
               setError("");
             }}
           >
-            {csvMode ? (
-              <div>
-                {error && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                      alignItems: "center",
-                      background: "var(--danger-muted)",
-                      border: "1px solid rgba(239, 68, 68, 0.15)",
-                      borderRadius: "var(--radius-md)",
-                      padding: "10px 12px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <AlertCircle size={14} style={{ color: "var(--danger)" }} />
-                    <p style={{ fontSize: "12px", color: "var(--danger)" }}>
-                      {error}
-                    </p>
-                  </div>
-                )}
-                <div
-                  style={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border-primary)",
-                    borderRadius: "var(--radius-md)",
-                    maxHeight: "240px",
-                    overflowY: "auto",
-                    marginBottom: "16px",
-                  }}
-                >
-                  {csvRows.map((r, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "10px 12px",
-                        borderBottom: "1px solid var(--border-primary)",
-                      }}
-                    >
-                      <CheckCircle2
-                        size={13}
-                        style={{ color: "var(--success)", flexShrink: 0 }}
-                      />
-                      <div>
-                        <p
-                          style={{
-                            fontSize: "12px",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {r.name}
-                        </p>
-                        <p
-                          style={{ fontSize: "11px", color: "var(--text-muted)" }}
-                        >
-                          {r.email} {r.dept && `· ${r.dept}`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    onClick={() => {
-                      setCsvMode(false);
-                      setCsvRows([]);
-                    }}
-                    className="btn-secondary"
-                    style={{ flex: 1 }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleBulkImport}
-                    disabled={saving}
-                    className="btn-primary"
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    {saving ? (
-                      <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    `Import ${csvRows.length} Students`
-                  )}
-                </button>
-              </div>
-            </div>
-          ) : (
             <form
               onSubmit={handleCreate}
               style={{ display: "flex", flexDirection: "column", gap: "16px" }}
@@ -1060,10 +917,9 @@ export default function StudentsPage() {
                 </button>
               </div>
             </form>
-          )}
-        </Modal>
-      )}
-    </div>
-  </>
+          </Modal>
+        )}
+      </div>
+    </>
   );
 }

@@ -90,13 +90,20 @@ export default function LoginScreen() {
       // Since we don't have a reliable way to get the web URL in all envs, we'll try a common pattern
       // but for local dev, it might need to be hardcoded or passed in.
       // Let's assume the web app is at uniflow.com.ng or localhost:3000
-      const webUrl = __DEV__ ? "http://localhost:3000" : "https://uniflow.com.ng";
+      // When running in Expo Go on a physical device, __DEV__ is true, 
+      // but 10.0.2.2 only works on the Emulator.
+      // Use the production URL for physical devices.
+      const webUrl = "https://uniflow-ebon.vercel.app";
+      
+      console.log("Attempting to fetch password from:", `${webUrl}/api/public/generate-temp-password`);
       
       const res = await fetch(`${webUrl}/api/public/generate-temp-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: genEmail.toLowerCase().trim() })
       });
+
+      console.log("Fetch response status:", res.status);
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate password.");

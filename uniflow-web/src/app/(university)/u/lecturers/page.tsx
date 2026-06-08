@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,13 +10,11 @@ import {
   X,
   Loader2,
   Trash2,
-  Upload,
   Mail,
   User,
   Building2,
   ChevronDown,
   AlertCircle,
-  CheckCircle2,
   Key,
   Copy,
   Check,
@@ -40,71 +38,7 @@ interface Department {
   short_name: string
 }
 
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "500px",
-          background: "var(--bg-secondary)",
-          border: "1px solid var(--border-primary)",
-          borderRadius: "var(--radius-lg)",
-          padding: "28px",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "var(--shadow-premium)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "24px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "16px",
-              fontWeight: 700,
-              color: "var(--text-primary)",
-            }}
-          >
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer" }}
-          >
-            <X size={18} style={{ color: "var(--text-muted)" }} />
-          </button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
+import Modal from "@/components/ui/Modal";
 
 const STATUS_COLORS: Record<
   string,
@@ -129,14 +63,33 @@ const STATUS_COLORS: Record<
 
 function LecturerRow({
   lecturer,
+  departments,
   onDelete,
   onResetPassword,
+  onUpdate,
 }: {
   lecturer: Lecturer;
+  departments: Department[];
   onDelete: (id: string) => void;
   onResetPassword: (lecturer: Lecturer) => void;
+  onUpdate: (id: string, updates: Partial<Lecturer>) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(lecturer.full_name);
+  const [editEmail, setEditEmail] = useState(lecturer.email);
+  const [editDeptId, setEditDeptId] = useState(lecturer.department_id || "");
+
   const s = STATUS_COLORS[lecturer.status] ?? STATUS_COLORS.pending;
+
+  const handleSave = () => {
+    onUpdate(lecturer.id, {
+      full_name: editName,
+      email: editEmail,
+      department_id: editDeptId || null,
+    });
+    setIsEditing(false);
+  };
+
   return (
     <div
       style={{
@@ -148,57 +101,60 @@ function LecturerRow({
         borderBottom: "1px solid var(--border-primary)",
         transition: "all var(--transition)",
       }}
-      onMouseEnter={(e) =>
-        ((e.currentTarget as HTMLElement).style.background = "var(--bg-hover)")
-      }
-      onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLElement).style.background = "transparent")
-      }
     >
       {/* Name + Email */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div
-          style={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "50%",
-            background: "var(--bg-tertiary)",
-            border: "1px solid var(--border-primary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>
-            {(lecturer.full_name || "U").charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <div>
-          <p
-            style={{
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "var(--text-primary)",
-            }}
-          >
-            {lecturer.full_name}
-          </p>
-          <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-            {lecturer.email} · <span style={{ color: 'var(--text-muted)', textTransform: 'capitalize' }}>{lecturer.role}</span>
-          </p>
-        </div>
+        {isEditing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+            <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ padding: '4px' }} />
+            <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} style={{ padding: '4px' }} />
+          </div>
+        ) : (
+          <>
+            <div
+              style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>
+                {(lecturer.full_name || "U").charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-primary)" }}>
+                {lecturer.full_name}
+              </p>
+              <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                {lecturer.email} · <span style={{ color: 'var(--text-muted)', textTransform: 'capitalize' }}>{lecturer.role}</span>
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Department */}
-      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-        <Building2
-          size={11}
-          style={{ color: "var(--text-muted)", flexShrink: 0 }}
-        />
-        <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-          {lecturer.department_name ?? "—"}
-        </span>
+      <div>
+        {isEditing ? (
+          <select className="select" value={editDeptId} onChange={(e) => setEditDeptId(e.target.value)} style={{ padding: '4px', width: '100%' }}>
+            <option value="">No department</option>
+            {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            <Building2 size={11} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+              {lecturer.department_name ?? "—"}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Status */}
@@ -223,29 +179,18 @@ function LecturerRow({
 
       {/* Actions */}
       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-        <button
-          onClick={() => onResetPassword(lecturer)}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            padding: "4px", color: "var(--text-muted)", transition: "color 0.2s"
-          }}
-          title="Reset Password"
-        >
-          <Key size={14} />
-        </button>
-        <button
-          onClick={() => onDelete(lecturer.id)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "4px",
-            color: "var(--text-muted)",
-            transition: "color 0.2s",
-          }}
-        >
-          <Trash2 size={13} />
-        </button>
+        {isEditing ? (
+          <>
+            <button onClick={handleSave} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--brand)" }}>Save</button>
+            <button onClick={() => setIsEditing(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>Cancel</button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => setIsEditing(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-muted)" }} title="Edit"><User size={14} /></button>
+            <button onClick={() => onResetPassword(lecturer)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-muted)" }} title="Reset Password"><Key size={14} /></button>
+            <button onClick={() => onDelete(lecturer.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-muted)" }}><Trash2 size={13} /></button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -260,13 +205,11 @@ export default function LecturersPage() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importSuccess, setImportSuccess] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
-  const [csvMode, setCsvMode] = useState(false);
-  const [csvRows, setCsvRows] = useState<
-    { name: string; email: string; dept: string }[]
-  >([]);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -276,6 +219,90 @@ export default function LecturersPage() {
   const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<Lecturer | null>(null)
   const [copied, setCopied] = useState(false)
+
+  const CSV_TEMPLATE = `full_name,email,role,department_short_name\nDr. John Doe,john@uni.edu,lecturer,CSC\nProf. Jane Smith,jane@uni.edu,dean,FOA\nDr. Mike Ade,mike@uni.edu,hod,MTH`;
+
+  function validateEmail(email: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  function downloadTemplate() {
+    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "staff_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !uniId) return;
+    setImporting(true);
+    setImportErrors([]);
+    setImportSuccess(0);
+
+    try {
+      const text = await file.text();
+      const lines = text.trim().split("\n").filter(l => l.trim());
+      if (lines.length < 2) throw new Error("CSV is empty or missing data rows");
+
+      const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
+      const rows = lines.slice(1);
+
+      const errors: string[] = [];
+      let successCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const vals = rows[i].split(",").map(v => v.trim());
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => { row[h] = vals[idx] ?? ""; });
+        const lineNum = i + 2;
+
+        if (!row.full_name || !row.email || !row.role) {
+          errors.push(`Row ${lineNum}: Missing full_name, email, or role`);
+          continue;
+        }
+
+        if (!validateEmail(row.email)) {
+          errors.push(`Row ${lineNum}: Invalid email format "${row.email}"`);
+          continue;
+        }
+
+        const dept = departments.find(d => d.short_name.toLowerCase() === row.department_short_name?.toLowerCase());
+        
+        try {
+          const res = await fetch('/api/create-staff', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              full_name: row.full_name,
+              email: row.email.toLowerCase(),
+              role: (row.role.toLowerCase() as any),
+              department_id: dept?.id || null,
+              university_id: uniId,
+            }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          successCount++;
+        } catch (err: any) {
+          errors.push(`Row ${lineNum}: ${err.message}`);
+        }
+      }
+
+      setImportErrors(errors);
+      setImportSuccess(successCount);
+      if (successCount > 0) await loadData();
+    } catch (err: any) {
+      setImportErrors([err.message]);
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  }
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -342,16 +369,21 @@ export default function LecturersPage() {
     }
     
     setLoading(false);
-  }, [uniId]); // Changed dependency to uniId to avoid recursive issues if loadData is used elsewhere
+  }, [uniId]);
 
   useEffect(() => {
-    // Avoid redundant setLoading(true) if already true
     loadData();
   }, [loadData]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    
+    if (!validateEmail(newEmail)) {
+        setError("Invalid email format.");
+        return;
+    }
+
     setSaving(true)
     try {
       if (!uniId) throw new Error("University ID not found. Please refresh the page.");
@@ -370,9 +402,6 @@ export default function LecturersPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
 
-      // No longer showing the password to the admin.
-      // The user will generate it themselves on the login page.
-      
       setNewName(''); setNewEmail(''); setNewDeptId(''); setNewRole('lecturer')
       setShowModal(false)
       alert(`Success! ${newName} has been added. They can now generate their login password on the login page using their email.`)
@@ -407,89 +436,22 @@ export default function LecturersPage() {
     }
   }
 
-  function handleCsvUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const lines = text.split("\n").slice(1).filter(Boolean);
-      const rows = lines
-        .map((line) => {
-          const [name, email, dept] = line
-            .split(",")
-            .map((s) => s.trim().replace(/"/g, ""));
-          return { name, email, dept };
-        })
-        .filter((r) => r.name && r.email);
-      setCsvRows(rows);
-      setCsvMode(true);
-    };
-    reader.readAsText(file);
-  }
-
-  async function handleBulkImport() {
-    setSaving(true);
-    setError("");
-    try {
-      if (!uniId) throw new Error("University ID not found.");
-
-      const deptMap: Record<string, string> = {};
-      departments.forEach((d) => {
-        deptMap[d.name.toLowerCase()] = d.id;
-        deptMap[d.short_name.toLowerCase()] = d.id;
-      });
-
-      let successCount = 0;
-      let failCount = 0;
-      let lastError = "";
-
-      for (const row of csvRows) {
-        try {
-          const res = await fetch('/api/create-staff', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              full_name: row.name,
-              email: row.email.toLowerCase(),
-              department_id: row.dept ? (deptMap[row.dept.toLowerCase()] ?? null) : null,
-              university_id: uniId,
-              role: "lecturer",
-            }),
-          });
-          
-          if (res.ok) {
-            successCount++;
-          } else {
-            const data = await res.json();
-            failCount++;
-            lastError = data.error;
-          }
-        } catch (err) {
-          failCount++;
-          lastError = (err as Error).message;
-        }
-      }
-
-      if (failCount > 0) {
-        setError(`Imported ${successCount} staff members. ${failCount} failed. Last error: ${lastError}`);
-      } else {
-        setCsvMode(false);
-        setCsvRows([]);
-        setShowModal(false);
-      }
-      
-      await loadData();
-    } catch (err: unknown) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function handleDelete(id: string) {
     if (!confirm("Remove this lecturer from the portal?")) return;
     await supabase.from("profiles").delete().eq("id", id);
+    await loadData();
+  }
+
+  async function handleUpdate(id: string, updates: Partial<Lecturer>) {
+    if (updates.email && !validateEmail(updates.email)) {
+      alert("Invalid email format");
+      return;
+    }
+    await supabase.from("profiles").update({
+      full_name: updates.full_name,
+      email: updates.email,
+      department_id: updates.department_id,
+    }).eq("id", id);
     await loadData();
   }
 
@@ -517,171 +479,118 @@ export default function LecturersPage() {
   return (
     <>
       {/* Confirmation Modal */}
-      <AnimatePresence>
-        {confirmReset && (
+      {confirmReset && (
+        <Modal
+          title="Reset Password?"
+          onClose={() => setConfirmReset(null)}
+          maxWidth="400px"
+        >
           <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
+            width: '48px', height: '48px', borderRadius: '50%',
+            backgroundColor: 'rgba(245,158,11,0.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(4px)',
+            marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
+            marginLeft: 'auto', marginRight: 'auto',
           }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+            <AlertTriangle size={24} color="#f59e0b" />
+          </div>
+
+          <p style={{
+            fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
+            lineHeight: 1.5, textAlign: 'center'
+          }}>
+            Are you sure you want to reset the password for <strong>{confirmReset.full_name}</strong>? 
+            A new temporary password will be generated immediately.
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => setConfirmReset(null)}
               style={{
-                width: '100%', maxWidth: '400px',
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-primary)',
-                padding: '24px', position: 'relative',
+                flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                backgroundColor: 'transparent', color: 'var(--text-secondary)',
+                fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
+                cursor: 'pointer',
               }}
             >
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%',
-                backgroundColor: 'rgba(245,158,11,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
-              }}>
-                <AlertTriangle size={24} color="#f59e0b" />
-              </div>
-
-              <h3 style={{
-                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Reset Password?
-              </h3>
-              <p style={{
-                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
-                lineHeight: 1.5,
-              }}>
-                Are you sure you want to reset the password for <strong>{confirmReset.full_name}</strong>? 
-                A new temporary password will be generated immediately.
-              </p>
-
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                  onClick={() => setConfirmReset(null)}
-                  style={{
-                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'transparent', color: 'var(--text-secondary)',
-                    fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleResetPassword(confirmReset)}
-                  style={{
-                    flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--brand)', color: 'white',
-                    fontWeight: 700, fontSize: '14px', border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Yes, Reset
-                </button>
-              </div>
-            </motion.div>
+              Cancel
+            </button>
+            <button
+              onClick={() => handleResetPassword(confirmReset)}
+              style={{
+                flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--brand)', color: 'white',
+                fontWeight: 700, fontSize: '14px', border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Yes, Reset
+            </button>
           </div>
-        )}
-      </AnimatePresence>
+        </Modal>
+      )}
 
       {/* Password Result Modal */}
-      <AnimatePresence>
-        {tempPassword && (
+      {tempPassword && (
+        <Modal
+          title="Temporary Credentials"
+          onClose={() => setTempPassword(null)}
+          maxWidth="400px"
+        >
           <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
+            width: '48px', height: '48px', borderRadius: '50%',
+            backgroundColor: 'rgba(34,197,94,0.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(4px)',
+            marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)',
+            marginLeft: 'auto', marginRight: 'auto',
           }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+            <Key size={24} color="#22c55e" />
+          </div>
+
+          <p style={{
+            fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px', textAlign: 'center'
+          }}>
+            A temporary password has been generated for <strong>{tempPassword.name}</strong> ({tempPassword.email}).
+            Please share this with them manually.
+          </p>
+
+          <div style={{
+            padding: '16px', borderRadius: 'var(--radius-md)',
+            backgroundColor: 'var(--bg-tertiary)',
+            border: '1px solid var(--border-primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: '12px', marginBottom: '20px',
+          }}>
+            <code style={{
+              fontSize: '16px', fontWeight: 700, color: 'var(--brand)',
+              letterSpacing: '0.05em',
+            }}>
+              {tempPassword.password}
+            </code>
+            <button
+              onClick={() => copyToClipboard(tempPassword.password)}
               style={{
-                width: '100%', maxWidth: '400px',
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-primary)',
-                padding: '24px', position: 'relative',
+                background: "none", border: "none", color: "var(--text-muted)",
+                cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
               }}
             >
-              <button
-                onClick={() => setTempPassword(null)}
-                style={{
-                  position: 'absolute', right: '16px', top: '16px',
-                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                  cursor: 'pointer', padding: '4px',
-                }}
-              >
-                <X size={18} />
-              </button>
-
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%',
-                backgroundColor: 'rgba(34,197,94,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)',
-              }}>
-                <Key size={24} color="#22c55e" />
-              </div>
-
-              <h3 style={{
-                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Temporary Credentials
-              </h3>
-              <p style={{
-                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px',
-              }}>
-                A temporary password has been generated for <strong>{tempPassword.name}</strong> ({tempPassword.email}).
-                Please share this with them manually.
-              </p>
-
-              <div style={{
-                padding: '16px', borderRadius: 'var(--radius-md)',
-                backgroundColor: 'rgba(0,0,0,0.2)',
-                border: '1px solid var(--border-primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: '12px', marginBottom: '20px',
-              }}>
-                <code style={{
-                  fontSize: '16px', fontWeight: 700, color: 'var(--brand)',
-                  letterSpacing: '0.05em',
-                }}>
-                  {tempPassword.password}
-                </code>
-                <button
-                  onClick={() => copyToClipboard(tempPassword.password)}
-                  style={{
-                    background: "none", border: "none", color: "var(--text-muted)",
-                    cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
-                  }}
-                >
-                  {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
-                </button>
-              </div>
-
-              <button
-                onClick={() => setTempPassword(null)}
-                style={{
-                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--brand)', color: 'white',
-                  fontWeight: 700, fontSize: '14px', border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                Done
-              </button>
-            </motion.div>
+              {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
+            </button>
           </div>
-        )}
-      </AnimatePresence>
+
+          <button
+            onClick={() => setTempPassword(null)}
+            style={{
+              width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--brand)', color: 'white',
+              fontWeight: 700, fontSize: '14px', border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Done
+          </button>
+        </Modal>
+      )}
 
       <div>
         <div
@@ -710,31 +619,45 @@ export default function LecturersPage() {
               pending
             </p>
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <label
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
+            <button
+              onClick={downloadTemplate}
               className="btn-secondary"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "8px 14px",
-                cursor: "pointer",
-                fontSize: "13px",
-              }}
+              style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}
             >
-              <Upload size={14} /> Upload CSV
+              ↓ CSV Template
+            </button>
+            <label style={{ cursor: importing ? "not-allowed" : "pointer" }}>
               <input
-                ref={fileRef}
                 type="file"
                 accept=".csv"
-                onChange={handleCsvUpload}
+                onChange={handleCSVImport}
                 style={{ display: "none" }}
+                disabled={importing}
               />
+              <span
+                className="btn-secondary"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  fontSize: "13px",
+                  cursor: importing ? "not-allowed" : "pointer",
+                  opacity: importing ? 0.6 : 1,
+                }}
+              >
+                {importing ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" /> Importing...
+                  </>
+                ) : (
+                  "↑ Import CSV"
+                )}
+              </span>
             </label>
             <button
               onClick={() => {
                 setShowModal(true);
-                setCsvMode(false);
               }}
               className="btn-primary"
               style={{
@@ -748,6 +671,66 @@ export default function LecturersPage() {
             </button>
           </div>
         </div>
+
+        {/* Import success */}
+        {importSuccess > 0 && importErrors.length === 0 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "var(--success-muted)",
+              border: "1px solid rgba(34,197,94,0.2)",
+              borderRadius: "12px",
+              padding: "12px 16px",
+              marginBottom: "20px",
+            }}
+          >
+            <p style={{ fontSize: "13px", color: "var(--success)" }}>
+              ✓ {importSuccess} staff member{importSuccess !== 1 ? "s" : ""} imported successfully
+            </p>
+            <button
+              onClick={() => setImportSuccess(0)}
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
+              <X size={14} style={{ color: "var(--success)" }} />
+            </button>
+          </div>
+        )}
+
+        {/* Import errors */}
+        {importErrors.length > 0 && (
+          <div
+            style={{
+              background: "var(--danger-muted)",
+              border: "1px solid rgba(239,68,68,0.2)",
+              borderRadius: "12px",
+              padding: "14px 16px",
+              marginBottom: "20px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--danger)" }}>
+                {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
+                {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
+              </p>
+              <button
+                onClick={() => {
+                  setImportErrors([]);
+                  setImportSuccess(0);
+                }}
+                style={{ background: "none", border: "none", cursor: "pointer" }}
+              >
+                <X size={14} style={{ color: "var(--danger)" }} />
+              </button>
+            </div>
+            {importErrors.map((err, i) => (
+              <p key={i} style={{ fontSize: "12px", color: "var(--danger)", lineHeight: 1.6 }}>
+                • {err}
+              </p>
+            ))}
+          </div>
+        )}
 
         {/* Filters */}
         <div
@@ -897,135 +880,20 @@ export default function LecturersPage() {
             </div>
           ) : (
             filtered.map((l) => (
-              <LecturerRow key={l.id} lecturer={l} onDelete={handleDelete} onResetPassword={setConfirmReset} />
+              <LecturerRow key={l.id} lecturer={l} departments={departments} onDelete={handleDelete} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
             ))
           )}
         </div>
 
-        {/* CSV download template hint */}
-        <p
-          style={{
-            fontSize: "11px",
-            color: "var(--text-muted)",
-            marginTop: "10px",
-          }}
-        >
-          CSV format:{" "}
-          <code style={{ color: "var(--text-secondary)" }}>
-            Name, Email, Department Code
-          </code>{" "}
-          (header row required)
-        </p>
-
         {/* Add Modal */}
         {showModal && (
           <Modal
-            title={
-              csvMode ? `Import ${csvRows.length} Staff` : "Add Staff"
-            }
+            title="Add Staff"
             onClose={() => {
               setShowModal(false);
-              setCsvMode(false);
-              setCsvRows([]);
               setError("");
             }}
           >
-            {csvMode ? (
-              <div>
-                {error && (
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "8px",
-                      alignItems: "center",
-                      background: "var(--danger-muted)",
-                      border: "1px solid rgba(239, 68, 68, 0.15)",
-                      borderRadius: "var(--radius-md)",
-                      padding: "10px 12px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <AlertCircle size={14} style={{ color: "var(--danger)" }} />
-                    <p style={{ fontSize: "12px", color: "var(--danger)" }}>
-                      {error}
-                    </p>
-                  </div>
-                )}
-                <div
-                  style={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border-primary)",
-                    borderRadius: "var(--radius-md)",
-                    maxHeight: "240px",
-                    overflowY: "auto",
-                    marginBottom: "16px",
-                  }}
-                >
-                  {csvRows.map((r, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "10px 12px",
-                        borderBottom: "1px solid var(--border-primary)",
-                      }}
-                    >
-                      <CheckCircle2
-                        size={13}
-                        style={{ color: "var(--success)", flexShrink: 0 }}
-                      />
-                      <div>
-                        <p
-                          style={{
-                            fontSize: "12px",
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {r.name}
-                        </p>
-                        <p
-                          style={{ fontSize: "11px", color: "var(--text-muted)" }}
-                        >
-                          {r.email} {r.dept && `· ${r.dept}`}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    onClick={() => {
-                      setCsvMode(false);
-                      setCsvRows([]);
-                    }}
-                    className="btn-secondary"
-                    style={{ flex: 1 }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleBulkImport}
-                    disabled={saving}
-                    className="btn-primary"
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    {saving ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      `Import ${csvRows.length} Staff`
-                    )}
-                  </button>
-                </div>
-              </div>
-            ) : (
               <form
                 onSubmit={handleCreate}
                 style={{ display: "flex", flexDirection: "column", gap: "16px" }}
@@ -1224,7 +1092,6 @@ export default function LecturersPage() {
                   </button>
                 </div>
               </form>
-            )}
           </Modal>
         )}
       </div>

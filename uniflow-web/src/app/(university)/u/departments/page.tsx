@@ -21,19 +21,7 @@ interface Department {
 interface Faculty  { id: string; name: string; short_name: string }
 interface Profile  { id: string; full_name: string; email: string }
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '480px', background: 'var(--bg-secondary)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', padding: '28px', boxShadow: 'var(--shadow-premium)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={18} style={{ color: 'var(--text-muted)' }} /></button>
-        </div>
-        {children}
-      </div>
-    </div>
-  )
-}
+import Modal from "@/components/ui/Modal";
 
 function DeptRow({
   dept, hods, onAssignHod, onDelete
@@ -155,6 +143,82 @@ export default function DepartmentsPage() {
   const [newShortName,    setNewShortName] = useState('')
   const [newFacultyId,    setNewFacultyId] = useState('')
 
+  const [importing,   setImporting]   = useState(false)
+  const [importErrors, setImportErrors] = useState<string[]>([])
+  const [importSuccess, setImportSuccess] = useState(0)
+
+  const CSV_TEMPLATE = `name,short_name,faculty_short_name\nComputer Science,CSC,FOS\nMathematics,MTH,FOS\nEconomics,ECO,FOA`;
+
+  function downloadTemplate() {
+    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "departments_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !uniId) return;
+    setImporting(true);
+    setImportErrors([]);
+    setImportSuccess(0);
+
+    try {
+      const text = await file.text();
+      const lines = text.trim().split("\n").filter(l => l.trim());
+      if (lines.length < 2) throw new Error("CSV is empty or missing data rows");
+
+      const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
+      const rows = lines.slice(1);
+
+      const errors: string[] = [];
+      let successCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const vals = rows[i].split(",").map(v => v.trim());
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => { row[h] = vals[idx] ?? ""; });
+        const lineNum = i + 2;
+
+        if (!row.name || !row.short_name || !row.faculty_short_name) {
+          errors.push(`Row ${lineNum}: Missing name, short_name, or faculty_short_name`);
+          continue;
+        }
+
+        const faculty = faculties.find(f => f.short_name.toLowerCase() === row.faculty_short_name.toLowerCase());
+        if (!faculty) {
+          errors.push(`Row ${lineNum}: Faculty with short name "${row.faculty_short_name}" not found`);
+          continue;
+        }
+
+        const { error: insErr } = await supabase.from("departments").insert({
+          name: row.name,
+          short_name: row.short_name.toUpperCase(),
+          faculty_id: faculty.id,
+          university_id: uniId,
+        });
+
+        if (insErr) {
+          errors.push(`Row ${lineNum}: ${insErr.message}`);
+          continue;
+        }
+        successCount++;
+      }
+
+      setImportErrors(errors);
+      setImportSuccess(successCount);
+      if (successCount > 0) await loadData();
+    } catch (err: any) {
+      setImportErrors([err.message]);
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  }
+
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
@@ -196,14 +260,14 @@ export default function DepartmentsPage() {
 
       if (!staffRes.ok || sErr) throw new Error(sErr || 'Failed to fetch staff via API')
 
-      const hodData = (allProfiles || []).filter((p: any) => (p.role || "").toLowerCase().trim() === "hod");
+      const hodData: Profile[] = (allProfiles || []).filter((p: Profile & { role: string }) => (p.role || "").toLowerCase().trim() === "hod");
       console.log(`DepartmentsPage: Filtered ${hodData.length} HODs via API`);
 
       const facMap: Record<string, string> = {}
-      ;(facRes.data ?? []).forEach((f: any) => { facMap[f.id] = f.name })
+      ;(facRes.data ?? []).forEach((f: Faculty) => { facMap[f.id] = f.name })
 
       const hodMap: Record<string, string> = {}
-      hodData.forEach((h: any) => { hodMap[h.id] = h.full_name })
+      hodData.forEach((h: Profile) => { hodMap[h.id] = h.full_name })
 
       setFaculties(facRes.data ?? [])
       setHods(hodData)
@@ -212,7 +276,7 @@ export default function DepartmentsPage() {
         name:         d.name,
         short_name:   d.short_name,
         faculty_id:   d.faculty_id,
-        faculty_name: (Array.isArray(d.faculties) ? d.faculties[0]?.name : (d.faculties as { name: string } | null)?.name) ?? facMap[d.faculty_id] ?? '—',
+        faculty_name: (Array.isArray(d.faculties) ? (d.faculties as Faculty[])[0]?.name : (d.faculties as { name: string } | null)?.name) ?? facMap[d.faculty_id] ?? '—',
         hod_id:       d.hod_id,
         hod_name:     d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
         created_at:   d.created_at,
@@ -273,10 +337,107 @@ export default function DepartmentsPage() {
             {departments.length} department{departments.length !== 1 ? 's' : ''} · Assign HODs and manage structure
           </p>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          <Plus size={15} /> Add Department
-        </button>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
+          <button
+            onClick={downloadTemplate}
+            className="btn-secondary"
+            style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}
+          >
+            ↓ CSV Template
+          </button>
+          <label style={{ cursor: importing ? "not-allowed" : "pointer" }}>
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleCSVImport}
+              style={{ display: "none" }}
+              disabled={importing}
+            />
+            <span
+              className="btn-secondary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "13px",
+                cursor: importing ? "not-allowed" : "pointer",
+                opacity: importing ? 0.6 : 1,
+              }}
+            >
+              {importing ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Importing...
+                </>
+              ) : (
+                "↑ Import CSV"
+              )}
+            </span>
+          </label>
+          <button onClick={() => setShowModal(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <Plus size={15} /> Add Department
+          </button>
+        </div>
       </div>
+
+      {/* Import success */}
+      {importSuccess > 0 && importErrors.length === 0 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "var(--success-muted)",
+            border: "1px solid rgba(34,197,94,0.2)",
+            borderRadius: "12px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <p style={{ fontSize: "13px", color: "var(--success)" }}>
+            ✓ {importSuccess} department{importSuccess !== 1 ? "s" : ""} imported successfully
+          </p>
+          <button
+            onClick={() => setImportSuccess(0)}
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <X size={14} style={{ color: "var(--success)" }} />
+          </button>
+        </div>
+      )}
+
+      {/* Import errors */}
+      {importErrors.length > 0 && (
+        <div
+          style={{
+            background: "var(--danger-muted)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "12px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--danger)" }}>
+              {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
+              {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
+            </p>
+            <button
+              onClick={() => {
+                setImportErrors([]);
+                setImportSuccess(0);
+              }}
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
+              <X size={14} style={{ color: "var(--danger)" }} />
+            </button>
+          </div>
+          {importErrors.map((err, i) => (
+            <p key={i} style={{ fontSize: "12px", color: "var(--danger)", lineHeight: 1.6 }}>
+              • {err}
+            </p>
+          ))}
+        </div>
+      )}
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
