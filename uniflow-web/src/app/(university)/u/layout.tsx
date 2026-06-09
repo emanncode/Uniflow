@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-import UniflowLogo from '@/components/ui/UniflowLogo'
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import UniflowLogo from "@/components/ui/UniflowLogo";
 import {
   LayoutDashboard,
   BookOpen,
@@ -14,57 +14,59 @@ import {
   CalendarDays,
   LogOut,
   Menu,
-  ChevronRight,
   Bell,
   Settings,
   GraduationCap,
-} from 'lucide-react'
+} from "lucide-react";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 // ─── Role-based nav config ───────────────────────────────────────────────────
 
-type Role = 'university_admin' | 'dean' | 'hod'
+type Role = "university_admin" | "dean" | "hod";
 
-const NAV_ITEMS: Record<Role, { label: string; href: string; icon: React.ElementType }[]> = {
+const NAV_ITEMS: Record<
+  Role,
+  { label: string; href: string; icon: React.ElementType }[]
+> = {
   university_admin: [
-    { label: 'Overview', href: '/u', icon: LayoutDashboard },
-    { label: 'Faculties', href: '/u/faculties', icon: BookOpen },
-    { label: 'Departments', href: '/u/departments', icon: Building2 },
-    { label: 'Lecturers', href: '/u/lecturers', icon: Users },
-    { label: 'Students', href: '/u/students', icon: GraduationCap },
-    { label: 'Timetable', href: '/u/timetable', icon: CalendarDays },
-    { label: 'Notifications', href: '/u/notifications', icon: Bell },
-    { label: 'Settings', href: '/u/settings', icon: Settings },
+    { label: "Overview", href: "/u", icon: LayoutDashboard },
+    { label: "Faculties", href: "/u/faculties", icon: BookOpen },
+    { label: "Departments", href: "/u/departments", icon: Building2 },
+    { label: "Lecturers", href: "/u/lecturers", icon: Users },
+    { label: "Students", href: "/u/students", icon: GraduationCap },
+    { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
+    { label: "Notifications", href: "/u/notifications", icon: Bell },
+    { label: "Settings", href: "/u/settings", icon: Settings },
   ],
   dean: [
-    { label: 'Overview', href: '/u', icon: LayoutDashboard },
-    { label: 'Departments', href: '/u/departments', icon: Building2 },
-    { label: 'Lecturers', href: '/u/lecturers', icon: Users },
-    { label: 'Settings', href: '/u/settings', icon: Settings },
+    { label: "Overview", href: "/u", icon: LayoutDashboard },
+    { label: "Departments", href: "/u/departments", icon: Building2 },
+    { label: "Lecturers", href: "/u/lecturers", icon: Users },
+    { label: "Settings", href: "/u/settings", icon: Settings },
   ],
   hod: [
-    { label: 'Overview', href: '/u', icon: LayoutDashboard },
-    { label: 'Lecturers', href: '/u/lecturers', icon: Users },
-    { label: 'Timetable', href: '/u/timetable', icon: CalendarDays },
-    { label: 'Settings', href: '/u/settings', icon: Settings },
+    { label: "Overview", href: "/u", icon: LayoutDashboard },
+    { label: "Lecturers", href: "/u/lecturers", icon: Users },
+    { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
+    { label: "Settings", href: "/u/settings", icon: Settings },
   ],
-}
+};
 
 const ROLE_LABELS: Record<Role, string> = {
-  university_admin: 'University Admin',
-  dean: 'Dean',
-  hod: 'Head of Department',
-}
+  university_admin: "University Admin",
+  dean: "Dean",
+  hod: "Head of Department",
+};
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
 interface SidebarProps {
-  user: { name: string; email: string; role: Role }
-  university: { name: string; short_name: string } | null
-  pathname: string
-  setSidebarOpen: (open: boolean) => void
-  onSignOut: () => void
+  user: { name: string; email: string; role: Role };
+  university: { name: string; short_name: string } | null;
+  pathname: string;
+  setSidebarOpen: (open: boolean) => void;
+  onSignOut: () => void;
 }
 
 const SidebarContent = ({
@@ -74,205 +76,290 @@ const SidebarContent = ({
   setSidebarOpen,
   onSignOut,
 }: SidebarProps) => {
-  const navItems = NAV_ITEMS[user.role] ?? []
+  const navItems = NAV_ITEMS[user.role] ?? [];
 
   return (
     <aside
       style={{
-        width: '240px',
-        height: '100vh',
-        background: 'var(--bg-secondary)',
-        borderRight: '1px solid var(--border-primary)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '24px 12px',
+        width: "240px",
+        height: "100vh",
+        background: "var(--bg-secondary)",
+        borderRight: "1px solid var(--border-primary)",
+        display: "flex",
+        flexDirection: "column",
+        padding: "24px 12px",
       }}
     >
       {/* Logo + Uni Name */}
-      <div style={{ padding: '0 8px', marginBottom: '32px' }}>
+      <div style={{ padding: "0 8px", marginBottom: "32px" }}>
         <UniflowLogo size={24} />
-        <div style={{
-          fontSize: '10px', fontWeight: 600,
-          color: 'var(--text-muted)', letterSpacing: '0.1em',
-          textTransform: 'uppercase',
-          marginTop: '6px', paddingLeft: '2px',
-        }}>
-          {university?.short_name || 'University Portal'}
+        <div
+          style={{
+            fontSize: "10px",
+            fontWeight: 600,
+            color: "var(--text-muted)",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            marginTop: "6px",
+            paddingLeft: "2px",
+          }}
+        >
+          {university?.short_name || "University Portal"}
         </div>
       </div>
 
       {/* Nav Items */}
-      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+      <nav
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
+        }}
+      >
         {navItems.map((item) => {
-          const Icon = item.icon
-          // Fixed active logic: exact match for root, startsWith for others
-          const active = item.href === '/u' 
-            ? pathname === '/u' || pathname === '/u/'
-            : pathname.startsWith(item.href)
-
+          const Icon = item.icon;
+          const active = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setSidebarOpen(false)}
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: "none" }}
             >
               <motion.div
-                whileHover={{ backgroundColor: active ? undefined : 'var(--bg-hover)' }}
+                whileHover={{
+                  backgroundColor: active ? undefined : "var(--bg-hover)",
+                }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px', borderRadius: 'var(--radius-md)',
-                  backgroundColor: active ? 'var(--brand-muted)' : 'transparent',
-                  border: active ? '1px solid var(--border-brand)' : '1px solid transparent',
-                  transition: 'all var(--transition)',
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 12px",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: active
+                    ? "var(--brand-muted)"
+                    : "transparent",
+                  border: active
+                    ? "1px solid var(--border-brand)"
+                    : "1px solid transparent",
+                  transition: "all var(--transition)",
                 }}
               >
                 <Icon
                   size={16}
-                  color={active ? 'var(--brand)' : 'var(--text-muted)'}
+                  color={active ? "var(--brand)" : "var(--text-muted)"}
                   strokeWidth={active ? 2.2 : 1.8}
                 />
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: active ? 600 : 400,
-                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
-                }}>
+                <span
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: active ? 600 : 400,
+                    color: active ? "var(--text-primary)" : "var(--text-muted)",
+                  }}
+                >
                   {item.label}
                 </span>
                 {active && (
-                  <div style={{
-                    width: '4px', height: '4px', borderRadius: '50%',
-                    backgroundColor: 'var(--brand)',
-                    marginLeft: 'auto',
-                    boxShadow: '0 0 6px var(--brand)',
-                  }} />
+                  <div
+                    style={{
+                      width: "4px",
+                      height: "4px",
+                      borderRadius: "50%",
+                      backgroundColor: "var(--brand)",
+                      marginLeft: "auto",
+                      boxShadow: "0 0 6px var(--brand)",
+                    }}
+                  />
                 )}
               </motion.div>
             </Link>
-          )
+          );
         })}
       </nav>
 
       {/* User + Sign Out */}
-      <div style={{
-        borderTop: '1px solid var(--border-primary)',
-        paddingTop: '16px',
-      }}>
-        <div style={{
-          padding: '10px 12px', marginBottom: '4px',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: 'var(--bg-hover)',
-          border: '1px solid var(--border-primary)',
-        }}>
-          <div style={{
-            fontSize: '10px', fontWeight: 700,
-            color: 'var(--brand)', marginBottom: '3px',
-            textTransform: 'uppercase', letterSpacing: '0.06em',
-          }}>
+      <div
+        style={{
+          borderTop: "1px solid var(--border-primary)",
+          paddingTop: "16px",
+        }}
+      >
+        <div
+          style={{
+            padding: "10px 12px",
+            marginBottom: "4px",
+            borderRadius: "var(--radius-md)",
+            backgroundColor: "var(--bg-hover)",
+            border: "1px solid var(--border-primary)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "var(--brand)",
+              marginBottom: "3px",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            }}
+          >
             {ROLE_LABELS[user.role]}
           </div>
-          <div style={{
-            fontSize: '11px', color: 'var(--text-muted)',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
+          <div
+            style={{
+              fontSize: "11px",
+              color: "var(--text-muted)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             {user.email}
           </div>
         </div>
 
         <motion.button
-          whileHover={{ backgroundColor: 'var(--danger-muted)' }}
+          whileHover={{ backgroundColor: "var(--danger-muted)" }}
           onClick={onSignOut}
           style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
-            padding: '10px 12px', borderRadius: 'var(--radius-md)',
-            backgroundColor: 'transparent', border: 'none',
-            cursor: 'pointer',
-            transition: 'all var(--transition)',
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "10px 12px",
+            borderRadius: "var(--radius-md)",
+            backgroundColor: "transparent",
+            border: "none",
+            cursor: "pointer",
+            transition: "all var(--transition)",
           }}
         >
           <LogOut size={15} color="var(--text-muted)" />
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sign out</span>
+          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+            Sign out
+          </span>
         </motion.button>
       </div>
     </aside>
-  )
-}
+  );
+};
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function UniversityPortalLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const pathname = usePathname()
+export default function UniversityPortalLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const [user, setUser] = useState<{ name: string; email: string; role: Role } | null>(null)
-  const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+    role: Role;
+  } | null>(null);
+  const [university, setUniversity] = useState<{
+    name: string;
+    short_name: string;
+  } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);  
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadSession() {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
         if (sessionError || !session) {
-          if (pathname !== '/u/login') router.push('/u/login')
-          else setLoading(false)
-          return
+          if (pathname !== "/u/login") router.push("/u/login");
+          else setLoading(false);
+          return;
         }
 
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('full_name, role, university_id')
-          .eq('id', session.user.id)
-          .single()
+          .from("profiles")
+          .select("full_name, role, university_id")
+          .eq("id", session.user.id)
+          .single();
 
-        if (profileError || !profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
-          if (pathname !== '/u/login') {
-            await supabase.auth.signOut()
-            router.push('/u/login')
-          } else setLoading(false)
-          return
+        if (
+          profileError ||
+          !profile ||
+          !["university_admin", "dean", "hod"].includes(profile.role)
+        ) {
+          if (pathname !== "/u/login") {
+            await supabase.auth.signOut();
+            router.push("/u/login");
+          } else setLoading(false);
+          return;
         }
 
         const { data: uni } = await supabase
-          .from('universities')
-          .select('name, short_name')
-          .eq('id', profile.university_id)
-          .maybeSingle()
+          .from("universities")
+          .select("name, short_name")
+          .eq("id", profile.university_id)
+          .maybeSingle();
 
-        setUser({ name: profile.full_name, email: session.user.email!, role: profile.role as Role })
-        setUniversity(uni)
+        setUser({
+          name: profile.full_name,
+          email: session.user.email!,
+          role: profile.role as Role,
+        });
+        setUniversity(uni);
       } catch (err) {
-        console.error('Critical error in UniversityPortalLayout:', err)
+        console.error("Critical error in UniversityPortalLayout:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    loadSession()
-  }, [pathname, router])
+    loadSession();
+  }, [pathname, router]);
 
   async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.push('/u/login')
+    await supabase.auth.signOut();
+    router.push("/u/login");
   }
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}>
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--brand)' }} />
-        <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Loading portal...</p>
+  if (loading)
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--bg-primary)" }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+            style={{ borderColor: "var(--brand)" }}
+          />
+          <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>
+            Loading portal...
+          </p>
+        </div>
       </div>
-    </div>
-  )
+    );
 
-  if (pathname === '/u/login') return <>{children}</>
-  if (!user) return <>{children}</>
+  if (pathname === "/u/login") return <>{children}</>;
+  if (!user) return <>{children}</>;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-primary)' }}>
-
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+        background: "var(--bg-primary)",
+      }}
+    >
       {/* Desktop Sidebar */}
-      <div style={{ flexShrink: 0, display: 'flex' }} className="desktop-sidebar">
+      <div
+        style={{ flexShrink: 0, display: "flex" }}
+        className="desktop-sidebar"
+      >
         <SidebarContent
           user={user}
           university={university}
@@ -292,20 +379,25 @@ export default function UniversityPortalLayout({ children }: { children: React.R
               exit={{ opacity: 0 }}
               onClick={() => setSidebarOpen(false)}
               style={{
-                position: 'fixed', inset: 0,
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                backdropFilter: 'blur(4px)',
+                position: "fixed",
+                inset: 0,
+                backgroundColor: "rgba(0,0,0,0.7)",
+                backdropFilter: "blur(4px)",
                 zIndex: 40,
               }}
             />
             <motion.div
-              initial={{ x: '-100%' }}
+              initial={{ x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
               style={{
-                position: 'fixed', left: 0, top: 0, bottom: 0,
-                zIndex: 50, display: 'flex',
+                position: "fixed",
+                right: 0,
+                top: 0,
+                bottom: 0,
+                zIndex: 50,
+                display: "flex",
               }}
             >
               <SidebarContent
@@ -321,34 +413,47 @@ export default function UniversityPortalLayout({ children }: { children: React.R
       </AnimatePresence>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-        
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
         {/* Mobile floating menu button */}
         <button
           onClick={() => setSidebarOpen(true)}
           className="mobile-menu-btn"
           style={{
-            display: 'none',
-            position: 'fixed',
-            top: '20px',
-            left: '20px',
+            display: "none",
+            position: "fixed",
+            top: "20px",
+            right: "20px",
             zIndex: 35,
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            backgroundColor: 'var(--bg-secondary)',
-            border: '1px solid var(--border-primary)',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: 'var(--shadow-lg)',
+            width: "40px",
+            height: "40px",
+            borderRadius: "10px",
+            backgroundColor: "var(--bg-secondary)",
+            border: "1px solid var(--border-primary)",
+            color: "var(--text-primary)",
+            cursor: "pointer",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "var(--shadow-lg)",
           }}
         >
           <Menu size={20} />
         </button>
 
-        <main style={{ flex: 1, overflow: 'auto', padding: 'clamp(20px, 4vw, 40px)' }}>
+        <main
+          style={{
+            flex: 1,
+            overflow: "auto",
+            padding: "clamp(20px, 4vw, 40px)",
+          }}
+        >
           {children}
         </main>
       </div>
@@ -360,5 +465,5 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         }
       `}</style>
     </div>
-  )
+  );
 }
