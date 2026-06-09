@@ -15,6 +15,7 @@ const navItems = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Registrations', href: '/dashboard/registrations', icon: Building2 },
   { label: 'Universities', href: '/dashboard/universities', icon: CheckSquare },
+  { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -222,52 +223,38 @@ export default function DashboardClientWrapper({ children }: { children: React.R
       <div style={{
         flex: 1, display: 'flex',
         flexDirection: 'column', overflow: 'hidden',
+        position: 'relative',
       }}>
 
-        {/* topbar */}
-        <div style={{
-          height: '60px', flexShrink: 0,
-          borderBottom: '1px solid var(--border-primary)',
-          backgroundColor: 'var(--bg-secondary)',
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 24px',
-        }}>
-          {/* mobile menu button */}
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="mobile-menu-btn"
-            style={{
-              display: 'none',
-              background: 'none', border: 'none',
-              color: 'var(--text-primary)',
-              cursor: 'pointer', padding: '4px',
-            }}
-          >
-            <Menu size={20} />
-          </button>
-
-          <div style={{ marginLeft: 'auto' }}>
-            <motion.button
-              whileHover={{ backgroundColor: 'var(--bg-hover)' }}
-              style={{
-                width: '36px', height: '36px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-primary)',
-                backgroundColor: 'transparent',
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'center', cursor: 'pointer',
-              }}
-            >
-              <Bell size={16} color="var(--text-muted)" />
-            </motion.button>
-          </div>
-        </div>
+        {/* mobile menu button (floating since header is gone) */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="mobile-menu-btn"
+          style={{
+            display: 'none',
+            position: 'fixed',
+            top: '20px',
+            left: '20px',
+            zIndex: 35,
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            backgroundColor: 'var(--bg-secondary)',
+            border: '1px solid var(--border-primary)',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 'var(--shadow-lg)',
+          }}
+        >
+          <Menu size={20} />
+        </button>
 
         {/* page content */}
         <div style={{
           flex: 1, overflow: 'auto',
-          padding: 'clamp(20px, 3vw, 32px)',
+          padding: 'clamp(20px, 4vw, 40px)',
         }}>
           {children}
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import UniflowLogo from '@/components/ui/UniflowLogo'
 import {
@@ -13,7 +14,6 @@ import {
   CalendarDays,
   LogOut,
   Menu,
-  X,
   ChevronRight,
   Bell,
   Settings,
@@ -34,8 +34,8 @@ const NAV_ITEMS: Record<Role, { label: string; href: string; icon: React.Element
     { label: 'Lecturers', href: '/u/lecturers', icon: Users },
     { label: 'Students', href: '/u/students', icon: GraduationCap },
     { label: 'Timetable', href: '/u/timetable', icon: CalendarDays },
-    { label: 'Settings', href: '/u/settings', icon: Settings },
     { label: 'Notifications', href: '/u/notifications', icon: Bell },
+    { label: 'Settings', href: '/u/settings', icon: Settings },
   ],
   dean: [
     { label: 'Overview', href: '/u', icon: LayoutDashboard },
@@ -60,7 +60,6 @@ const ROLE_LABELS: Record<Role, string> = {
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
 interface SidebarProps {
-  mobile?: boolean
   user: { name: string; email: string; role: Role }
   university: { name: string; short_name: string } | null
   pathname: string
@@ -68,8 +67,7 @@ interface SidebarProps {
   onSignOut: () => void
 }
 
-const Sidebar = ({
-  mobile = false,
+const SidebarContent = ({
   user,
   university,
   pathname,
@@ -80,153 +78,121 @@ const Sidebar = ({
 
   return (
     <aside
-      className={mobile ? '' : 'desktop-sidebar'}
       style={{
-        width: mobile ? '100%' : '260px',
-        minHeight: '100vh',
-        background: 'var(--bg-primary)',
+        width: '240px',
+        height: '100vh',
+        background: 'var(--bg-secondary)',
         borderRight: '1px solid var(--border-primary)',
         display: 'flex',
         flexDirection: 'column',
-        padding: '0',
-        position: mobile ? 'relative' : 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 50,
+        padding: '24px 12px',
       }}
     >
       {/* Logo + Uni Name */}
-      <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid var(--border-primary)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <UniflowLogo size={32} />
-        </div>
-        {university && (
-          <div style={{
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-primary)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '10px 12px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <GraduationCap size={14} style={{ color: 'var(--text-secondary)' }} />
-              <span style={{ fontSize: '11px', color: 'var(--text-primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {university.short_name}
-              </span>
-            </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', marginLeft: '22px' }}>
-              {university.name}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Role Badge */}
-      <div style={{ padding: '12px 20px' }}>
-        <span style={{
-          fontSize: '10px',
-          fontWeight: 600,
+      <div style={{ padding: '0 8px', marginBottom: '32px' }}>
+        <UniflowLogo size={24} />
+        <div style={{
+          fontSize: '10px', fontWeight: 600,
+          color: 'var(--text-muted)', letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: 'var(--text-muted)',
+          marginTop: '6px', paddingLeft: '2px',
         }}>
-          {ROLE_LABELS[user.role]}
-        </span>
+          {university?.short_name || 'University Portal'}
+        </div>
       </div>
 
       {/* Nav Items */}
-      <nav style={{ flex: 1, padding: '0 12px' }}>
-        {navItems.map(({ label, href, icon: Icon }) => {
-          const active = href === '/u' ? pathname === '/u' : pathname.startsWith(href)
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        {navItems.map((item) => {
+          const Icon = item.icon
+          // Fixed active logic: exact match for root, startsWith for others
+          const active = item.href === '/u' 
+            ? pathname === '/u' || pathname === '/u/'
+            : pathname.startsWith(item.href)
+
           return (
             <Link
-              key={href}
-              href={href}
+              key={item.href}
+              href={item.href}
               onClick={() => setSidebarOpen(false)}
-              className={`group border transition-all duration-150 ease-in-out ${
-                active
-                  ? 'border-[var(--border-brand)] bg-[var(--brand-muted)]'
-                  : 'border-transparent hover:bg-[var(--bg-hover)] hover:border-[var(--border-secondary)]'
-              }`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                marginBottom: '2px',
-                textDecoration: 'none',
-              }}
+              style={{ textDecoration: 'none' }}
             >
-              <Icon
-                size={15}
-                style={{ flexShrink: 0 }}
-                className={`transition-colors duration-150 ${
-                  active
-                    ? 'text-[var(--brand)]'
-                    : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'
-                }`}
-              />
-              <span
+              <motion.div
+                whileHover={{ backgroundColor: active ? undefined : 'var(--bg-hover)' }}
                 style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  padding: '10px 12px', borderRadius: 'var(--radius-md)',
+                  backgroundColor: active ? 'var(--brand-muted)' : 'transparent',
+                  border: active ? '1px solid var(--border-brand)' : '1px solid transparent',
+                  transition: 'all var(--transition)',
+                }}
+              >
+                <Icon
+                  size={16}
+                  color={active ? 'var(--brand)' : 'var(--text-muted)'}
+                  strokeWidth={active ? 2.2 : 1.8}
+                />
+                <span style={{
                   fontSize: '13px',
                   fontWeight: active ? 600 : 400,
-                }}
-                className={`transition-colors duration-150 ${
-                  active
-                    ? 'text-[var(--text-primary)]'
-                    : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'
-                }`}
-              >
-                {label}
-              </span>
-              {active && (
-                <ChevronRight size={12} style={{ color: 'var(--brand)', marginLeft: 'auto' }} />
-              )}
+                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                }}>
+                  {item.label}
+                </span>
+                {active && (
+                  <div style={{
+                    width: '4px', height: '4px', borderRadius: '50%',
+                    backgroundColor: 'var(--brand)',
+                    marginLeft: 'auto',
+                    boxShadow: '0 0 6px var(--brand)',
+                  }} />
+                )}
+              </motion.div>
             </Link>
           )
         })}
       </nav>
 
-      {/* User Footer */}
-      <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border-primary)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+      {/* User + Sign Out */}
+      <div style={{
+        borderTop: '1px solid var(--border-primary)',
+        paddingTop: '16px',
+      }}>
+        <div style={{
+          padding: '10px 12px', marginBottom: '4px',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'var(--bg-hover)',
+          border: '1px solid var(--border-primary)',
+        }}>
           <div style={{
-            width: '34px', height: '34px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, var(--brand), var(--brand-secondary))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            fontSize: '10px', fontWeight: 700,
+            color: 'var(--brand)', marginBottom: '3px',
+            textTransform: 'uppercase', letterSpacing: '0.06em',
           }}>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
-            </span>
+            {ROLE_LABELS[user.role]}
           </div>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.name}
-            </p>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user.email}
-            </p>
+          <div style={{
+            fontSize: '11px', color: 'var(--text-muted)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>
+            {user.email}
           </div>
         </div>
-        <button
+
+        <motion.button
+          whileHover={{ backgroundColor: 'var(--danger-muted)' }}
           onClick={onSignOut}
-          className="group w-100 border transition-all duration-150 ease-in-out bg-[var(--danger-muted)] border-[var(--danger-muted)] hover:bg-[var(--danger)] hover:border-[var(--danger)]"
           style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '9px 12px',
-            borderRadius: '8px',
+            width: '100%', display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '10px 12px', borderRadius: 'var(--radius-md)',
+            backgroundColor: 'transparent', border: 'none',
             cursor: 'pointer',
+            transition: 'all var(--transition)',
           }}
         >
-          <LogOut size={14} className="text-[var(--danger)] group-hover:text-white transition-colors duration-150" />
-          <span style={{ fontSize: '13px', fontWeight: 500 }} className="text-[var(--danger)] group-hover:text-white transition-colors duration-150">
-            Sign Out
-          </span>
-        </button>
+          <LogOut size={15} color="var(--text-muted)" />
+          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sign out</span>
+        </motion.button>
       </div>
     </aside>
   )
@@ -246,69 +212,34 @@ export default function UniversityPortalLayout({ children }: { children: React.R
   useEffect(() => {
     async function loadSession() {
       try {
-        console.log('Loading session for path:', pathname)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
-        if (sessionError) {
-          console.error('Session error:', sessionError)
-          setLoading(false)
+        if (sessionError || !session) {
+          if (pathname !== '/u/login') router.push('/u/login')
+          else setLoading(false)
           return
         }
 
-        console.log('Session status:', !!session)
-        
-        if (!session) {
-          if (pathname !== '/u/login') {
-            console.log('No session, redirecting to login')
-            router.push('/u/login')
-          } else {
-            setLoading(false)
-          }
-          return
-        }
-
-        console.log('Fetching profile for user:', session.user.id)
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('full_name, role, university_id')
           .eq('id', session.user.id)
           .single()
 
-        if (profileError) {
-          console.error('Profile fetch error:', profileError)
-          // On login page, don't block if profile fetch fails
-          if (pathname === '/u/login') {
-            setLoading(false)
-            return
-          }
-          // For other pages, we might need a profile, but let's not hang
-          setLoading(false)
-          return
-        }
-
-        if (!profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
-          console.log('Invalid profile or role:', profile?.role)
-          await supabase.auth.signOut()
+        if (profileError || !profile || !['university_admin', 'dean', 'hod'].includes(profile.role)) {
           if (pathname !== '/u/login') {
+            await supabase.auth.signOut()
             router.push('/u/login')
-          } else {
-            setLoading(false)
-          }
+          } else setLoading(false)
           return
         }
 
-        console.log('Fetching university data for ID:', profile.university_id)
-        const { data: uni, error: uniError } = await supabase
+        const { data: uni } = await supabase
           .from('universities')
           .select('name, short_name')
           .eq('id', profile.university_id)
           .maybeSingle()
 
-        if (uniError) {
-          console.error('University fetch error:', uniError)
-        }
-
-        console.log('Setting user and university data')
         setUser({ name: profile.full_name, email: session.user.email!, role: profile.role as Role })
         setUniversity(uni)
       } catch (err) {
@@ -334,49 +265,15 @@ export default function UniversityPortalLayout({ children }: { children: React.R
     </div>
   )
 
-  // Skip sidebar/topbar for login page
   if (pathname === '/u/login') return <>{children}</>
-
-  // If session loaded but no user data (e.g. fetch failed), still try to render children
-  // though many pages might need the user object.
   if (!user) return <>{children}</>
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-primary)' }}>
 
       {/* Desktop Sidebar */}
-      <Sidebar
-        user={user}
-        university={university}
-        pathname={pathname}
-        setSidebarOpen={setSidebarOpen}
-        onSignOut={handleSignOut}
-      />
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 40, backdropFilter: 'blur(4px)' }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Mobile Drawer */}
-      <div
-        className="mobile-menu-btn"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '260px',
-          height: '100vh',
-          zIndex: 50,
-          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.25s ease',
-        }}
-      >
-        <Sidebar
-          mobile
+      <div style={{ flexShrink: 0, display: 'flex' }} className="desktop-sidebar">
+        <SidebarContent
           user={user}
           university={university}
           pathname={pathname}
@@ -385,71 +282,73 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         />
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+              style={{
+                position: 'fixed', inset: 0,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                backdropFilter: 'blur(4px)',
+                zIndex: 40,
+              }}
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{
+                position: 'fixed', left: 0, top: 0, bottom: 0,
+                zIndex: 50, display: 'flex',
+              }}
+            >
+              <SidebarContent
+                user={user}
+                university={university}
+                pathname={pathname}
+                setSidebarOpen={setSidebarOpen}
+                onSignOut={handleSignOut}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Content */}
-      <div style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column' }} className="u-main-content">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+        
+        {/* Mobile floating menu button */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="mobile-menu-btn"
+          style={{
+            display: 'none',
+            position: 'fixed',
+            top: '20px',
+            left: '20px',
+            zIndex: 35,
+            width: '40px',
+            height: '40px',
+            borderRadius: '10px',
+            backgroundColor: 'var(--bg-secondary)',
+            border: '1px solid var(--border-primary)',
+            color: 'var(--text-primary)',
+            cursor: 'pointer',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 'var(--shadow-lg)',
+          }}
+        >
+          <Menu size={20} />
+        </button>
 
-        {/* Topbar */}
-        <header style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 30,
-          background: 'var(--bg-primary)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid var(--border-primary)',
-          padding: '0 24px',
-          height: '60px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          {/* Mobile hamburger */}
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px',
-              display: 'none',
-            }}
-          >
-            {sidebarOpen
-              ? <X size={20} style={{ color: 'var(--text-primary)' }} />
-              : <Menu size={20} style={{ color: 'var(--text-primary)' }} />
-            }
-          </button>
-
-          {/* Page context — filled in by each page via slot, for now blank */}
-          <div />
-
-          {/* Right actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button style={{
-              background: 'transparent',
-              border: '1px solid var(--border-secondary)',
-              borderRadius: '8px',
-              padding: '7px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-            }}>
-              <Bell size={15} style={{ color: 'var(--text-secondary)' }} />
-            </button>
-            <div style={{
-              width: '32px', height: '32px', borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--brand), var(--brand-secondary))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main style={{ flex: 1, padding: '28px 28px 40px' }}>
+        <main style={{ flex: 1, overflow: 'auto', padding: 'clamp(20px, 4vw, 40px)' }}>
           {children}
         </main>
       </div>
@@ -458,7 +357,6 @@ export default function UniversityPortalLayout({ children }: { children: React.R
         @media (max-width: 768px) {
           .desktop-sidebar { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
-          .u-main-content { margin-left: 0 !important; }
         }
       `}</style>
     </div>
