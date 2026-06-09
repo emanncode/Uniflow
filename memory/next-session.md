@@ -2,17 +2,22 @@
 
 Last Completed
 
-- Supabase auth connected
+- Repaired Git repository corruption
+- Enabled 'uniflow_admin' role for mobile app
+- Preserved and verified lecturer/student profile changes
 
 Next Task
 
-- Build login screen
+- Implement Timetable view for both roles
+- Start Resource upload/view flow
 
 Files To Touch
 
-- src/app/login.tsx
-- src/store/useAuthStore.ts
+- uniflow-app/app/(lecturer)/timetable.tsx
+- uniflow-app/app/(student)/timetable.tsx
+- uniflow-app/app/(lecturer)/resources.tsx
+- uniflow-app/app/(student)/resources.tsx
 
 Important Reminder
 
-- Follow lecturer/student split navigation.
+- Ensure proper role-based filtering for timetable slots and resources.

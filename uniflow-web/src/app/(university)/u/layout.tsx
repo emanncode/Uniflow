@@ -136,7 +136,7 @@ const Sidebar = ({
       {/* Nav Items */}
       <nav style={{ flex: 1, padding: '0 12px' }}>
         {navItems.map(({ label, href, icon: Icon }) => {
-          const active = pathname === href || (href !== '/' && pathname.startsWith(href))
+          const active = href === '/u' ? pathname === '/u' : pathname.startsWith(href)
           return (
             <Link
               key={href}
@@ -144,7 +144,7 @@ const Sidebar = ({
               onClick={() => setSidebarOpen(false)}
               className={`group border transition-all duration-150 ease-in-out ${
                 active
-                  ? 'border-[var(--border-secondary)] bg-[var(--bg-hover)]'
+                  ? 'border-[var(--border-brand)] bg-[var(--brand-muted)]'
                   : 'border-transparent hover:bg-[var(--bg-hover)] hover:border-[var(--border-secondary)]'
               }`}
               style={{

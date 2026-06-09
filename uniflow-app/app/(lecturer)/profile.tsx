@@ -323,8 +323,9 @@ export default function LecturerProfile() {
 
   if (!profile) return null
 
-  const universityName = (profile.universities as any)?.name ?? 'Unknown University'
-  const universityShort = (profile.universities as any)?.short_name ?? ''
+  const isUniflowAdmin = profile.role === 'uniflow_admin';
+  const universityName = isUniflowAdmin ? 'System Administrator' : ((profile.universities as any)?.name ?? 'Unknown University');
+  const universityShort = isUniflowAdmin ? 'Admin' : ((profile.universities as any)?.short_name ?? '');
 
   // ── Render ────────────────────────────────────────────────────────────
 

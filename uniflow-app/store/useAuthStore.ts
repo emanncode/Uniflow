@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
 
     // Block web-only roles from accessing the mobile app
-    const allowedRoles: MobileRole[] = ["lecturer", "student"];
+    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin"];
     if (!allowedRoles.includes(profile.role as MobileRole)) {
       await supabase.auth.signOut();
       set({ isLoading: false });
@@ -114,6 +114,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .eq("id", session.user.id)
       .single();
 
+    console.log("Fetched profile:", JSON.stringify(profile, null, 2));
+
     if (error || !profile) {
       // Session exists but profile fetch failed — clear and force re-login
       await supabase.auth.signOut();
@@ -121,7 +123,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return;
     }
 
-    const allowedRoles: MobileRole[] = ["lecturer", "student"];
+    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin"];
     if (
       !allowedRoles.includes(profile.role as MobileRole) ||
       !profile.is_active
@@ -154,7 +156,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 export const useUser = () => useAuthStore((s) => s.user);
 export const useProfile = () => useAuthStore((s) => s.profile);
 export const useIsLecturer = () =>
-  useAuthStore((s) => s.profile?.role === "lecturer");
+  useAuthStore((s) => s.profile?.role === "lecturer" || s.profile?.role === "uniflow_admin");
 export const useIsStudent = () =>
   useAuthStore((s) => s.profile?.role === "student");
 export const useIsHydrated = () => useAuthStore((s) => s.isHydrated);

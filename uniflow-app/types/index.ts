@@ -8,7 +8,7 @@ export type UserRole =
   | 'lecturer'
   | 'student'
 
-export type MobileRole = Extract<UserRole, 'lecturer' | 'student'>
+export type MobileRole = Extract<UserRole, 'lecturer' | 'student' | 'uniflow_admin'>
 
 export type ClassStatus = 'canceled' | 'delayed' | 'moved' | 'ongoing' | 'ended'
 
