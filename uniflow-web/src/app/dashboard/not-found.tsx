@@ -23,7 +23,7 @@ export default function DashboardNotFound() {
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '400px', height: '300px',
-        background: 'radial-gradient(ellipse, rgba(255,92,26,0.06) 0%, transparent 65%)',
+        background: 'radial-gradient(ellipse, var(--brand-subtle) 0%, transparent 65%)',
         pointerEvents: 'none',
       }} />
 
@@ -36,12 +36,12 @@ export default function DashboardNotFound() {
           style={{
             width: '64px', height: '64px',
             borderRadius: '18px',
-            backgroundColor: 'rgba(255,92,26,0.08)',
-            border: '1px solid rgba(255,92,26,0.2)',
+            backgroundColor: 'var(--brand-muted)',
+            border: '1px solid var(--border-brand)',
             display: 'flex', alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 24px',
-            boxShadow: '0 0 32px rgba(255,92,26,0.1)',
+            boxShadow: '0 0 32px var(--brand-muted)',
           }}
         >
           <FileQuestion size={28} color="var(--brand)" strokeWidth={1.5} />
@@ -55,8 +55,8 @@ export default function DashboardNotFound() {
           style={{
             display: 'inline-flex', alignItems: 'center',
             padding: '4px 12px', borderRadius: '999px',
-            border: '1px solid rgba(255,92,26,0.2)',
-            backgroundColor: 'rgba(255,92,26,0.06)',
+            border: '1px solid var(--border-brand)',
+            backgroundColor: 'var(--brand-subtle)',
             fontSize: '11px', fontWeight: 700,
             color: 'var(--brand)', letterSpacing: '0.1em',
             textTransform: 'uppercase' as const,

@@ -266,7 +266,7 @@ export default function RegistrationsPage() {
               <span style={{
                 fontSize: '10px',
                 color: filter === s
-                  ? s === 'pending' ? '#f59e0b' : s === 'approved' ? '#22c55e' : s === 'rejected' ? '#ef4444' : 'var(--brand)'
+                  ? s === 'pending' ? 'var(--warning)' : s === 'approved' ? 'var(--success)' : s === 'rejected' ? 'var(--danger)' : 'var(--brand)'
                   : 'var(--text-muted)',
               }}>
                 {counts[s]}

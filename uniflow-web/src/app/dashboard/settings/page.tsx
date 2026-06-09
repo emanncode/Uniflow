@@ -322,7 +322,7 @@ export default function SettingsPage() {
               style={{
                 padding: '11px 24px', fontSize: '13px',
                 borderRadius: 'var(--radius-md)',
-                backgroundColor: '#3b82f6',
+                backgroundColor: 'var(--info)',
                 color: '#fff', border: 'none',
                 cursor: 'pointer', fontFamily: 'Sora, sans-serif',
                 fontWeight: 700, width: 'fit-content',

@@ -905,7 +905,7 @@ export default function LecturersPage() {
                       gap: "8px",
                       alignItems: "center",
                       background: "var(--danger-muted)",
-                      border: "1px solid rgba(239, 68, 68, 0.15)",
+                      border: "1px solid var(--danger-muted)",
                       borderRadius: "var(--radius-md)",
                       padding: "10px 12px",
                     }}

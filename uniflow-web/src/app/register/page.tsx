@@ -625,7 +625,7 @@ export default function RegisterPage() {
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         flexShrink: 0, marginTop: '2px', cursor: 'pointer',
                         transition: 'all var(--transition)',
-                        boxShadow: form.agreed ? '0 0 12px rgba(255,92,26,0.3)' : 'none',
+                        boxShadow: form.agreed ? '0 0 12px var(--border-brand)' : 'none',
                       }}
                     >
                       {form.agreed && <CheckCircle2 size={12} color="#fff" />}

@@ -146,7 +146,7 @@ export default function NotFound() {
               letterSpacing: '-0.04em',
               lineHeight: 1.05,
               color: 'var(--brand)',
-              textShadow: '0 0 30px rgba(255,92,26,0.3)',
+              textShadow: '0 0 30px var(--border-brand)',
               margin: 0,
             }}
           >
@@ -182,7 +182,7 @@ export default function NotFound() {
         >
           <Link href="/" style={{ textDecoration: 'none' }}>
             <motion.button
-              whileHover={{ scale: 1.04, boxShadow: '0 0 30px rgba(255,92,26,0.25)' }}
+              whileHover={{ scale: 1.04, boxShadow: '0 0 30px var(--border-brand)' }}
               whileTap={{ scale: 0.97 }}
               className="btn-primary"
               style={{

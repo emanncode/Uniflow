@@ -189,7 +189,7 @@ export default function DashboardPage() {
                   textTransform: 'uppercase', letterSpacing: '0.06em',
                   color: reg.status === 'pending' ? 'var(--warning)' : reg.status === 'approved' ? 'var(--success)' : 'var(--danger)',
                   backgroundColor: reg.status === 'pending' ? 'var(--warning-muted)' : reg.status === 'approved' ? 'var(--success-muted)' : 'var(--danger-muted)',
-                  border: `1px solid ${reg.status === 'pending' ? 'rgba(245,158,11,0.2)' : reg.status === 'approved' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                  border: `1px solid ${reg.status === 'pending' ? 'var(--warning-muted)' : reg.status === 'approved' ? 'var(--success-muted)' : 'var(--danger-muted)'}`,
                 }}>
                   {reg.status}
                 </span>

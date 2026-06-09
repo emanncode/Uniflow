@@ -613,7 +613,7 @@ export default function FacultiesPage() {
           <Loader2 size={24} className="animate-spin" style={{ color: "var(--brand)" }} />
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: "14px" }}>
+        <div style={{ textAlign: "center", padding: "60px 0", border: "1px dashed var(--border-secondary)", borderRadius: "14px" }}>
           <BookOpen size={32} style={{ color: "var(--text-muted)", marginBottom: "12px" }} />
           <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
             {search ? "No faculties match your search." : "No faculties yet. Add your first faculty."}
@@ -636,7 +636,7 @@ export default function FacultiesPage() {
       {showModal && (
         <Modal title="Add New Faculty" onClose={() => setShowModal(false)}>
           <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {error && <div style={{ color: "#ef4444", fontSize: "12px" }}>{error}</div>}
+            {error && <div style={{ color: "var(--danger)", fontSize: "12px" }}>{error}</div>}
             <div>
               <label className="label" style={{ display: "block", marginBottom: "8px" }}>Faculty Name</label>
               <input required type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="input" style={{ width: "100%", boxSizing: "border-box" }} />

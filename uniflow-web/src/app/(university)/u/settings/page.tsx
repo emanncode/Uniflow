@@ -248,14 +248,14 @@ export default function UniversitySettingsPage() {
                 width: "32px",
                 height: "32px",
                 borderRadius: "var(--radius-sm)",
-                background: "rgba(59,130,246,0.08)",
-                border: "1px solid rgba(59,130,246,0.15)",
+                background: "var(--info-muted)",
+                border: "1px solid var(--info-muted)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Shield size={15} style={{ color: "#3b82f6" }} />
+              <Shield size={15} style={{ color: "var(--info)" }} />
             </div>
             <div>
               <p
@@ -275,7 +275,7 @@ export default function UniversitySettingsPage() {
           <span
             style={{
               fontSize: "12px",
-              color: "var(--brand-lighter)",
+              color: "var(--brand)",
               fontWeight: 600,
             }}
           >
@@ -353,7 +353,7 @@ export default function UniversitySettingsPage() {
               style={{
                 padding: "11px 20px",
                 borderRadius: "var(--radius-md)",
-                background: "#3b82f6",
+                background: "var(--info)",
                 color: "#fff",
                 border: "none",
                 cursor: "pointer",

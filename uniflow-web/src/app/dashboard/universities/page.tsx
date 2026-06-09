@@ -436,11 +436,11 @@ export default function UniversitiesPage() {
 
               <div style={{
                 width: '48px', height: '48px', borderRadius: '50%',
-                backgroundColor: 'rgba(34,197,94,0.1)',
+                backgroundColor: 'var(--success-muted)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)',
+                marginBottom: '16px', border: '1px solid var(--success-muted)',
               }}>
-                <Key size={24} color="#22c55e" />
+                <Key size={24} color="var(--success)" />
               </div>
 
               <h3 style={{
@@ -476,7 +476,7 @@ export default function UniversitiesPage() {
                     cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
                   }}
                 >
-                  {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
+                  {copied ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
                 </button>
               </div>
 

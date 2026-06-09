@@ -350,9 +350,9 @@ export default function UniversityLoginPage() {
                 <>
                   <div style={{
                     width: '48px', height: '48px', borderRadius: '12px',
-                    backgroundColor: 'rgba(255,92,26,0.1)',
+                    backgroundColor: 'var(--brand-muted)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: '20px', border: '1px solid rgba(255,92,26,0.2)',
+                    marginBottom: '20px', border: '1px solid var(--border-brand)',
                   }}>
                     <Key size={24} color="var(--brand)" />
                   </div>
@@ -403,11 +403,11 @@ export default function UniversityLoginPage() {
                 <>
                   <div style={{
                     width: '48px', height: '48px', borderRadius: '50%',
-                    backgroundColor: 'rgba(34,197,94,0.1)',
+                    backgroundColor: 'var(--success-muted)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: '20px', border: '1px solid rgba(34,197,94,0.2)',
+                    marginBottom: '20px', border: '1px solid var(--success-muted)',
                   }}>
-                    <Check size={24} color="#22c55e" />
+                    <Check size={24} color="var(--success)" />
                   </div>
 
                   <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
@@ -416,12 +416,12 @@ export default function UniversityLoginPage() {
                   
                   <div style={{
                     padding: '12px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                    border: '1px solid rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'var(--info-muted)',
+                    border: '1px solid var(--info-muted)',
                     display: 'flex', gap: '10px', marginBottom: '20px'
                   }}>
-                    <Info size={16} color="#3b82f6" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <p style={{ fontSize: '12px', color: '#3b82f6', lineHeight: 1.5, margin: 0 }}>
+                    <Info size={16} color="var(--info)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <p style={{ fontSize: '12px', color: 'var(--info)', lineHeight: 1.5, margin: 0 }}>
                       <strong>Security Note:</strong> This temporary password will be invalidated immediately after your first successful login.
                     </p>
                   </div>
@@ -440,7 +440,7 @@ export default function UniversityLoginPage() {
                       onClick={() => copyToClipboard(tempPassword)}
                       style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
                     >
-                      {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
+                      {copied ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
                     </button>
                   </div>
 

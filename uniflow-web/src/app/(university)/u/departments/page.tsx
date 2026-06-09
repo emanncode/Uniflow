@@ -387,7 +387,7 @@ export default function DepartmentsPage() {
             justifyContent: "space-between",
             alignItems: "center",
             background: "var(--success-muted)",
-            border: "1px solid rgba(34,197,94,0.2)",
+            border: "1px solid var(--success-muted)",
             borderRadius: "12px",
             padding: "12px 16px",
             marginBottom: "20px",
@@ -410,7 +410,7 @@ export default function DepartmentsPage() {
         <div
           style={{
             background: "var(--danger-muted)",
-            border: "1px solid rgba(239,68,68,0.2)",
+            border: "1px solid var(--danger-muted)",
             borderRadius: "12px",
             padding: "14px 16px",
             marginBottom: "20px",
