@@ -9,6 +9,7 @@ import {
   CalendarDays,
   TrendingUp,
   Clock,
+  CheckCircle2,
   ArrowUpRight,
   GraduationCap,
 } from 'lucide-react'
@@ -31,6 +32,13 @@ interface RecentActivity {
   time: string
 }
 
+const UI_COLORS = {
+  blue: { main: 'var(--info)', muted: 'var(--info-muted)' },
+  purple: { main: 'var(--brand)', muted: 'var(--brand-muted)' },
+  yellow: { main: 'var(--warning)', muted: 'var(--warning-muted)' },
+  green: { main: 'var(--success)', muted: 'var(--success-muted)' },
+}
+
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
 function StatCard({
@@ -40,48 +48,53 @@ function StatCard({
   label: string
   value: number | string
   sub?: string
-  colorKey: 'blue' | 'purple' | 'yellow' | 'green'
+  colorKey: keyof typeof UI_COLORS
   href?: string
 }) {
+  const color = UI_COLORS[colorKey]
+
   const content = (
     <div style={{
       background: 'var(--bg-card)',
       border: '1px solid var(--border-primary)',
       borderRadius: 'var(--radius-md)',
-      padding: '18px 20px',
+      padding: '20px',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: '16px',
+      flexDirection: 'column',
+      gap: '12px',
       transition: 'all var(--transition)',
       cursor: href ? 'pointer' : 'default',
       textDecoration: 'none',
     }}
       onMouseEnter={e => {
         if (!href) return
-        ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-secondary)'
-        ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'
+          ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-secondary)'
+          ; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'
+          ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'
       }}
       onMouseLeave={e => {
         ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-primary)'
-        ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-card)'
+          ; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
+          ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-card)'
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-secondary)' }}>{label}</span>
-        <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
-          {value}
-        </span>
-        {sub && <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{sub}</span>}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div style={{
+          width: '40px', height: '40px', borderRadius: '10px',
+          background: color.muted,
+          border: `1px solid ${color.main}20`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={18} style={{ color: color.main }} />
+        </div>
+        {href && <ArrowUpRight size={14} style={{ color: 'var(--text-muted)' }} />}
       </div>
-      <div style={{
-        width: '32px', height: '32px', borderRadius: '6px',
-        background: 'var(--bg-hover)',
-        border: '1px solid var(--border-primary)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'var(--text-secondary)',
-      }}>
-        <Icon size={15} />
+      <div>
+        <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
+          {value}
+        </p>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>{label}</p>
+        {sub && <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>{sub}</p>}
       </div>
     </div>
   )
@@ -91,7 +104,7 @@ function StatCard({
 
 // ─── Activity Row ─────────────────────────────────────────────────────────────
 
-const ACTIVITY_CONFIG: Record<RecentActivity['type'], { icon: React.ElementType; colorKey: 'blue' | 'purple' | 'yellow' | 'green' }> = {
+const ACTIVITY_ICONS: Record<RecentActivity['type'], { icon: React.ElementType; colorKey: keyof typeof UI_COLORS }> = {
   faculty_added: { icon: BookOpen, colorKey: 'blue' },
   dept_added: { icon: Building2, colorKey: 'purple' },
   lecturer_added: { icon: Users, colorKey: 'yellow' },
@@ -99,28 +112,29 @@ const ACTIVITY_CONFIG: Record<RecentActivity['type'], { icon: React.ElementType;
 }
 
 function ActivityRow({ item }: { item: RecentActivity }) {
-  const { icon: Icon } = ACTIVITY_CONFIG[item.type]
+  const { icon: Icon, colorKey } = ACTIVITY_ICONS[item.type]
+  const color = UI_COLORS[colorKey]
 
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
       gap: '12px',
-      padding: '10px 0',
+      padding: '12px 0',
       borderBottom: '1px solid var(--border-primary)',
     }}>
       <div style={{
-        width: '24px', height: '24px', borderRadius: '4px',
-        background: 'var(--bg-hover)',
-        border: '1px solid var(--border-primary)',
+        width: '34px', height: '34px', borderRadius: '8px',
+        background: color.muted,
+        border: `1px solid ${color.main}20`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         flexShrink: 0,
         color: 'var(--text-secondary)',
       }}>
-        <Icon size={12} />
+        <Icon size={14} style={{ color: color.main }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: '12px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {item.label}
         </p>
       </div>
@@ -236,7 +250,7 @@ export default function UniversityOverviewPage() {
     return 'Good evening'
   }
 
-  const STAT_CARDS: { icon: React.ElementType; label: string; value: number; colorKey: 'blue' | 'purple' | 'yellow' | 'green'; href: string; sub: string }[] = [
+  const STAT_CARDS: { icon: React.ElementType; label: string; value: number; colorKey: keyof typeof UI_COLORS; href: string; sub: string }[] = [
     { icon: BookOpen, label: 'Faculties', value: stats.faculties, colorKey: 'blue', href: '/u/faculties', sub: 'active faculties' },
     { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', href: '/u/departments', sub: 'across all faculties' },
     { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', href: '/u/lecturers', sub: 'onboarded lecturers' },
@@ -260,18 +274,12 @@ export default function UniversityOverviewPage() {
     <div>
       {/* Header */}
       <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
           {greeting()} 👋
         </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-            {uniName}
-          </span>
-          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-muted)' }} />
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Portal Overview
-          </span>
-        </div>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+          {uniName} · Portal Overview
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -295,7 +303,7 @@ export default function UniversityOverviewPage() {
           padding: '20px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <h2 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>
               Recent Activity
             </h2>
             <Clock size={13} style={{ color: 'var(--text-muted)' }} />
@@ -306,9 +314,9 @@ export default function UniversityOverviewPage() {
 
           {activity.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <TrendingUp size={24} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                No activity yet.
+              <TrendingUp size={28} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                No activity yet. Start by adding faculties or departments.
               </p>
             </div>
           ) : (
@@ -323,15 +331,9 @@ export default function UniversityOverviewPage() {
           borderRadius: 'var(--radius-md)',
           padding: '20px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <h2 style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>
-              Quick Actions
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success)' }} />
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>System Live</span>
-            </div>
-          </div>
+          <h2 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
+            Quick Actions
+          </h2>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '16px' }}>
             Jump to common tasks
           </p>
@@ -357,13 +359,32 @@ export default function UniversityOverviewPage() {
               </>
             )}
           </div>
+
+          {/* Portal status */}
+          <div style={{
+            marginTop: '20px',
+            background: 'var(--success-muted)',
+            border: '1px solid var(--success-muted)',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <CheckCircle2 size={14} style={{ color: 'var(--success)', flexShrink: 0 }} />
+            <p style={{ fontSize: '12px', color: 'var(--success)' }}>
+              Portal is live and active
+            </p>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function QuickAction({ href, icon: Icon, label, colorKey }: { href: string; icon: React.ElementType; label: string; colorKey: 'blue' | 'purple' | 'yellow' | 'green' }) {
+function QuickAction({ href, icon: Icon, label, colorKey }: { href: string; icon: React.ElementType; label: string; colorKey: keyof typeof UI_COLORS }) {
+  const color = UI_COLORS[colorKey]
+
   return (
     <Link href={href} style={{ textDecoration: 'none' }}>
       <div style={{
@@ -371,7 +392,7 @@ function QuickAction({ href, icon: Icon, label, colorKey }: { href: string; icon
         alignItems: 'center',
         gap: '10px',
         padding: '10px 12px',
-        borderRadius: '8px',
+        borderRadius: '10px',
         border: '1px solid var(--border-primary)',
         background: 'var(--bg-hover)',
         cursor: 'pointer',
@@ -379,21 +400,20 @@ function QuickAction({ href, icon: Icon, label, colorKey }: { href: string; icon
       }}
         onMouseEnter={e => {
           ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-secondary)'
-          ; (e.currentTarget as HTMLElement).style.background = 'var(--bg-tertiary)'
+            ; (e.currentTarget as HTMLElement).style.background = 'var(--bg-tertiary)'
         }}
         onMouseLeave={e => {
           ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-primary)'
-          ; (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'
+            ; (e.currentTarget as HTMLElement).style.background = 'var(--bg-hover)'
         }}
       >
         <div style={{
-          width: '24px', height: '24px', borderRadius: '4px',
-          background: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          color: 'var(--text-secondary)',
+          width: '28px', height: '28px', borderRadius: '7px',
+          background: color.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
-          <Icon size={12} />
+          <Icon size={13} style={{ color: color.main }} />
         </div>
-        <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+        <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }}>
           {label}
         </span>
         <ArrowUpRight size={12} style={{ color: 'var(--text-muted)', marginLeft: 'auto' }} />
