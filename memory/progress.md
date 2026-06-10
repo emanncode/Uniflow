@@ -11,11 +11,10 @@
 - Lecturers
 - Timetable
 - Role-Based University Portal
-- Uniflow Admin Mobile Support
 
 ## In Progress
 
-- Mobile Application (Lecturer/Student features)
+- Mobile Application
 
 ## Pending
 - Push Notification Sender

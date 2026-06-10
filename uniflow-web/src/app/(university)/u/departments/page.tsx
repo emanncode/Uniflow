@@ -22,6 +22,8 @@ interface Faculty  { id: string; name: string; short_name: string }
 interface Profile  { id: string; full_name: string; email: string }
 
 import Modal from "@/components/ui/Modal";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import { AlertTriangle } from 'lucide-react';
 
 function DeptRow({
   dept, hods, onAssignHod, onDelete
@@ -146,6 +148,7 @@ export default function DepartmentsPage() {
   const [importing,   setImporting]   = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [importSuccess, setImportSuccess] = useState(0)
+  const [confirmDelete, setConfirmDelete] = useState<Department | null>(null)
 
   const CSV_TEMPLATE = `name,short_name,faculty_short_name\nComputer Science,CSC,FOS\nMathematics,MTH,FOS\nEconomics,ECO,FOA`;
 
@@ -317,9 +320,17 @@ export default function DepartmentsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Delete this department?')) return
-    await supabase.from('departments').delete().eq('id', id)
-    await loadData()
+    setConfirmDelete(null)
+    setSaving(true)
+    try {
+      const { error: err } = await supabase.from('departments').delete().eq('id', id)
+      if (err) throw err
+      await loadData()
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete department')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const filtered = departments.filter(d => {
@@ -330,6 +341,19 @@ export default function DepartmentsPage() {
 
   return (
     <div>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        visible={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => confirmDelete && handleDelete(confirmDelete.id)}
+        title="Delete Department?"
+        message={`Are you sure you want to delete the ${confirmDelete?.name} department? This action cannot be undone.`}
+        confirmText="Yes, Delete"
+        isDestructive
+        isLoading={saving}
+        icon={AlertTriangle}
+      />
+
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Departments</h1>

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -10,15 +10,12 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
-  Alert,
-  Clipboard
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/useAuthStore";
 import UniflowLogo from "@/components/UniflowLogo";
 import GridBackground from "@/components/GridBackground";
 import { Theme } from "@/constants/Theme";
-import { CustomModal } from "@/components/CustomModal";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -38,12 +35,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldError>({});
-
-  // Self-service states
-  const [showPassModal, setShowPassModal] = useState(false);
-  const [genEmail, setGenEmail] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPass, setGeneratedPass] = useState<string | null>(null);
 
   // ── Validation ─────────────────────────────────────────────────────────
   const validate = (): boolean => {
@@ -75,52 +66,7 @@ export default function LoginScreen() {
     if (error) {
       setErrors({ general: error });
     }
-  };
-
-  const handleGeneratePassword = async () => {
-    if (!genEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(genEmail.trim())) {
-      Alert.alert("Invalid Email", "Please enter a valid registered email address.");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      // Use the web API endpoint. We assume it's on the same base domain or env var
-      const baseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '') || '';
-      // Since we don't have a reliable way to get the web URL in all envs, we'll try a common pattern
-      // but for local dev, it might need to be hardcoded or passed in.
-      // Let's assume the web app is at uniflow.com.ng or localhost:3000
-      // When running in Expo Go on a physical device, __DEV__ is true, 
-      // but 10.0.2.2 only works on the Emulator.
-      // Use the production URL for physical devices.
-      const webUrl = "https://uniflow-ebon.vercel.app";
-      
-      console.log("Attempting to fetch password from:", `${webUrl}/api/public/generate-temp-password`);
-      
-      const res = await fetch(`${webUrl}/api/public/generate-temp-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: genEmail.toLowerCase().trim() })
-      });
-
-      console.log("Fetch response status:", res.status);
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate password.");
-
-      setGeneratedPass(data.tempPassword);
-    } catch (err: any) {
-      Alert.alert("Error", err.message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    if (generatedPass) {
-      Clipboard.setString(generatedPass);
-      Alert.alert("Copied", "Password copied to clipboard.");
-    }
+    // On success, _layout.tsx AuthGuard handles navigation automatically
   };
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -184,12 +130,7 @@ export default function LoginScreen() {
 
             {/* Password field */}
             <View style={styles.fieldGroup}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Text style={[styles.label, { marginBottom: 0 }]}>Password</Text>
-                <TouchableOpacity onPress={() => setShowPassModal(true)}>
-                  <Text style={styles.forgotText}>Forgot?</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.label}>Password</Text>
               <View
                 style={[
                   styles.inputWrapper,
@@ -244,13 +185,7 @@ export default function LoginScreen() {
 
             {/* Help text */}
             <Text style={styles.helpText}>
-              Need a temporary password?{" "}
-              <Text 
-                style={{ color: Theme.colors.brand, fontWeight: '600' }}
-                onPress={() => setShowPassModal(true)}
-              >
-                Click here
-              </Text>
+              Don&apos;t have an account? Contact your university admin.
             </Text>
           </View>
 
@@ -260,72 +195,6 @@ export default function LoginScreen() {
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* ── Temp Password Modal ── */}
-      <CustomModal
-        visible={showPassModal}
-        onClose={() => {
-          setShowPassModal(false);
-          setGeneratedPass(null);
-          setGenEmail("");
-        }}
-        title={generatedPass ? "Password Generated" : "Get Temporary Password"}
-        type="sheet"
-      >
-        {!generatedPass ? (
-          <View>
-            <Text style={styles.modalSubtitle}>
-              Enter your registered email address to receive a temporary login password.
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="yourname@university.edu"
-              placeholderTextColor={Theme.colors.textMuted}
-              value={genEmail}
-              onChangeText={setGenEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TouchableOpacity
-              style={[styles.button, { marginTop: 20 }, isGenerating ? styles.buttonDisabled : null]}
-              onPress={handleGeneratePassword}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.buttonText}>Generate Now</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View>
-            <View style={styles.warningBox}>
-              <Text style={styles.warningText}>
-                SECURITY NOTE: This temporary password will be invalidated immediately after your first successful login.
-              </Text>
-            </View>
-            
-            <View style={styles.passContainer}>
-              <Text style={styles.passCode}>{generatedPass}</Text>
-              <TouchableOpacity onPress={copyToClipboard} style={styles.copyBtn}>
-                <Text style={{ color: Theme.colors.brand, fontWeight: '700' }}>Copy</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, { marginTop: 10 }]}
-              onPress={() => {
-                setEmail(genEmail);
-                setShowPassModal(false);
-                setGeneratedPass(null);
-              }}
-            >
-              <Text style={styles.buttonText}>Proceed to Login</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </CustomModal>
     </View>
   );
 }
@@ -410,11 +279,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textTransform: "uppercase",
   },
-  forgotText: {
-    color: Theme.colors.brand,
-    fontSize: 11,
-    fontWeight: "700",
-  },
   input: {
     backgroundColor: Theme.colors.bgTertiary,
     borderWidth: 1,
@@ -497,46 +361,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 32,
   },
-
-  // ── Modal Styles (used inside CustomModal children) ──
-  modalSubtitle: {
-    color: Theme.colors.textSecondary,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  warningBox: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-    borderRadius: Theme.radius.md,
-    padding: 12,
-    marginBottom: 20,
-  },
-  warningText: {
-    color: '#60a5fa',
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: '600',
-  },
-  passContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: Theme.radius.md,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: Theme.colors.borderPrimary,
-  },
-  passCode: {
-    color: Theme.colors.brand,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  copyBtn: {
-    padding: 8,
-  }
 });

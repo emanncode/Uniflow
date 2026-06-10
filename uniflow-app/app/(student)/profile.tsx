@@ -6,10 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
-  Modal,
   TextInput,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -23,12 +20,13 @@ import {
   ChevronRight,
   LogOut,
   Lock,
-  X,
   Check,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
+import { CustomModal } from "@/components/CustomModal";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -195,100 +193,79 @@ function ChangePasswordModal({
   };
 
   return (
-    <Modal
+    <CustomModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      title="Change Password"
+      type="sheet"
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <Pressable style={styles.overlay} onPress={handleClose} />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Change Password</Text>
-            <TouchableOpacity
-              onPress={handleClose}
-              hitSlop={8}
-              style={styles.closeBtn}
-            >
-              <X size={18} color={C.textMuted} strokeWidth={2} />
-            </TouchableOpacity>
+      <View style={styles.sheetBody}>
+        {success ? (
+          <View style={styles.successState}>
+            <View style={styles.successIcon}>
+              <Check size={28} color={C.success} strokeWidth={2.5} />
+            </View>
+            <Text style={styles.successText}>Password updated!</Text>
           </View>
-          <View style={styles.sheetDivider} />
-
-          <View style={styles.sheetBody}>
-            {success ? (
-              <View style={styles.successState}>
-                <View style={styles.successIcon}>
-                  <Check size={28} color={C.success} strokeWidth={2.5} />
-                </View>
-                <Text style={styles.successText}>Password updated!</Text>
+        ) : (
+          <>
+            {error ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>{error}</Text>
               </View>
-            ) : (
-              <>
-                {error ? (
-                  <View style={styles.errorBanner}>
-                    <Text style={styles.errorText}>{error}</Text>
-                  </View>
-                ) : null}
+            ) : null}
 
-                {[
-                  {
-                    label: "Current Password",
-                    value: current,
-                    onChange: setCurrent,
-                    placeholder: "Enter current password",
-                  },
-                  {
-                    label: "New Password",
-                    value: next,
-                    onChange: setNext,
-                    placeholder: "Min. 6 characters",
-                  },
-                  {
-                    label: "Confirm New Password",
-                    value: confirm,
-                    onChange: setConfirm,
-                    placeholder: "Repeat new password",
-                  },
-                ].map((field) => (
-                  <View key={field.label} style={styles.fieldGroup}>
-                    <Text style={styles.fieldLabel}>{field.label}</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder={field.placeholder}
-                      placeholderTextColor={C.textMuted}
-                      value={field.value}
-                      onChangeText={field.onChange}
-                      secureTextEntry
-                      autoCapitalize="none"
-                      editable={!isLoading}
-                    />
-                  </View>
-                ))}
+            {[
+              {
+                label: "Current Password",
+                value: current,
+                onChange: setCurrent,
+                placeholder: "Enter current password",
+              },
+              {
+                label: "New Password",
+                value: next,
+                onChange: setNext,
+                placeholder: "Min. 6 characters",
+              },
+              {
+                label: "Confirm New Password",
+                value: confirm,
+                onChange: setConfirm,
+                placeholder: "Repeat new password",
+              },
+            ].map((field) => (
+              <View key={field.label} style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>{field.label}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={field.placeholder}
+                  placeholderTextColor={C.textMuted}
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  editable={!isLoading}
+                />
+              </View>
+            ))}
 
-                <TouchableOpacity
-                  style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
-                  onPress={handleSubmit}
-                  disabled={isLoading}
-                  activeOpacity={0.85}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color={C.textPrimary} />
-                  ) : (
-                    <Text style={styles.submitBtnText}>Update Password</Text>
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
+            <TouchableOpacity
+              style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+              activeOpacity={0.85}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={C.textPrimary} />
+              ) : (
+                <Text style={styles.submitBtnText}>Update Password</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </CustomModal>
   );
 }
 
@@ -301,19 +278,12 @@ export default function StudentProfile() {
 
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [signOutModalVisible, setSignOutModalVisible] = useState(false);
 
-  const handleSignOut = useCallback(() => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          setIsSigningOut(true);
-          await signOut();
-        },
-      },
-    ]);
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    await signOut();
+    setSignOutModalVisible(false);
   }, [signOut]);
 
   if (!profile) return null;
@@ -402,7 +372,7 @@ export default function StudentProfile() {
           <SettingsRow
             icon={<LogOut size={16} color={C.danger} strokeWidth={1.8} />}
             label="Sign Out"
-            onPress={handleSignOut}
+            onPress={() => setSignOutModalVisible(true)}
             danger
             loading={isSigningOut}
           />
@@ -414,6 +384,18 @@ export default function StudentProfile() {
       <ChangePasswordModal
         visible={passwordModalVisible}
         onClose={() => setPasswordModalVisible(false)}
+      />
+
+      <ConfirmationModal
+        visible={signOutModalVisible}
+        onClose={() => setSignOutModalVisible(false)}
+        onConfirm={handleSignOut}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your account?"
+        confirmText="Sign Out"
+        isDestructive
+        isLoading={isSigningOut}
+        icon={LogOut}
       />
     </ScrollView>
   );
@@ -529,41 +511,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  overlay: { flex: 1, backgroundColor: C.overlay },
-  sheet: {
-    backgroundColor: C.bgSecondary,
-    borderTopLeftRadius: R.xl,
-    borderTopRightRadius: R.xl,
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: C.borderSecondary,
-    alignSelf: "center",
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  sheetTitle: { color: C.textPrimary, fontSize: 18, fontWeight: "700" },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: R.full,
-    backgroundColor: C.bgTertiary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sheetDivider: { height: 1, backgroundColor: C.borderPrimary },
-  sheetBody: { padding: 20, gap: 14 },
+  sheetBody: { gap: 14 },
   errorBanner: {
     backgroundColor: C.dangerMuted,
     borderWidth: 1,

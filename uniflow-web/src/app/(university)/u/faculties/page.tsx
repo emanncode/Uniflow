@@ -13,6 +13,7 @@ import {
   Building2,
   ChevronDown,
   AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 interface Faculty {
@@ -32,6 +33,7 @@ interface Profile {
 }
 
 import Modal from "@/components/ui/Modal";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
 function FacultyCard({
   faculty,
@@ -204,8 +206,7 @@ function FacultyCard({
             onClick={() => setAssigning(true)}
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: "6px",
+              alignItems: "center", gap: "6px",
               background: "var(--warning-muted)",
               border: "1px solid var(--warning-muted)",
               borderRadius: "8px",
@@ -301,6 +302,8 @@ export default function FacultiesPage() {
   const [importing, setImporting] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccess, setImportSuccess] = useState(0);
+
+  const [confirmDelete, setConfirmDelete] = useState<Faculty | null>(null);
 
   const CSV_TEMPLATE = `name,short_name\nFaculty of Science,FOS\nFaculty of Arts,FOA\nFaculty of Engineering,FOE`;
 
@@ -472,9 +475,17 @@ export default function FacultiesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this faculty?")) return;
-    await supabase.from("faculties").delete().eq("id", id);
-    await loadData();
+    setConfirmDelete(null);
+    setSaving(true);
+    try {
+      const { error: err } = await supabase.from("faculties").delete().eq("id", id);
+      if (err) throw err;
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete faculty");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const filtered = faculties.filter(
@@ -485,6 +496,19 @@ export default function FacultiesPage() {
 
   return (
     <div>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        visible={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={() => confirmDelete && handleDelete(confirmDelete.id)}
+        title="Delete Faculty?"
+        message={`Are you sure you want to delete the ${confirmDelete?.name}? All associated departments will need to be re-assigned. This action cannot be undone.`}
+        confirmText="Yes, Delete"
+        isDestructive
+        isLoading={saving}
+        icon={AlertTriangle}
+      />
+
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px", gap: "16px", flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>
@@ -627,7 +651,7 @@ export default function FacultiesPage() {
               faculty={f}
               deans={deans}
               onAssignDean={handleAssignDean}
-              onDelete={handleDelete}
+              onDelete={() => setConfirmDelete(f)}
             />
           ))}
         </div>

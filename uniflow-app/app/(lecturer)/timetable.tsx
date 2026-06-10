@@ -7,8 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  Pressable,
   Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +23,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
+import { CustomModal } from "@/components/CustomModal";
 import type {
   TimetableSlot,
   ClassUpdate,
@@ -228,73 +227,57 @@ function StatusActionSheet({
   if (!slot) return null;
 
   return (
-    <Modal
+    <CustomModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      onClose={onClose}
+      title="Update Class Status"
+      type="sheet"
     >
-      <Pressable style={styles.overlay} onPress={onClose} />
-      <View style={styles.sheet}>
-        {/* Handle */}
-        <View style={styles.sheetHandle} />
-
-        {/* Header */}
-        <View style={styles.sheetHeader}>
-          <Text style={styles.sheetCourse}>{slot.courses?.code}</Text>
-          <Text style={styles.sheetTitle} numberOfLines={1}>
-            {slot.courses?.title}
-          </Text>
-          <Text style={styles.sheetVenue}>
-            {formatTime(slot.start_time)} · {slot.venue}
-          </Text>
-        </View>
-
-        <View style={styles.sheetDivider} />
-
-        {/* Actions */}
-        {isSubmitting ? (
-          <View style={styles.sheetLoading}>
-            <ActivityIndicator color={C.brand} />
-            <Text style={styles.sheetLoadingText}>Updating status...</Text>
-          </View>
-        ) : (
-          STATUS_ACTIONS.map((action) => (
-            <TouchableOpacity
-              key={action.status}
-              style={styles.actionRow}
-              onPress={() => onSelect(action.status)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.actionIconWrap,
-                  {
-                    backgroundColor:
-                      CLASS_STATUS_COLORS[action.status].background,
-                  },
-                ]}
-              >
-                {action.icon}
-              </View>
-              <View style={styles.actionText}>
-                <Text style={styles.actionLabel}>{action.label}</Text>
-                <Text style={styles.actionDesc}>{action.description}</Text>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-
-        {/* Cancel */}
-        <TouchableOpacity
-          style={styles.sheetCancel}
-          onPress={onClose}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.sheetCancelText}>Cancel</Text>
-        </TouchableOpacity>
+      <View style={styles.sheetHeader}>
+        <Text style={styles.sheetCourse}>{slot.courses?.code}</Text>
+        <Text style={styles.sheetTitle} numberOfLines={1}>
+          {slot.courses?.title}
+        </Text>
+        <Text style={styles.sheetVenue}>
+          {formatTime(slot.start_time)} · {slot.venue}
+        </Text>
       </View>
-    </Modal>
+
+      <View style={styles.sheetDivider} />
+
+      {/* Actions */}
+      {isSubmitting ? (
+        <View style={styles.sheetLoading}>
+          <ActivityIndicator color={C.brand} />
+          <Text style={styles.sheetLoadingText}>Updating status...</Text>
+        </View>
+      ) : (
+        STATUS_ACTIONS.map((action) => (
+          <TouchableOpacity
+            key={action.status}
+            style={styles.actionRow}
+            onPress={() => onSelect(action.status)}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                styles.actionIconWrap,
+                {
+                  backgroundColor:
+                    CLASS_STATUS_COLORS[action.status].background,
+                },
+              ]}
+            >
+              {action.icon}
+            </View>
+            <View style={styles.actionText}>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+              <Text style={styles.actionDesc}>{action.description}</Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      )}
+    </CustomModal>
   );
 }
 
@@ -790,30 +773,8 @@ const styles = StyleSheet.create({
   },
 
   // Action Sheet
-  overlay: {
-    flex: 1,
-    backgroundColor: C.overlay,
-  },
-  sheet: {
-    backgroundColor: C.bgSecondary,
-    borderTopLeftRadius: R.xl,
-    borderTopRightRadius: R.xl,
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-    paddingBottom: 32,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: C.borderSecondary,
-    alignSelf: "center",
-    marginTop: 12,
-    marginBottom: 4,
-  },
   sheetHeader: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 12,
     gap: 2,
   },
   sheetCourse: {
@@ -835,7 +796,7 @@ const styles = StyleSheet.create({
   sheetDivider: {
     height: 1,
     backgroundColor: C.borderPrimary,
-    marginBottom: 8,
+    marginVertical: 12,
   },
   sheetLoading: {
     padding: 32,
@@ -849,8 +810,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 13,
+    paddingVertical: 12,
     gap: 14,
   },
   actionIconWrap: {
@@ -872,20 +832,5 @@ const styles = StyleSheet.create({
   actionDesc: {
     color: C.textMuted,
     fontSize: 12,
-  },
-  sheetCancel: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    padding: 15,
-    borderRadius: R.sm,
-    backgroundColor: C.bgTertiary,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-  },
-  sheetCancelText: {
-    color: C.textSecondary,
-    fontSize: 15,
-    fontWeight: "600",
   },
 });

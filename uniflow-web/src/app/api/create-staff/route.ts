@@ -1,19 +1,31 @@
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
+import { validateAndNormalizeEmail } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
     const { full_name, email, role, department_id, university_id } = await req.json()
     const normalizedRole = (role || 'lecturer').toLowerCase();
-    console.log(`API Create Staff: Creating ${normalizedRole} ${email} for university ${university_id}`);
+
+    // Server-side domain typo correction (protects CSV + forms + any future callers)
+    const emailCheck = validateAndNormalizeEmail(email)
+    if (!emailCheck.valid) {
+      return NextResponse.json({ error: emailCheck.error || 'Invalid email address' }, { status: 400 })
+    }
+    const finalEmail = emailCheck.normalized
+    if (emailCheck.wasCorrected) {
+      console.log(`API Create Staff: Corrected email domain ${email} -> ${finalEmail}`)
+    }
+
+    console.log(`API Create Staff: Creating ${normalizedRole} ${finalEmail} for university ${university_id}`);
 
     const supabase = createAdminClient()
 
     // 1. create auth user with temp password
     const tempPassword = generateTempPassword()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
+      email: finalEmail,
       password: tempPassword,
       email_confirm: true,
     })
@@ -29,7 +41,7 @@ export async function POST(req: Request) {
     const { error: profileError } = await supabase.from('profiles').insert({
       id: authData.user.id,
       full_name,
-      email,
+      email: finalEmail,
       role: normalizedRole,
       university_id,
       department_id: department_id || null,
@@ -47,7 +59,7 @@ export async function POST(req: Request) {
     // 3. send password reset so they set their own password
     // NOTE: This might fail if SMTP is not configured, but we proceed anyway as we return tempPassword
     try {
-      await supabase.auth.resetPasswordForEmail(email)
+      await supabase.auth.resetPasswordForEmail(finalEmail)
     } catch (e: unknown) {
       console.warn("API Create Staff: Failed to send reset email, but user was created.")
     }

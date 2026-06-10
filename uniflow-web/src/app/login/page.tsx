@@ -1,53 +1,53 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-type Step = 'credentials' | 'otp'
+type Step = "credentials" | "otp";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [step, setStep] = useState<Step>('credentials')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [otp, setOtp] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [otpError, setError] = useState('')
-  const [message, setMessage] = useState('')
+  const router = useRouter();
+  const [step, setStep] = useState<Step>("credentials");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [otpError, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleCredentials = async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     // first verify email + password
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
 
     if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
+      setError(error.message);
+      setLoading(false);
+      return;
     }
 
     // check if admin
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
 
-    if (profile?.role !== 'uniflow_admin') {
-      setError('Access denied. This portal is for uniflow admins only.')
-      await supabase.auth.signOut()
-      setLoading(false)
-      return
+    if (profile?.role !== "uniflow_admin") {
+      setError("Access denied. This portal is for uniflow admins only.");
+      await supabase.auth.signOut();
+      setLoading(false);
+      return;
     }
 
     // OTP logic disabled temporarily. DO NOT UNCOMMENT YET.
@@ -72,33 +72,33 @@ export default function LoginPage() {
     setMessage(`Verification code sent to ${email}`)
     setStep('otp')
     */
-    
-    router.push('/dashboard')
-    setLoading(false)
-  }
+
+    router.push("/dashboard");
+    setLoading(false);
+  };
 
   const handleOtp = async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError("");
 
     const { error } = await supabase.auth.verifyOtp({
       email,
       token: otp,
-      type: 'email',
-    })
+      type: "email",
+    });
 
     if (error) {
-      setError('Invalid or expired code. Please try again.')
-      setLoading(false)
-      return
+      setError("Invalid or expired code. Please try again.");
+      setLoading(false);
+      return;
     }
 
-    router.push('/dashboard')
-  }
+    router.push("/dashboard");
+  };
 
   const handleResend = async () => {
-    setError('')
-    setMessage('')
+    setError("");
+    setMessage("");
 
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email,
@@ -107,19 +107,19 @@ export default function LoginPage() {
         emailRedirectTo: undefined,
         data: {},
       },
-    })
+    });
 
     if (otpError) {
-      setError(otpError.message)
-      return
+      setError(otpError.message);
+      return;
     }
 
-    setMessage('New code sent to your email.')
-  }
+    setMessage("New code sent to your email.");
+  };
 
   return (
     <main
-      style={{ backgroundColor: 'var(--bg-primary)' }}
+      style={{ backgroundColor: "var(--bg-primary)" }}
       className="min-h-screen flex items-center justify-center px-4! relative"
     >
       {/* background grid */}
@@ -137,24 +137,25 @@ export default function LoginPage() {
         </div>
 
         <div className="card">
-          {step === 'credentials' ? (
+          {step === "credentials" ? (
             <>
-              <h2 className="text-xl font-bold text-primary mb-1!">Welcome back</h2>
+              <h2 className="text-xl font-bold text-primary mb-1!">
+                Welcome back
+              </h2>
               <p className="text-secondary text-sm mb-8!">
                 Sign in to manage Uniflow
               </p>
 
-              {otpError && (
-                <div className="alert-error mb-6!">
-                  {otpError}
-                </div>
-              )}
+              {otpError && <div className="alert-error mb-6!">{otpError}</div>}
 
               <div className="space-y-5">
                 <div>
                   <label className="label">Email Address</label>
                   <div className="relative">
-                    <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                    <Mail
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+                    />
                     <input
                       type="email"
                       value={email}
@@ -168,14 +169,19 @@ export default function LoginPage() {
                 <div>
                   <label className="label">Password</label>
                   <div className="relative">
-                    <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                    <Lock
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+                    />
                     <input
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="input pl-10! pr-10!"
-                      onKeyDown={(e) => e.key === 'Enter' && handleCredentials()}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleCredentials()
+                      }
                     />
                     <button
                       type="button"
@@ -192,7 +198,7 @@ export default function LoginPage() {
                   disabled={loading}
                   className="btn-primary w-full mt-2!"
                 >
-                  {loading ? 'Verifying...' : 'Continue'}
+                  {loading ? "Verifying..." : "Continue"}
                 </button>
               </div>
             </>
@@ -201,9 +207,13 @@ export default function LoginPage() {
               <div className="mb-6!">
                 {/* back button */}
                 <button
-                  onClick={() => { setStep('credentials'); setError(''); setOtp('') }}
+                  onClick={() => {
+                    setStep("credentials");
+                    setError("");
+                    setOtp("");
+                  }}
                   className="text-xs hover:text-brand transition-colors mb-6! flex items-center gap-1"
-                  style={{ color: 'var(--text-muted)' }}
+                  style={{ color: "var(--text-muted)" }}
                 >
                   ← Back
                 </button>
@@ -212,22 +222,14 @@ export default function LoginPage() {
                   Check your email
                 </h2>
                 <p className="text-secondary text-sm">
-                  We sent a 6-digit code to{' '}
+                  We sent a 6-digit code to{" "}
                   <span className="text-brand font-medium">{email}</span>
                 </p>
               </div>
 
-              {otpError && (
-                <div className="alert-error mb-6!">
-                  {otpError}
-                </div>
-              )}
+              {otpError && <div className="alert-error mb-6!">{otpError}</div>}
 
-              {message && (
-                <div className="alert-success mb-6!">
-                  {message}
-                </div>
-              )}
+              {message && <div className="alert-success mb-6!">{message}</div>}
 
               <div className="space-y-5">
                 <div>
@@ -235,11 +237,13 @@ export default function LoginPage() {
                   <input
                     type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) =>
+                      setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
                     placeholder="000000"
                     className="input text-center text-2xl font-bold tracking-[0.5em]"
                     maxLength={6}
-                    onKeyDown={(e) => e.key === 'Enter' && handleOtp()}
+                    onKeyDown={(e) => e.key === "Enter" && handleOtp()}
                   />
                 </div>
 
@@ -248,15 +252,18 @@ export default function LoginPage() {
                   disabled={loading || otp.length !== 6}
                   className="btn-primary w-full"
                 >
-                  {loading ? 'Verifying...' : 'Verify & Sign in'}
+                  {loading ? "Verifying..." : "Verify & Sign in"}
                 </button>
 
-                <p className="text-center text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Didn&apos;t receive the code?{' '}
+                <p
+                  className="text-center text-xs"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Didn&apos;t receive the code?{" "}
                   <button
                     onClick={handleResend}
                     className="text-brand hover:underline"
-                    style={{ color: 'var(--brand)' }}
+                    style={{ color: "var(--brand)" }}
                   >
                     Resend
                   </button>
@@ -266,10 +273,13 @@ export default function LoginPage() {
           )}
         </div>
 
-        <p className="text-center text-xs mt-6!" style={{ color: 'var(--text-muted)' }}>
+        <p
+          className="text-center text-xs mt-6!"
+          style={{ color: "var(--text-muted)" }}
+        >
           Uniflow © {new Date().getFullYear()}
         </p>
       </div>
     </main>
-  )
+  );
 }

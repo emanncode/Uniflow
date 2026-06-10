@@ -7,8 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  Pressable,
   Alert,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -27,6 +25,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
+import { CustomModal } from '@/components/CustomModal'
 import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
 import { CLASS_STATUS_COLORS } from '@/types'
 
@@ -113,7 +112,7 @@ function StatusBadge({ status }: { status: ClassStatus }) {
 interface SlotCardProps {
   slot: TimetableSlot
   update?: ClassUpdate
-  isToday: boolean
+  isToday: boolean;
   onReport: (slot: TimetableSlot) => void
   onUpvote: (update: ClassUpdate) => void
 }
@@ -204,81 +203,68 @@ function SlotCard({ slot, update, isToday, onReport, onUpvote }: SlotCardProps) 
 // ─── Status Action Sheet ───────────────────────────────────────────────────
 
 interface ActionSheetProps {
-  slot: TimetableSlot | null
-  visible: boolean
-  isSubmitting: boolean
-  onSelect: (status: ClassStatus) => void
-  onClose: () => void
+  slot: TimetableSlot | null;
+  visible: boolean;
+  isSubmitting: boolean;
+  onSelect: (status: ClassStatus) => void;
+  onClose: () => void;
 }
 
 function StatusActionSheet({ slot, visible, isSubmitting, onSelect, onClose }: ActionSheetProps) {
   if (!slot) return null
 
   return (
-    <Modal
+    <CustomModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      onClose={onClose}
+      title="Report Class Status"
+      type="sheet"
     >
-      <Pressable style={styles.overlay} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.sheetHandle} />
-
-        <View style={styles.sheetHeader}>
-          <Text style={styles.sheetCode}>{slot.courses?.code}</Text>
-          <Text style={styles.sheetTitle} numberOfLines={1}>
-            {slot.courses?.title}
-          </Text>
-          <Text style={styles.sheetMeta}>
-            {formatTime(slot.start_time)} · {slot.venue}
-          </Text>
-        </View>
-
-        <View style={styles.sheetNote}>
-          <Text style={styles.sheetNoteText}>
-            Your report helps other students. Be accurate.
-          </Text>
-        </View>
-
-        <View style={styles.sheetDivider} />
-
-        {isSubmitting ? (
-          <View style={styles.sheetLoading}>
-            <ActivityIndicator color={C.brand} />
-            <Text style={styles.sheetLoadingText}>Submitting report...</Text>
-          </View>
-        ) : (
-          STATUS_ACTIONS.map((action) => (
-            <TouchableOpacity
-              key={action.status}
-              style={styles.actionRow}
-              onPress={() => onSelect(action.status)}
-              activeOpacity={0.7}
-            >
-              <View style={[
-                styles.actionIconWrap,
-                { backgroundColor: CLASS_STATUS_COLORS[action.status].background },
-              ]}>
-                {action.icon}
-              </View>
-              <View style={styles.actionText}>
-                <Text style={styles.actionLabel}>{action.label}</Text>
-                <Text style={styles.actionDesc}>{action.description}</Text>
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
-
-        <TouchableOpacity
-          style={styles.sheetCancel}
-          onPress={onClose}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.sheetCancelText}>Cancel</Text>
-        </TouchableOpacity>
+      <View style={styles.sheetHeader}>
+        <Text style={styles.sheetCode}>{slot.courses?.code}</Text>
+        <Text style={styles.sheetTitle} numberOfLines={1}>
+          {slot.courses?.title}
+        </Text>
+        <Text style={styles.sheetMeta}>
+          {formatTime(slot.start_time)} · {slot.venue}
+        </Text>
       </View>
-    </Modal>
+
+      <View style={styles.sheetNote}>
+        <Text style={styles.sheetNoteText}>
+          Your report helps other students. Be accurate.
+        </Text>
+      </View>
+
+      <View style={styles.sheetDivider} />
+
+      {isSubmitting ? (
+        <View style={styles.sheetLoading}>
+          <ActivityIndicator color={C.brand} />
+          <Text style={styles.sheetLoadingText}>Submitting report...</Text>
+        </View>
+      ) : (
+        STATUS_ACTIONS.map((action) => (
+          <TouchableOpacity
+            key={action.status}
+            style={styles.actionRow}
+            onPress={() => onSelect(action.status)}
+            activeOpacity={0.7}
+          >
+            <View style={[
+              styles.actionIconWrap,
+              { backgroundColor: CLASS_STATUS_COLORS[action.status].background },
+            ]}>
+              {action.icon}
+            </View>
+            <View style={styles.actionText}>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+              <Text style={styles.actionDesc}>{action.description}</Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      )}
+    </CustomModal>
   )
 }
 
@@ -560,8 +546,8 @@ export default function StudentTimetable() {
         onSelect={handleSelectStatus}
         onClose={() => {
           if (!isSubmitting) {
-            setSheetVisible(false)
-            setActiveSlot(null)
+            setSheetVisible(false);
+            setActiveSlot(null);
           }
         }}
       />
@@ -696,31 +682,12 @@ const styles = StyleSheet.create({
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: R.full },
   badgeText: { fontSize: 11, fontWeight: '700' },
 
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  sheet: {
-    backgroundColor: C.bgSecondary,
-    borderTopLeftRadius: R.xl,
-    borderTopRightRadius: R.xl,
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-    paddingBottom: 32,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: C.borderSecondary,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  sheetHeader: { paddingHorizontal: 20, paddingVertical: 16, gap: 2 },
+  sheetHeader: { paddingBottom: 16, gap: 2 },
   sheetCode: { color: C.brand, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
   sheetTitle: { color: C.textPrimary, fontSize: 17, fontWeight: '700' },
   sheetMeta: { color: C.textMuted, fontSize: 13, marginTop: 2 },
   sheetNote: {
-    marginHorizontal: 20,
-    marginBottom: 8,
+    marginBottom: 16,
     backgroundColor: C.brandSubtle,
     borderRadius: R.sm,
     borderWidth: 1,
@@ -735,7 +702,6 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
     paddingVertical: 13,
     gap: 14,
   },
@@ -749,15 +715,4 @@ const styles = StyleSheet.create({
   actionText: { flex: 1, gap: 2 },
   actionLabel: { color: C.textPrimary, fontSize: 15, fontWeight: '600' },
   actionDesc: { color: C.textMuted, fontSize: 12 },
-  sheetCancel: {
-    marginHorizontal: 20,
-    marginTop: 8,
-    padding: 15,
-    borderRadius: R.sm,
-    backgroundColor: C.bgTertiary,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-  },
-  sheetCancelText: { color: C.textSecondary, fontSize: 15, fontWeight: '600' },
 })

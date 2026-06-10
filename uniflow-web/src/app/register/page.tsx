@@ -12,6 +12,7 @@ import {
   User, Briefcase, ArrowRight, ArrowLeft,
   CheckCircle2
 } from 'lucide-react'
+import { validateAndNormalizeEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,7 +73,10 @@ export default function RegisterPage() {
     if (!form.short_name.trim()) return 'Short name is required'
     if (form.short_name.length < 2) return 'Short name must be at least 2 characters'
     if (!form.official_email.trim()) return 'Official email is required'
-    if (!form.official_email.includes('@')) return 'Enter a valid email address'
+
+    const emailCheck = validateAndNormalizeEmail(form.official_email)
+    if (!emailCheck.valid) return emailCheck.error || 'Enter a valid email address'
+
     if (!form.country) return 'Country is required'
     return ''
   }
@@ -80,6 +84,13 @@ export default function RegisterPage() {
   const handleNext = () => {
     const err = validateStep1()
     if (err) { setError(err); return }
+
+    // Apply domain correction so summary + submission use the fixed value
+    const emailCheck = validateAndNormalizeEmail(form.official_email)
+    if (emailCheck.wasCorrected) {
+      update('official_email', emailCheck.normalized)
+    }
+
     setError('')
     setStep(2)
   }
@@ -104,12 +115,15 @@ export default function RegisterPage() {
       return
     }
 
+    const emailCheck = validateAndNormalizeEmail(form.official_email)
+    const finalOfficialEmail = emailCheck.valid ? emailCheck.normalized : form.official_email.trim()
+
     const { error: insertError } = await supabase
       .from('university_registrations')
       .insert({
         university_name: form.university_name.trim(),
         short_name: form.short_name.trim(),
-        official_email: form.official_email.trim(),
+        official_email: finalOfficialEmail,
         phone: form.phone.trim() || null,
         country: form.country,
         state: form.state || null,

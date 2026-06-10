@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   ChevronDown,
 } from "lucide-react";
+import { validateAndNormalizeEmail } from "@/lib/email";
 
 interface TimetableSlot {
   id: string;
@@ -310,6 +311,7 @@ export default function TimetablePage() {
   const [importing, setImporting] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccess, setImportSuccess] = useState(0);
+  const [importCorrected, setImportCorrected] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
   const [conflictCheck, setConflictCheck] = useState<string | null>(null);
@@ -340,6 +342,7 @@ export default function TimetablePage() {
     setImporting(true);
     setImportErrors([]);
     setImportSuccess(0);
+    setImportCorrected(0);
 
     const text = await file.text();
     const lines = text
@@ -354,6 +357,7 @@ export default function TimetablePage() {
 
     const errors: string[] = [];
     let successCount = 0;
+    let correctedCount = 0;
 
     for (let i = 0; i < rows.length; i++) {
       const vals = rows[i].split(",").map((v) => v.trim());
@@ -371,15 +375,24 @@ export default function TimetablePage() {
         continue;
       }
 
+      const emailCheck = validateAndNormalizeEmail(row.lecturer_email || "");
+      if (!emailCheck.valid) {
+        errors.push(`Row ${lineNum}: Invalid lecturer email "${row.lecturer_email}"`);
+        continue;
+      }
+      if (emailCheck.wasCorrected) {
+        correctedCount++;
+      }
+
       const { data: lecProfile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("email", row.lecturer_email?.trim())
+        .eq("email", emailCheck.normalized)
         .eq("university_id", uniId)
         .single();
       if (!lecProfile) {
         errors.push(
-          `Row ${lineNum}: Lecturer "${row.lecturer_email}" not found`,
+          `Row ${lineNum}: Lecturer "${emailCheck.normalized}" not found`,
         );
         continue;
       }
@@ -422,6 +435,7 @@ export default function TimetablePage() {
 
     setImportErrors(errors);
     setImportSuccess(successCount);
+    setImportCorrected(correctedCount);
     if (successCount > 0) await loadData();
     setImporting(false);
     e.target.value = "";
@@ -670,9 +684,10 @@ export default function TimetablePage() {
           <p style={{ fontSize: "13px", color: "var(--success)" }}>
             ✓ {importSuccess} slot{importSuccess !== 1 ? "s" : ""} imported
             successfully
+            {importCorrected > 0 ? ` (${importCorrected} lecturer email domain${importCorrected !== 1 ? "s" : ""} auto-corrected)` : ""}
           </p>
           <button
-            onClick={() => setImportSuccess(0)}
+            onClick={() => { setImportSuccess(0); setImportCorrected(0); }}
             style={{ background: "none", border: "none", cursor: "pointer" }}
           >
             <X size={14} style={{ color: "var(--success)" }} />
@@ -712,6 +727,7 @@ export default function TimetablePage() {
               onClick={() => {
                 setImportErrors([]);
                 setImportSuccess(0);
+                setImportCorrected(0);
               }}
               style={{ background: "none", border: "none", cursor: "pointer" }}
             >

@@ -7,8 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  Pressable,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
@@ -18,12 +16,12 @@ import {
   Clock,
   MapPin,
   User,
-  X,
   Calendar,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
+import { CustomModal } from '@/components/CustomModal'
 import type { Course, TimetableSlot } from '@/types'
 
 const C = Theme.colors
@@ -119,103 +117,78 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
   if (!course) return null
 
   return (
-    <Modal
+    <CustomModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      onClose={onClose}
+      title={course.code}
+      type="sheet"
     >
-      <Pressable style={styles.overlay} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.sheetHandle} />
-
-        {/* Header */}
-        <View style={styles.sheetHeader}>
-          <View style={styles.sheetTitleRow}>
-            <View style={{ flex: 1, gap: 4 }}>
-              <View style={styles.sheetTagRow}>
-                <View style={styles.codeTag}>
-                  <Text style={styles.codeText}>{course.code}</Text>
-                </View>
-                <View style={styles.levelTag}>
-                  <Text style={styles.levelText}>{course.level}00L</Text>
-                </View>
-              </View>
-              <Text style={styles.sheetTitle}>{course.title}</Text>
-            </View>
-            <TouchableOpacity onPress={onClose} hitSlop={8} style={styles.closeBtn}>
-              <X size={18} color={C.textMuted} strokeWidth={2} />
-            </TouchableOpacity>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.sheetBody}
+      >
+        <Text style={styles.sheetTitle}>{course.title}</Text>
+        
+        {/* Info pills */}
+        <View style={styles.infoPills}>
+          <View style={styles.infoPill}>
+            <Award size={14} color={C.brand} strokeWidth={1.8} />
+            <Text style={styles.infoPillText}>{course.credit_units} Credit Units</Text>
           </View>
-        </View>
-
-        <View style={styles.divider} />
-
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.sheetBody}
-        >
-          {/* Info pills */}
-          <View style={styles.infoPills}>
-            <View style={styles.infoPill}>
-              <Award size={14} color={C.brand} strokeWidth={1.8} />
-              <Text style={styles.infoPillText}>{course.credit_units} Credit Units</Text>
-            </View>
-            <View style={styles.infoPill}>
-              <Calendar size={14} color={C.brand} strokeWidth={1.8} />
-              <Text style={styles.infoPillText}>Semester {course.semester}</Text>
-            </View>
-            {course.lecturerName ? (
-              <View style={styles.infoPill}>
-                <User size={14} color={C.brand} strokeWidth={1.8} />
-                <Text style={styles.infoPillText}>{course.lecturerName}</Text>
-              </View>
-            ) : null}
+          <View style={styles.infoPill}>
+            <Calendar size={14} color={C.brand} strokeWidth={1.8} />
+            <Text style={styles.infoPillText}>Semester {course.semester}</Text>
           </View>
-
-          {/* Description */}
-          {course.description ? (
-            <View style={styles.descSection}>
-              <Text style={styles.sectionLabel}>About</Text>
-              <Text style={styles.descText}>{course.description}</Text>
+          {course.lecturerName ? (
+            <View style={styles.infoPill}>
+              <User size={14} color={C.brand} strokeWidth={1.8} />
+              <Text style={styles.infoPillText}>{course.lecturerName}</Text>
             </View>
           ) : null}
+        </View>
 
-          {/* Schedule */}
-          <View style={styles.slotsSection}>
-            <Text style={styles.sectionLabel}>
-              Schedule ({course.slots.length} slot{course.slots.length !== 1 ? 's' : ''})
-            </Text>
+        {/* Description */}
+        {course.description ? (
+          <View style={styles.descSection}>
+            <Text style={styles.sectionLabel}>About</Text>
+            <Text style={styles.descText}>{course.description}</Text>
+          </View>
+        ) : null}
 
-            {course.slots.length === 0 ? (
-              <Text style={styles.noSlots}>No timetable slots yet</Text>
-            ) : (
-              course.slots.map((slot) => (
-                <View key={slot.id} style={styles.slotRow}>
-                  <View style={styles.slotDayTag}>
-                    <Text style={styles.slotDayText}>
-                      {capitalize(slot.day_of_week).slice(0, 3)}
+        {/* Schedule */}
+        <View style={styles.slotsSection}>
+          <Text style={styles.sectionLabel}>
+            Schedule ({course.slots.length} slot{course.slots.length !== 1 ? 's' : ''})
+          </Text>
+
+          {course.slots.length === 0 ? (
+            <Text style={styles.noSlots}>No timetable slots yet</Text>
+          ) : (
+            course.slots.map((slot) => (
+              <View key={slot.id} style={styles.slotRow}>
+                <View style={styles.slotDayTag}>
+                  <Text style={styles.slotDayText}>
+                    {capitalize(slot.day_of_week).slice(0, 3)}
+                  </Text>
+                </View>
+                <View style={styles.slotInfo}>
+                  <View style={styles.slotInfoRow}>
+                    <Clock size={12} color={C.textMuted} strokeWidth={1.8} />
+                    <Text style={styles.slotInfoText}>
+                      {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
                     </Text>
                   </View>
-                  <View style={styles.slotInfo}>
-                    <View style={styles.slotInfoRow}>
-                      <Clock size={12} color={C.textMuted} strokeWidth={1.8} />
-                      <Text style={styles.slotInfoText}>
-                        {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
-                      </Text>
-                    </View>
-                    <View style={styles.slotInfoRow}>
-                      <MapPin size={12} color={C.textMuted} strokeWidth={1.8} />
-                      <Text style={styles.slotInfoText}>{slot.venue}</Text>
-                    </View>
+                  <View style={styles.slotInfoRow}>
+                    <MapPin size={12} color={C.textMuted} strokeWidth={1.8} />
+                    <Text style={styles.slotInfoText}>{slot.venue}</Text>
                   </View>
                 </View>
-              ))
-            )}
-          </View>
-        </ScrollView>
-      </View>
-    </Modal>
+              </View>
+            ))
+          )}
+        </View>
+      </ScrollView>
+    </CustomModal>
   )
 }
 
@@ -513,44 +486,15 @@ const styles = StyleSheet.create({
   statText: { color: C.textMuted, fontSize: 12 },
   statDivider: { width: 1, height: 12, backgroundColor: C.borderPrimary },
 
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  sheet: {
-    backgroundColor: C.bgSecondary,
-    borderTopLeftRadius: R.xl,
-    borderTopRightRadius: R.xl,
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-    maxHeight: '80%',
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: C.borderSecondary,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  sheetHeader: { paddingHorizontal: 20, paddingVertical: 16 },
-  sheetTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  sheetTagRow: { flexDirection: 'row', gap: 8, marginBottom: 2 },
+  sheetBody: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 20 },
+
   sheetTitle: {
     color: C.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: -0.3,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    marginBottom: 8,
   },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: R.full,
-    backgroundColor: C.bgTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  divider: { height: 1, backgroundColor: C.borderPrimary },
-  sheetBody: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32, gap: 20 },
 
   infoPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   infoPill: {

@@ -39,6 +39,7 @@ interface Department {
 }
 
 import Modal from "@/components/ui/Modal";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
 const STATUS_COLORS: Record<
   string,
@@ -479,56 +480,17 @@ export default function LecturersPage() {
   return (
     <>
       {/* Confirmation Modal */}
-      {confirmReset && (
-        <Modal
-          title="Reset Password?"
-          onClose={() => setConfirmReset(null)}
-          maxWidth="400px"
-        >
-          <div style={{
-            width: '48px', height: '48px', borderRadius: '50%',
-            backgroundColor: 'rgba(245,158,11,0.1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: '16px', border: '1px solid rgba(245,158,11,0.2)',
-            marginLeft: 'auto', marginRight: 'auto',
-          }}>
-            <AlertTriangle size={24} color="#f59e0b" />
-          </div>
-
-          <p style={{
-            fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
-            lineHeight: 1.5, textAlign: 'center'
-          }}>
-            Are you sure you want to reset the password for <strong>{confirmReset.full_name}</strong>? 
-            A new temporary password will be generated immediately.
-          </p>
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => setConfirmReset(null)}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
-                backgroundColor: 'transparent', color: 'var(--text-secondary)',
-                fontWeight: 600, fontSize: '14px', border: '1px solid var(--border-primary)',
-                cursor: 'pointer',
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => handleResetPassword(confirmReset)}
-              style={{
-                flex: 1, padding: '12px', borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--brand)', color: 'white',
-                fontWeight: 700, fontSize: '14px', border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              Yes, Reset
-            </button>
-          </div>
-        </Modal>
-      )}
+      <ConfirmationModal
+        visible={!!confirmReset}
+        onClose={() => setConfirmReset(null)}
+        onConfirm={() => confirmReset && handleResetPassword(confirmReset)}
+        title="Reset Password?"
+        message={`Are you sure you want to reset the password for ${confirmReset?.full_name}? A new temporary password will be generated immediately.`}
+        confirmText="Yes, Reset"
+        isDestructive
+        isLoading={saving}
+        icon={AlertTriangle}
+      />
 
       {/* Password Result Modal */}
       {tempPassword && (

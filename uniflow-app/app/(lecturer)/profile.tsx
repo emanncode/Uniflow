@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,14 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
-  Modal,
   TextInput,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
-} from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   User,
   Mail,
@@ -23,39 +20,40 @@ import {
   ChevronRight,
   LogOut,
   Lock,
-  X,
   Check,
-} from 'lucide-react-native'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/useAuthStore'
-import { Theme } from '@/constants/Theme'
+} from "lucide-react-native";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Theme } from "@/constants/Theme";
+import { CustomModal } from "@/components/CustomModal";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 
-const C = Theme.colors
-const R = Theme.radius
+const C = Theme.colors;
+const R = Theme.radius;
 
 // ─── Avatar ────────────────────────────────────────────────────────────────
 
 function Avatar({ name }: { name: string }) {
   const initials = name
-    .split(' ')
+    .split(" ")
     .map((w) => w[0])
     .slice(0, 2)
-    .join('')
-    .toUpperCase()
+    .join("")
+    .toUpperCase();
 
   return (
     <View style={styles.avatar}>
       <Text style={styles.avatarText}>{initials}</Text>
     </View>
-  )
+  );
 }
 
 // ─── Info Row ──────────────────────────────────────────────────────────────
 
 interface InfoRowProps {
-  icon: React.ReactNode
-  label: string
-  value: string
+  icon: React.ReactNode;
+  label: string;
+  value: string;
 }
 
 function InfoRow({ icon, label, value }: InfoRowProps) {
@@ -67,20 +65,26 @@ function InfoRow({ icon, label, value }: InfoRowProps) {
         <Text style={styles.infoValue}>{value}</Text>
       </View>
     </View>
-  )
+  );
 }
 
 // ─── Settings Row ──────────────────────────────────────────────────────────
 
 interface SettingsRowProps {
-  icon: React.ReactNode
-  label: string
-  onPress: () => void
-  danger?: boolean
-  loading?: boolean
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+  loading?: boolean;
 }
 
-function SettingsRow({ icon, label, onPress, danger, loading }: SettingsRowProps) {
+function SettingsRow({
+  icon,
+  label,
+  onPress,
+  danger,
+  loading,
+}: SettingsRowProps) {
   return (
     <TouchableOpacity
       style={styles.settingsRow}
@@ -91,237 +95,218 @@ function SettingsRow({ icon, label, onPress, danger, loading }: SettingsRowProps
       <View style={[styles.settingsIcon, danger && styles.settingsIconDanger]}>
         {icon}
       </View>
-      <Text style={[styles.settingsLabel, danger && styles.settingsLabelDanger]}>
+      <Text
+        style={[styles.settingsLabel, danger && styles.settingsLabelDanger]}
+      >
         {label}
       </Text>
-      {loading
-        ? <ActivityIndicator size="small" color={danger ? C.danger : C.textMuted} />
-        : <ChevronRight size={16} color={danger ? C.danger : C.textMuted} strokeWidth={1.8} />
-      }
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={danger ? C.danger : C.textMuted}
+        />
+      ) : (
+        <ChevronRight
+          size={16}
+          color={danger ? C.danger : C.textMuted}
+          strokeWidth={1.8}
+        />
+      )}
     </TouchableOpacity>
-  )
+  );
 }
 
 // ─── Change Password Modal ─────────────────────────────────────────────────
 
 interface ChangePasswordModalProps {
-  visible: boolean
-  onClose: () => void
+  visible: boolean;
+  onClose: () => void;
 }
 
 function ChangePasswordModal({ visible, onClose }: ChangePasswordModalProps) {
-  const [current, setCurrent] = useState('')
-  const [next, setNext] = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const reset = useCallback(() => {
-    setCurrent('')
-    setNext('')
-    setConfirm('')
-    setError('')
-    setSuccess(false)
-    setIsLoading(false)
-  }, [])
+    setCurrent("");
+    setNext("");
+    setConfirm("");
+    setError("");
+    setSuccess(false);
+    setIsLoading(false);
+  }, []);
 
   const handleClose = useCallback(() => {
-    reset()
-    onClose()
-  }, [reset, onClose])
+    reset();
+    onClose();
+  }, [reset, onClose]);
 
   const handleSubmit = useCallback(async () => {
-    setError('')
+    setError("");
 
     if (!current || !next || !confirm) {
-      setError('All fields are required')
-      return
+      setError("All fields are required");
+      return;
     }
     if (next.length < 6) {
-      setError('New password must be at least 6 characters')
-      return
+      setError("New password must be at least 6 characters");
+      return;
     }
     if (next !== confirm) {
-      setError('New passwords do not match')
-      return
+      setError("New passwords do not match");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Re-authenticate with current password first
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) throw new Error('Session expired')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("Session expired");
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: current,
-      })
+      });
 
       if (signInError) {
-        setError('Current password is incorrect')
-        setIsLoading(false)
-        return
+        setError("Current password is incorrect");
+        setIsLoading(false);
+        return;
       }
 
       // Update password
       const { error: updateError } = await supabase.auth.updateUser({
         password: next,
-      })
+      });
 
-      if (updateError) throw updateError
+      if (updateError) throw updateError;
 
-      setSuccess(true)
-      setTimeout(() => handleClose(), 1500)
+      setSuccess(true);
+      setTimeout(() => handleClose(), 1500);
     } catch (e: any) {
-      setError(e.message ?? 'Failed to update password. Try again.')
+      setError(e.message ?? "Failed to update password. Try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [current, next, confirm, handleClose])
+  }, [current, next, confirm, handleClose]);
 
   return (
-    <Modal
+    <CustomModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      title="Change Password"
+      type="sheet"
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <Pressable style={styles.overlay} onPress={handleClose} />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-
-          {/* Header */}
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Change Password</Text>
-            <TouchableOpacity onPress={handleClose} hitSlop={8} style={styles.closeBtn}>
-              <X size={18} color={C.textMuted} strokeWidth={2} />
-            </TouchableOpacity>
+      <View style={styles.sheetBody}>
+        {/* Success */}
+        {success ? (
+          <View style={styles.successState}>
+            <View style={styles.successIcon}>
+              <Check size={28} color={C.success} strokeWidth={2.5} />
+            </View>
+            <Text style={styles.successText}>Password updated!</Text>
           </View>
-
-          <View style={styles.sheetDivider} />
-
-          <View style={styles.sheetBody}>
-            {/* Success */}
-            {success ? (
-              <View style={styles.successState}>
-                <View style={styles.successIcon}>
-                  <Check size={28} color={C.success} strokeWidth={2.5} />
-                </View>
-                <Text style={styles.successText}>Password updated!</Text>
+        ) : (
+          <>
+            {error ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorText}>{error}</Text>
               </View>
-            ) : (
-              <>
-                {error ? (
-                  <View style={styles.errorBanner}>
-                    <Text style={styles.errorText}>{error}</Text>
-                  </View>
-                ) : null}
+            ) : null}
 
-                {/* Current password */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Current Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter current password"
-                    placeholderTextColor={C.textMuted}
-                    value={current}
-                    onChangeText={setCurrent}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    editable={!isLoading}
-                  />
-                </View>
+            {/* Current password */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Current Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter current password"
+                placeholderTextColor={C.textMuted}
+                value={current}
+                onChangeText={setCurrent}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!isLoading}
+              />
+            </View>
 
-                {/* New password */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>New Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Min. 6 characters"
-                    placeholderTextColor={C.textMuted}
-                    value={next}
-                    onChangeText={setNext}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    editable={!isLoading}
-                  />
-                </View>
+            {/* New password */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>New Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Min. 6 characters"
+                placeholderTextColor={C.textMuted}
+                value={next}
+                onChangeText={setNext}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!isLoading}
+              />
+            </View>
 
-                {/* Confirm */}
-                <View style={styles.fieldGroup}>
-                  <Text style={styles.fieldLabel}>Confirm New Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Repeat new password"
-                    placeholderTextColor={C.textMuted}
-                    value={confirm}
-                    onChangeText={setConfirm}
-                    secureTextEntry
-                    autoCapitalize="none"
-                    editable={!isLoading}
-                    returnKeyType="done"
-                    onSubmitEditing={handleSubmit}
-                  />
-                </View>
+            {/* Confirm */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Confirm New Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Repeat new password"
+                placeholderTextColor={C.textMuted}
+                value={confirm}
+                onChangeText={setConfirm}
+                secureTextEntry
+                autoCapitalize="none"
+                editable={!isLoading}
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+              />
+            </View>
 
-                <TouchableOpacity
-                  style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
-                  onPress={handleSubmit}
-                  disabled={isLoading}
-                  activeOpacity={0.85}
-                >
-                  {isLoading
-                    ? <ActivityIndicator size="small" color={C.textPrimary} />
-                    : <Text style={styles.submitBtnText}>Update Password</Text>
-                  }
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  )
+            <TouchableOpacity
+              style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+              activeOpacity={0.85}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={C.textPrimary} />
+              ) : (
+                <Text style={styles.submitBtnText}>Update Password</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </CustomModal>
+  );
 }
 
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
 export default function LecturerProfile() {
-  const insets = useSafeAreaInsets()
-  const profile = useAuthStore((s) => s.profile)
-  const signOut = useAuthStore((s) => s.signOut)
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
+  const signOut = useAuthStore((s) => s.signOut);
 
-  const [isSigningOut, setIsSigningOut] = useState(false)
-  const [passwordModalVisible, setPasswordModalVisible] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [signOutModalVisible, setSignOutModalVisible] = useState(false);
 
   // ── Sign Out ──────────────────────────────────────────────────────────
 
-  const handleSignOut = useCallback(() => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            setIsSigningOut(true)
-            await signOut()
-            // AuthGuard in _layout.tsx handles redirect to /login
-          },
-        },
-      ]
-    )
-  }, [signOut])
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    await signOut();
+    setSignOutModalVisible(false);
+  }, [signOut]);
 
-  if (!profile) return null
+  if (!profile) return null;
 
   const isUniflowAdmin = profile.role === 'uniflow_admin';
   const universityName = isUniflowAdmin ? 'System Administrator' : ((profile.universities as any)?.name ?? 'Unknown University');
@@ -407,7 +392,7 @@ export default function LecturerProfile() {
           <SettingsRow
             icon={<LogOut size={16} color={C.danger} strokeWidth={1.8} />}
             label="Sign Out"
-            onPress={handleSignOut}
+            onPress={() => setSignOutModalVisible(true)}
             danger
             loading={isSigningOut}
           />
@@ -422,8 +407,20 @@ export default function LecturerProfile() {
         visible={passwordModalVisible}
         onClose={() => setPasswordModalVisible(false)}
       />
+
+      <ConfirmationModal
+        visible={signOutModalVisible}
+        onClose={() => setSignOutModalVisible(false)}
+        onConfirm={handleSignOut}
+        title="Sign Out"
+        message="Are you sure you want to sign out of your account?"
+        confirmText="Sign Out"
+        isDestructive
+        isLoading={isSigningOut}
+        icon={LogOut}
+      />
     </ScrollView>
-  )
+  );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────
@@ -579,53 +576,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  // Modal / Sheet
-  overlay: {
-    flex: 1,
-    backgroundColor: C.overlay,
-  },
-  sheet: {
-    backgroundColor: C.bgSecondary,
-    borderTopLeftRadius: R.xl,
-    borderTopRightRadius: R.xl,
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-  },
-  sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: C.borderSecondary,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  sheetTitle: {
-    color: C.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: R.full,
-    backgroundColor: C.bgTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheetDivider: {
-    height: 1,
-    backgroundColor: C.borderPrimary,
-  },
   sheetBody: {
-    padding: 20,
     gap: 14,
   },
 
@@ -695,4 +646,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-})
+});

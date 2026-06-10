@@ -7,8 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
-  Modal,
-  Pressable,
   Alert,
   TextInput,
   KeyboardAvoidingView,
@@ -23,27 +21,21 @@ import {
   Upload,
   Plus,
   Download,
-  X,
   BookOpen,
   HelpCircle,
   Layers,
-} from "lucide-react-native";
+} from "lucide-native";
 import * as DocumentPicker from "expo-document-picker";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
+import { CustomModal } from "@/components/CustomModal";
 import type { Resource, ResourceType, FileType, Course } from "@/types";
 
 const C = Theme.colors;
 const R = Theme.radius;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-
-// function formatBytes(bytes: number): string {
-//   if (bytes < 1024) return `${bytes} B`;
-//   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-//   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-// }
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -333,177 +325,531 @@ function UploadSheet({
   ];
 
   return (
-    <Modal
+    <CustomModal
       visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={handleClose}
+      onClose={handleClose}
+      title="Upload Resource"
+      type="sheet"
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      <ScrollView
+        style={styles.sheetScroll}
+        contentContainerStyle={styles.sheetScrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Pressable style={styles.overlay} onPress={handleClose} />
-        <View style={styles.sheet}>
-          <View style={styles.sheetHandle} />
-
-          {/* Header */}
-          <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Upload Resource</Text>
-            <TouchableOpacity
-              onPress={handleClose}
-              hitSlop={8}
-              style={styles.closeBtn}
-            >
-              <X size={18} color={C.textMuted} strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.sheetDivider} />
-
+        {/* Course selector */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Course</Text>
           <ScrollView
-            style={styles.sheetScroll}
-            contentContainerStyle={styles.sheetScrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.pillScroll}
           >
-            {/* Course selector */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Course</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.pillScroll}
-              >
-                {courses.map((c) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={[
-                      styles.coursePill,
-                      selectedCourseId === c.id && styles.coursePillActive,
-                    ]}
-                    onPress={() => setSelectedCourseId(c.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.coursePillText,
-                        selectedCourseId === c.id &&
-                          styles.coursePillTextActive,
-                      ]}
-                    >
-                      {c.code}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Type selector */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Type</Text>
-              <View style={styles.typeGrid}>
-                {RESOURCE_TYPES.map((t) => (
-                  <TouchableOpacity
-                    key={t}
-                    style={[
-                      styles.typePill,
-                      resourceType === t && styles.typePillActive,
-                    ]}
-                    onPress={() => setResourceType(t)}
-                  >
-                    <Text
-                      style={[
-                        styles.typePillText,
-                        resourceType === t && styles.typePillTextActive,
-                      ]}
-                    >
-                      {RESOURCE_TYPE_CONFIG[t].label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Title */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Title</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. Week 5 Lecture Notes"
-                placeholderTextColor={C.textMuted}
-                value={title}
-                onChangeText={setTitle}
-                editable={!isUploading}
-              />
-            </View>
-
-            {/* Description */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Description (optional)</Text>
-              <TextInput
-                style={[styles.input, styles.inputMultiline]}
-                placeholder="Brief description..."
-                placeholderTextColor={C.textMuted}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                numberOfLines={3}
-                editable={!isUploading}
-              />
-            </View>
-
-            {/* File picker */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>File</Text>
+            {courses.map((c) => (
               <TouchableOpacity
-                style={styles.filePicker}
-                onPress={handlePickFile}
-                activeOpacity={0.75}
-                disabled={isUploading}
+                key={c.id}
+                style={[
+                  styles.coursePill,
+                  selectedCourseId === c.id && styles.coursePillActive,
+                ]}
+                onPress={() => setSelectedCourseId(c.id)}
               >
-                {file ? (
-                  <View style={styles.filePickerSelected}>
-                    <FileText size={20} color={C.brand} strokeWidth={1.8} />
-                    <Text style={styles.filePickerName} numberOfLines={1}>
-                      {file.name}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.filePickerEmpty}>
-                    <Upload size={22} color={C.textMuted} strokeWidth={1.5} />
-                    <Text style={styles.filePickerHint}>
-                      Tap to pick a file
-                    </Text>
-                    <Text style={styles.filePickerSub}>
-                      PDF, DOC, images, etc.
-                    </Text>
-                  </View>
-                )}
+                <Text
+                  style={[
+                    styles.coursePillText,
+                    selectedCourseId === c.id &&
+                      styles.coursePillTextActive,
+                  ]}
+                >
+                  {c.code}
+                </Text>
               </TouchableOpacity>
-            </View>
-
-            {/* Submit */}
-            <TouchableOpacity
-              style={[styles.uploadBtn, isUploading && { opacity: 0.7 }]}
-              onPress={handleUpload}
-              disabled={isUploading}
-              activeOpacity={0.85}
-            >
-              {isUploading ? (
-                <View style={styles.uploadBtnLoading}>
-                  <ActivityIndicator size="small" color={C.textPrimary} />
-                  <Text style={styles.uploadBtnText}>{progress}</Text>
-                </View>
-              ) : (
-                <Text style={styles.uploadBtnText}>Upload Resource</Text>
-              )}
-            </TouchableOpacity>
+            ))}
           </ScrollView>
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+
+        {/* Type selector */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Type</Text>
+          <View style={styles.typeGrid}>
+            {RESOURCE_TYPES.map((t) => (
+              <TouchableOpacity
+                key={t}
+                style={[
+                  styles.typePill,
+                  resourceType === t && styles.typePillActive,
+                ]}
+                onPress={() => setResourceType(t)}
+              >
+                <Text
+                  style={[
+                    styles.typePillText,
+                    resourceType === t && styles.typePillTextActive,
+                  ]}
+                >
+                  {RESOURCE_TYPE_CONFIG[t].label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Title */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Title</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Week 5 Lecture Notes"
+            placeholderTextColor={C.textMuted}
+            value={title}
+            onChangeText={setTitle}
+            editable={!isUploading}
+          />
+        </View>
+
+        {/* Description */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Description (optional)</Text>
+          <TextInput
+            style={[styles.input, styles.inputMultiline]}
+            placeholder="Brief description..."
+            placeholderTextColor={C.textMuted}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={3}
+            editable={!isUploading}
+          />
+        </View>
+
+        {/* File picker */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>File</Text>
+          <TouchableOpacity
+            style={styles.filePicker}
+            onPress={handlePickFile}
+            activeOpacity={0.75}
+            disabled={isUploading}
+          >
+            {file ? (
+              <View style={styles.filePickerSelected}>
+                <FileText size={20} color={C.brand} strokeWidth={1.8} />
+                <Text style={styles.filePickerName} numberOfLines={1}>
+                  {file.name}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.filePickerEmpty}>
+                <Upload size={22} color={C.textMuted} strokeWidth={1.5} />
+                <Text style={styles.filePickerHint}>
+                  Tap to pick a file
+                </Text>
+                <Text style={styles.filePickerSub}>
+                  PDF, DOC, images, etc.
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Submit */}
+        <TouchableOpacity
+          style={[styles.uploadBtn, isUploading && { opacity: 0.7 }]}
+          onPress={handleUpload}
+          disabled={isUploading}
+          activeOpacity={0.85}
+        >
+          {isUploading ? (
+            <View style={styles.uploadBtnLoading}>
+              <ActivityIndicator size="small" color={C.textPrimary} />
+              <Text style={styles.uploadBtnText}>{progress}</Text>
+            </View>
+          ) : (
+            <Text style={styles.uploadBtnText}>Upload Resource</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </CustomModal>
   );
 }
+
+// ─── Main Screen ───────────────────────────────────────────────────────────
+
+export default function LecturerResources() {
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [uploadVisible, setUploadVisible] = useState(false);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────
+
+  const fetchData = useCallback(async () => {
+    if (!profile) return;
+    try {
+      // Get assigned course IDs
+      const { data: lecturerCourses } = await supabase
+        .from("lecturer_courses")
+        .select("course_id")
+        .eq("lecturer_id", profile.id)
+        .eq("is_active", true);
+
+      if (!lecturerCourses?.length) {
+        setCourses([]);
+        setResources([]);
+        return;
+      }
+
+      const courseIds = lecturerCourses.map((lc) => lc.course_id);
+
+      // Fetch courses
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("*")
+        .in("id", courseIds)
+        .eq("is_active", true)
+        .order("code");
+
+      if (courseData) setCourses(courseData);
+
+      // Fetch resources uploaded by this lecturer
+      const { data: resourceData } = await supabase
+        .from("resources")
+        .select("*")
+        .eq("uploaded_by", profile.id)
+        .in("course_id", courseIds)
+        .order("created_at", { ascending: false });
+
+      if (resourceData) setResources(resourceData);
+    } catch (e) {
+      console.error("Resources fetch error:", e);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    fetchData().finally(() => setIsLoading(false));
+  }, [fetchData]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  }, [fetchData]);
+
+  // ── Filtered resources ────────────────────────────────────────────────
+
+  const filtered =
+    selectedCourseId === "all"
+      ? resources
+      : resources.filter((r) => r.course_id === selectedCourseId);
+
+  // ── Loading ───────────────────────────────────────────────────────────
+
+  if (isLoading) {
+    return (
+      <View style={[styles.root, styles.centered]}>
+        <ActivityIndicator size="large" color={C.brand} />
+      </View>
+    );
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────
+
+  return (
+    <View style={styles.root}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View>
+          <Text style={styles.headerTitle}>Resources</Text>
+          <Text style={styles.headerSub}>
+            {resources.length} file{resources.length !== 1 ? "s" : ""} uploaded
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.uploadFab}
+          onPress={() => setUploadVisible(true)}
+          activeOpacity={0.85}
+        >
+          <Plus size={18} color={C.textPrimary} strokeWidth={2.5} />
+          <Text style={styles.uploadFabText}>Upload</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Course filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterStrip}
+      >
+        <TouchableOpacity
+          style={[
+            styles.filterPill,
+            selectedCourseId === "all" && styles.filterPillActive,
+          ]}
+          onPress={() => setSelectedCourseId("all")}
+        >
+          <Text
+            style={[
+              styles.filterPillText,
+              selectedCourseId === "all" && styles.filterPillTextActive,
+            ]}
+          >
+            All
+          </Text>
+        </TouchableOpacity>
+        {courses.map((c) => (
+          <TouchableOpacity
+            key={c.id}
+            style={[
+              styles.filterPill,
+              selectedCourseId === c.id && styles.filterPillActive,
+            ]}
+            onPress={() => setSelectedCourseId(c.id)}
+          >
+            <Text
+              style={[
+                styles.filterPillText,
+                selectedCourseId === c.id && styles.filterPillTextActive,
+              ]}
+            >
+              {c.code}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Resource list */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 32 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={C.brand}
+          />
+        }
+      >
+        {filtered.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Upload size={32} color={C.textMuted} strokeWidth={1.5} />
+            <Text style={styles.emptyTitle}>No resources yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Tap Upload to share notes, past questions, or materials
+            </Text>
+          </View>
+        ) : (
+          filtered.map((r) => <ResourceCard key={r.id} resource={r} />)
+        )}
+      </ScrollView>
+
+      {/* Upload sheet */}
+      <UploadSheet
+        visible={uploadVisible}
+        courses={courses}
+        onClose={() => setUploadVisible(false)}
+        onUploaded={fetchData}
+      />
+    </View>
+  );
+}
+
+// ─── Styles ────────────────────────────────────────────────────────────────
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: C.bgDeep },
+  centered: { alignItems: "center", justifyContent: "center" },
+
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headerTitle: {
+    color: C.textPrimary,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+  },
+  headerSub: { color: C.textMuted, fontSize: 13, marginTop: 2 },
+
+  uploadFab: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: C.brand,
+    borderRadius: R.full,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  uploadFabText: { color: C.textPrimary, fontSize: 13, fontWeight: "700" },
+
+  filterStrip: {
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+    gap: 8,
+    flexDirection: "row",
+  },
+  filterPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: R.full,
+    backgroundColor: C.bgCard,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+  },
+  filterPillActive: { backgroundColor: C.brand, borderColor: C.brand },
+  filterPillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
+  filterPillTextActive: { color: C.textPrimary },
+
+  list: { paddingHorizontal: 20, gap: 10 },
+
+  emptyCard: {
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    padding: 40,
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  emptyTitle: {
+    color: C.textSecondary,
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  emptySubtitle: {
+    color: C.textMuted,
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 19,
+  },
+
+  resourceCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: C.bgCard,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    padding: 14,
+    gap: 12,
+  },
+  fileIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: R.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  resourceBody: { flex: 1, gap: 3 },
+  resourceTitle: { color: C.textPrimary, fontSize: 14, fontWeight: "600" },
+  resourceMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    flexWrap: "wrap",
+  },
+  resourceMetaText: { color: C.textMuted, fontSize: 11 },
+  metaDot: { color: C.textMuted, fontSize: 11 },
+  resourceDesc: { color: C.textMuted, fontSize: 12, fontStyle: "italic" },
+  fileTypeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: R.sm,
+    flexShrink: 0,
+  },
+  fileTypeText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
+
+  sheetScroll: { flex: 1 },
+  sheetScrollContent: { paddingBottom: 24, gap: 16 },
+
+  fieldGroup: { gap: 8 },
+  fieldLabel: {
+    color: C.textSecondary,
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  pillScroll: { flexGrow: 0 },
+  coursePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: R.full,
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    marginRight: 8,
+  },
+  coursePillActive: { backgroundColor: C.brand, borderColor: C.brand },
+  coursePillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
+  coursePillTextActive: { color: C.textPrimary },
+
+  typeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  typePill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: R.full,
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+  },
+  typePillActive: { backgroundColor: C.brandMuted, borderColor: C.borderBrand },
+  typePillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
+  typePillTextActive: { color: C.brand },
+
+  input: {
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    borderRadius: R.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: C.textPrimary,
+    fontSize: 15,
+  },
+  inputMultiline: { height: 88, textAlignVertical: "top", paddingTop: 12 },
+
+  filePicker: {
+    backgroundColor: C.bgTertiary,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+    borderRadius: R.md,
+    borderStyle: "dashed",
+    minHeight: 90,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  filePickerEmpty: { alignItems: "center", gap: 6 },
+  filePickerSelected: { flexDirection: "row", alignItems: "center", gap: 10 },
+  filePickerHint: { color: C.textSecondary, fontSize: 14, fontWeight: "600" },
+  filePickerSub: { color: C.textMuted, fontSize: 12 },
+  filePickerName: { color: C.brand, fontSize: 14, fontWeight: "600", flex: 1 },
+
+  uploadBtn: {
+    backgroundColor: C.brand,
+    borderRadius: R.sm,
+    paddingVertical: 15,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  uploadBtnLoading: { flexDirection: "row", alignItems: "center", gap: 10 },
+  uploadBtnText: { color: C.textPrimary, fontSize: 15, fontWeight: "700" },
+});
 
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
