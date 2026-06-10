@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
+import { normalizeOrThrow } from '@/lib/email'
 
 export async function POST(request: Request) {
   try {
@@ -18,10 +19,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
     }
 
+    // Validate and normalize email (defense-in-depth for profile creation).
+    // normalizeOrThrow will error on invalid or uncorrectable misspelled domains.
+    let finalEmail: string
+    try {
+      finalEmail = normalizeOrThrow(reg.official_email)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message || 'Invalid email address in registration' }, { status: 400 })
+    }
+
+    if (finalEmail.toLowerCase() !== (reg.official_email || '').trim().toLowerCase()) {
+      console.log(`Approve University: Corrected email domain ${reg.official_email} -> ${finalEmail}`)
+    }
+
     // 2. Create auth user
     const tempPassword = generateTempPassword()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: reg.official_email,
+      email: finalEmail,
       password: tempPassword,
       email_confirm: true,
     })
@@ -55,7 +69,7 @@ export async function POST(request: Request) {
       id: authData.user.id,
       university_id: uniData.id,
       full_name: reg.contact_person_name,
-      email: reg.official_email,
+      email: finalEmail,
       role: 'university_admin',
     })
 
@@ -76,7 +90,7 @@ export async function POST(request: Request) {
 
     const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/login`
 
-    await supabase.auth.resetPasswordForEmail(reg.official_email, {
+    await supabase.auth.resetPasswordForEmail(finalEmail, {
       redirectTo,
     })
 

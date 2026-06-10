@@ -25,52 +25,67 @@ const POPULAR_DOMAINS = [
 // Explicit typo → correction map (domain part only, lowercase, no @).
 // Keep this focused on high-frequency real-world typos.
 const DOMAIN_TYPO_CORRECTIONS: Record<string, string> = {
-  // Gmail
+  // Gmail (very common typos)
   'gmai.com': 'gmail.com',
   'gmial.com': 'gmail.com',
   'gmal.com': 'gmail.com',
   'gmaill.com': 'gmail.com',
+  'gmaail.com': 'gmail.com',
+  'gmailll.com': 'gmail.com',
   'gmail.co': 'gmail.com',
   'gmail.con': 'gmail.com',
   'gmail.cm': 'gmail.com',
   'gmail.cim': 'gmail.com',
   'gmail.om': 'gmail.com',
+  'gmail.conm': 'gmail.com',
   'gnail.com': 'gmail.com',
   'gail.com': 'gmail.com',
   'gamil.com': 'gmail.com',
   'gmil.com': 'gmail.com',
   'gemail.com': 'gmail.com',
+  'gmeil.com': 'gmail.com',
+  'gmaill.com': 'gmail.com',
+  'gmial.com': 'gmail.com',
 
   // Yahoo
   'yahooo.com': 'yahoo.com',
   'yaho.com': 'yahoo.com',
   'yahho.com': 'yahoo.com',
+  'yahhoo.com': 'yahoo.com',
   'yahoo.co': 'yahoo.com',
   'yahoo.con': 'yahoo.com',
   'yaho.co.uk': 'yahoo.co.uk',
   'yahooo.co.uk': 'yahoo.co.uk',
+  'yah.com': 'yahoo.com',
 
-  // Hotmail / Outlook / Live
+  // Hotmail / Outlook / Live / MSN
   'hotmial.com': 'hotmail.com',
   'hotmal.com': 'hotmail.com',
   'hotmail.co': 'hotmail.com',
   'hotmail.con': 'hotmail.com',
   'hotmial.co': 'hotmail.com',
+  'hotmai.com': 'hotmail.com',
+  'hotmaill.com': 'hotmail.com',
   'outlok.com': 'outlook.com',
   'outloook.com': 'outlook.com',
   'outlook.co': 'outlook.com',
   'outlook.con': 'outlook.com',
   'outlok.co': 'outlook.com',
+  'outlokk.com': 'outlook.com',
+  'outloookk.com': 'outlook.com',
   'liv.com': 'live.com',
   'live.co': 'live.com',
   'live.con': 'live.com',
+  'msn.com': 'outlook.com', // often used interchangeably
 
   // Others
   'icould.com': 'icloud.com',
   'icloud.co': 'icloud.com',
+  'iclould.com': 'icloud.com',
   'aol.co': 'aol.com',
   'protonmail.co': 'protonmail.com',
   'protmail.com': 'protonmail.com',
+  'proton.me': 'proton.me',
 };
 
 /**

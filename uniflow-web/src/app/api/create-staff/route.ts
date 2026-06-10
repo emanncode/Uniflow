@@ -1,20 +1,25 @@
 import { createAdminClient } from '@/lib/supabase-admin'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
-import { validateAndNormalizeEmail } from '@/lib/email'
+import { normalizeOrThrow } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
     const { full_name, email, role, department_id, university_id } = await req.json()
     const normalizedRole = (role || 'lecturer').toLowerCase();
 
-    // Server-side domain typo correction (protects CSV + forms + any future callers)
-    const emailCheck = validateAndNormalizeEmail(email)
-    if (!emailCheck.valid) {
-      return NextResponse.json({ error: emailCheck.error || 'Invalid email address' }, { status: 400 })
+    // Server-side domain typo correction + validation.
+    // Uses normalizeOrThrow so invalid/misspelled domains (not correctable) result in error before any profile creation.
+    let finalEmail: string
+    try {
+      finalEmail = normalizeOrThrow(email)
+    } catch (e: any) {
+      return NextResponse.json({ error: e.message || 'Invalid email address' }, { status: 400 })
     }
-    const finalEmail = emailCheck.normalized
-    if (emailCheck.wasCorrected) {
+
+    // Note: normalizeOrThrow already applies corrections for known typos.
+    // If you need to know if it was corrected, you can call validateAndNormalizeEmail separately.
+    if (finalEmail.toLowerCase() !== (email || '').trim().toLowerCase()) {
       console.log(`API Create Staff: Corrected email domain ${email} -> ${finalEmail}`)
     }
 
@@ -54,7 +59,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
 
-    console.log(`API Create Staff: Profile created successfully for ${email}`);
+    console.log(`API Create Staff: Profile created successfully for ${finalEmail}`);
 
     // 3. send password reset so they set their own password
     // NOTE: This might fail if SMTP is not configured, but we proceed anyway as we return tempPassword

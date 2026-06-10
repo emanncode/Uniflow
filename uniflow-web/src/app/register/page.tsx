@@ -116,7 +116,12 @@ export default function RegisterPage() {
     }
 
     const emailCheck = validateAndNormalizeEmail(form.official_email)
-    const finalOfficialEmail = emailCheck.valid ? emailCheck.normalized : form.official_email.trim()
+    if (!emailCheck.valid) {
+      setError(emailCheck.error || 'Enter a valid email address')
+      setLoading(false)
+      return
+    }
+    const finalOfficialEmail = emailCheck.normalized
 
     const { error: insertError } = await supabase
       .from('university_registrations')
