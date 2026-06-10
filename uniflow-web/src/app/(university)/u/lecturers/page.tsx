@@ -20,6 +20,7 @@ import {
   Check,
   AlertTriangle
 } from "lucide-react";
+import { validateAndNormalizeEmail } from "@/lib/email";
 
 interface Lecturer {
   id: string
@@ -73,22 +74,30 @@ function LecturerRow({
   departments: Department[];
   onDelete: (id: string) => void;
   onResetPassword: (lecturer: Lecturer) => void;
-  onUpdate: (id: string, updates: Partial<Lecturer>) => void;
+  onUpdate: (id: string, updates: Partial<Lecturer>) => Promise<void>;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(lecturer.full_name);
   const [editEmail, setEditEmail] = useState(lecturer.email);
   const [editDeptId, setEditDeptId] = useState(lecturer.department_id || "");
+  const [saving, setSaving] = useState(false);
 
   const s = STATUS_COLORS[lecturer.status] ?? STATUS_COLORS.pending;
 
-  const handleSave = () => {
-    onUpdate(lecturer.id, {
-      full_name: editName,
-      email: editEmail,
-      department_id: editDeptId || null,
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onUpdate(lecturer.id, {
+        full_name: editName,
+        email: editEmail,
+        department_id: editDeptId || null,
+      });
+      setIsEditing(false);
+    } catch (e: any) {
+      alert(e.message || "Failed to update lecturer");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -107,8 +116,8 @@ function LecturerRow({
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {isEditing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
-            <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ padding: '4px' }} />
-            <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} style={{ padding: '4px' }} />
+            <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ padding: '4px' }} disabled={saving} />
+            <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} style={{ padding: '4px' }} disabled={saving} />
           </div>
         ) : (
           <>
@@ -144,7 +153,7 @@ function LecturerRow({
       {/* Department */}
       <div>
         {isEditing ? (
-          <select className="select" value={editDeptId} onChange={(e) => setEditDeptId(e.target.value)} style={{ padding: '4px', width: '100%' }}>
+          <select className="select" value={editDeptId} onChange={(e) => setEditDeptId(e.target.value)} style={{ padding: '4px', width: '100%' }} disabled={saving}>
             <option value="">No department</option>
             {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
@@ -182,8 +191,10 @@ function LecturerRow({
       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
         {isEditing ? (
           <>
-            <button onClick={handleSave} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--brand)" }}>Save</button>
-            <button onClick={() => setIsEditing(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>Cancel</button>
+            <button onClick={handleSave} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--brand)" }} disabled={saving}>
+              {saving ? <Loader2 size={14} className="animate-spin" /> : 'Save'}
+            </button>
+            <button onClick={() => setIsEditing(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }} disabled={saving}>Cancel</button>
           </>
         ) : (
           <>
@@ -219,13 +230,22 @@ export default function LecturersPage() {
 
   const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<Lecturer | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   const CSV_TEMPLATE = `full_name,email,role,department_short_name\nDr. John Doe,john@uni.edu,lecturer,CSC\nProf. Jane Smith,jane@uni.edu,dean,FOA\nDr. Mike Ade,mike@uni.edu,hod,MTH`;
 
   function validateEmail(email: string) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    const result = validateAndNormalizeEmail(email);
+    if (result.valid && result.wasCorrected) {
+      // If it was corrected, we treat it as an error to force the user to fix the typo
+      return {
+        ...result,
+        valid: false,
+        error: `It looks like the email domain is misspelled (found "@${result.original.split('@')[1]}"). Did you mean "@${result.normalized.split('@')[1]}"?`
+      };
+    }
+    return result;
   }
 
   function downloadTemplate() {
@@ -267,8 +287,9 @@ export default function LecturersPage() {
           continue;
         }
 
-        if (!validateEmail(row.email)) {
-          errors.push(`Row ${lineNum}: Invalid email format "${row.email}"`);
+        const emailResult = validateEmail(row.email);
+        if (!emailResult.valid) {
+          errors.push(`Row ${lineNum}: ${emailResult.error} "${row.email}"`);
           continue;
         }
 
@@ -280,7 +301,7 @@ export default function LecturersPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               full_name: row.full_name,
-              email: row.email.toLowerCase(),
+              email: emailResult.normalized,
               role: (row.role.toLowerCase() as any),
               department_id: dept?.id || null,
               university_id: uniId,
@@ -380,8 +401,9 @@ export default function LecturersPage() {
     e.preventDefault()
     setError('')
     
-    if (!validateEmail(newEmail)) {
-        setError("Invalid email format.");
+    const emailResult = validateEmail(newEmail);
+    if (!emailResult.valid) {
+        setError(emailResult.error || "Invalid email format.");
         return;
     }
 
@@ -394,7 +416,7 @@ export default function LecturersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           full_name: newName.trim(),
-          email: newEmail.trim().toLowerCase(),
+          email: emailResult.normalized,
           role: newRole,
           department_id: newDeptId || null,
           university_id: uniId,
@@ -438,21 +460,39 @@ export default function LecturersPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Remove this lecturer from the portal?")) return;
-    await supabase.from("profiles").delete().eq("id", id);
-    await loadData();
+    setConfirmDeleteId(null);
+    setSaving(true);
+    try {
+      const res = await fetch('/api/staff', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      await loadData();
+    } catch (e: any) {
+      alert(e.message || "Failed to remove staff member");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleUpdate(id: string, updates: Partial<Lecturer>) {
-    if (updates.email && !validateEmail(updates.email)) {
-      alert("Invalid email format");
-      return;
+    if (updates.email) {
+      const result = validateAndNormalizeEmail(updates.email);
+      if (!result.valid) throw new Error(result.error);
+      updates.email = result.normalized;
     }
-    await supabase.from("profiles").update({
-      full_name: updates.full_name,
-      email: updates.email,
-      department_id: updates.department_id,
-    }).eq("id", id);
+
+    const res = await fetch('/api/staff', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
     await loadData();
   }
 
@@ -490,6 +530,18 @@ export default function LecturersPage() {
         isDestructive
         isLoading={saving}
         icon={AlertTriangle}
+      />
+
+      <ConfirmationModal
+        visible={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        title="Remove Staff Member?"
+        message="Are you sure you want to remove this staff member? This will delete their account and access to the portal."
+        confirmText="Yes, Remove"
+        isDestructive
+        isLoading={saving}
+        icon={Trash2}
       />
 
       {/* Password Result Modal */}
@@ -842,7 +894,7 @@ export default function LecturersPage() {
             </div>
           ) : (
             filtered.map((l) => (
-              <LecturerRow key={l.id} lecturer={l} departments={departments} onDelete={handleDelete} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
+              <LecturerRow key={l.id} lecturer={l} departments={departments} onDelete={setConfirmDeleteId} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
             ))
           )}
         </div>

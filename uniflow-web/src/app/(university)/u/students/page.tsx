@@ -18,8 +18,10 @@ import {
   Key,
   Copy,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Edit2
 } from "lucide-react";
+import { validateAndNormalizeEmail } from "@/lib/email";
 
 interface Student {
   id: string
@@ -64,14 +66,41 @@ const STATUS_COLORS: Record<
 
 function StudentRow({
   student,
+  departments,
   onDelete,
   onResetPassword,
+  onUpdate,
 }: {
   student: Student;
+  departments: Department[];
   onDelete: (id: string) => void;
   onResetPassword: (student: Student) => void;
+  onUpdate: (id: string, updates: Partial<Student>) => Promise<void>;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(student.full_name);
+  const [editEmail, setEditEmail] = useState(student.email);
+  const [editDeptId, setEditDeptId] = useState(student.department_id || "");
+  const [saving, setSaving] = useState(false);
+
   const s = STATUS_COLORS[student.status] ?? STATUS_COLORS.pending;
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onUpdate(student.id, {
+        full_name: editName,
+        email: editEmail,
+        department_id: editDeptId || null,
+      });
+      setIsEditing(false);
+    } catch (e: any) {
+      alert(e.message || "Failed to update student");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -84,56 +113,77 @@ function StudentRow({
         transition: "all var(--transition)",
       }}
       onMouseEnter={(e) =>
-        ((e.currentTarget as HTMLElement).style.background = "var(--bg-hover)")
+        !isEditing && ((e.currentTarget as HTMLElement).style.background = "var(--bg-hover)")
       }
       onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLElement).style.background = "transparent")
+        !isEditing && ((e.currentTarget as HTMLElement).style.background = "transparent")
       }
     >
+      {/* Name + Email */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div
-          style={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "50%",
-            background: "var(--bg-tertiary)",
-            border: "1px solid var(--border-primary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>
-            {(student.full_name || "S").charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <div>
-          <p
-            style={{
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "var(--text-primary)",
-            }}
-          >
-            {student.full_name}
-          </p>
-          <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-            {student.email}
-          </p>
-        </div>
+        {isEditing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+            <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ padding: '4px' }} disabled={saving} />
+            <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} style={{ padding: '4px' }} disabled={saving} />
+          </div>
+        ) : (
+          <>
+            <div
+              style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                background: "var(--bg-tertiary)",
+                border: "1px solid var(--border-primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-secondary)" }}>
+                {(student.full_name || "S").charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div>
+              <p
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--text-primary)",
+                }}
+              >
+                {student.full_name}
+              </p>
+              <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                {student.email}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-        <Building2
-          size={11}
-          style={{ color: "var(--text-muted)", flexShrink: 0 }}
-        />
-        <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-          {student.department_name ?? "—"}
-        </span>
+      {/* Department */}
+      <div>
+        {isEditing ? (
+          <select className="select" value={editDeptId} onChange={(e) => setEditDeptId(e.target.value)} style={{ padding: '4px', width: '100%' }} disabled={saving}>
+            <option value="">No department</option>
+            {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            <Building2
+              size={11}
+              style={{ color: "var(--text-muted)", flexShrink: 0 }}
+            />
+            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+              {student.department_name ?? "—"}
+            </span>
+          </div>
+        )}
       </div>
 
+      {/* Status */}
       <div>
         <span
           style={{
@@ -153,30 +203,43 @@ function StudentRow({
         </span>
       </div>
 
+      {/* Actions */}
       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-        <button
-          onClick={() => onResetPassword(student)}
-          style={{
-            background: "none", border: "none", cursor: "pointer",
-            padding: "4px", color: "var(--text-muted)", transition: "color 0.2s"
-          }}
-          title="Reset Password"
-        >
-          <Key size={13} />
-        </button>
-        <button
-          onClick={() => onDelete(student.id)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "4px",
-            color: "var(--text-muted)",
-            transition: "color 0.2s",
-          }}
-        >
-          <Trash2 size={13} />
-        </button>
+        {isEditing ? (
+          <>
+            <button onClick={handleSave} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--brand)" }} disabled={saving}>
+              {saving ? <Loader2 size={14} className="animate-spin" /> : 'Save'}
+            </button>
+            <button onClick={() => setIsEditing(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }} disabled={saving}>Cancel</button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => setIsEditing(true)} style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", color: "var(--text-muted)" }} title="Edit"><Edit2 size={13} /></button>
+            <button
+              onClick={() => onResetPassword(student)}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                padding: "4px", color: "var(--text-muted)", transition: "color 0.2s"
+              }}
+              title="Reset Password"
+            >
+              <Key size={13} />
+            </button>
+            <button
+              onClick={() => onDelete(student.id)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                color: "var(--text-muted)",
+                transition: "color 0.2s",
+              }}
+            >
+              <Trash2 size={13} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -202,8 +265,22 @@ export default function StudentsPage() {
   const [newDeptId, setNewDeptId] = useState("");
 
   const [confirmReset, setConfirmReset] = useState<Student | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const CSV_TEMPLATE = `full_name,email,department_short_name\nJohn Doe,john@uni.edu,CSC\nJane Smith,jane@uni.edu,FOA\nMike Ade,mike@uni.edu,MTH`;
+
+  function validateEmail(email: string) {
+    const result = validateAndNormalizeEmail(email);
+    if (result.valid && result.wasCorrected) {
+      // If it was corrected, we treat it as an error to force the user to fix the typo
+      return {
+        ...result,
+        valid: false,
+        error: `It looks like the email domain is misspelled (found "@${result.original.split('@')[1]}"). Did you mean "@${result.normalized.split('@')[1]}"?`
+      };
+    }
+    return result;
+  }
 
   function downloadTemplate() {
     const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
@@ -244,6 +321,12 @@ export default function StudentsPage() {
           continue;
         }
 
+        const emailResult = validateEmail(row.email);
+        if (!emailResult.valid) {
+          errors.push(`Row ${lineNum}: ${emailResult.error} "${row.email}"`);
+          continue;
+        }
+
         const dept = departments.find(d => d.short_name.toLowerCase() === row.department_short_name?.toLowerCase());
         
         try {
@@ -252,7 +335,7 @@ export default function StudentsPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               full_name: row.full_name,
-              email: row.email.toLowerCase(),
+              email: emailResult.normalized,
               role: 'student',
               department_id: dept?.id || null,
               university_id: uniId,
@@ -338,6 +421,13 @@ export default function StudentsPage() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    const emailResult = validateEmail(newEmail);
+    if (!emailResult.valid) {
+        setError(emailResult.error || "Invalid email format.");
+        return;
+    }
+
     setSaving(true)
     try {
       if (!uniId) throw new Error("University ID not found.");
@@ -347,7 +437,7 @@ export default function StudentsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           full_name: newName.trim(),
-          email: newEmail.trim().toLowerCase(),
+          email: emailResult.normalized,
           role: 'student',
           department_id: newDeptId || null,
           university_id: uniId,
@@ -391,8 +481,39 @@ export default function StudentsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Remove this student from the portal?")) return;
-    await supabase.from("profiles").delete().eq("id", id);
+    setConfirmDeleteId(null);
+    setSaving(true);
+    try {
+      const res = await fetch('/api/staff', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      await loadData();
+    } catch (e: any) {
+      alert(e.message || "Failed to remove student");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpdate(id: string, updates: Partial<Student>) {
+    if (updates.email) {
+      const result = validateAndNormalizeEmail(updates.email);
+      if (!result.valid) throw new Error(result.error);
+      updates.email = result.normalized;
+    }
+
+    const res = await fetch('/api/staff', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...updates })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
     await loadData();
   }
 
@@ -417,6 +538,18 @@ export default function StudentsPage() {
         isDestructive
         isLoading={saving}
         icon={AlertTriangle}
+      />
+
+      <ConfirmationModal
+        visible={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        title="Remove Student?"
+        message="Are you sure you want to remove this student? This will delete their account and access to the portal."
+        confirmText="Yes, Remove"
+        isDestructive
+        isLoading={saving}
+        icon={Trash2}
       />
 
       <div>
@@ -706,7 +839,7 @@ export default function StudentsPage() {
             </div>
           ) : (
             filtered.map((l) => (
-              <StudentRow key={l.id} student={l} onDelete={handleDelete} onResetPassword={setConfirmReset} />
+              <StudentRow key={l.id} student={l} departments={departments} onDelete={setConfirmDeleteId} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
             ))
           )}
         </div>
