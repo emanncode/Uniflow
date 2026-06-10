@@ -206,7 +206,8 @@ function FacultyCard({
             onClick={() => setAssigning(true)}
             style={{
               display: "flex",
-              alignItems: "center", gap: "6px",
+              alignItems: "center",
+              gap: "6px",
               background: "var(--warning-muted)",
               border: "1px solid var(--warning-muted)",
               borderRadius: "8px",
@@ -326,19 +327,28 @@ export default function FacultiesPage() {
 
     try {
       const text = await file.text();
-      const lines = text.trim().split("\n").filter(l => l.trim());
-      if (lines.length < 2) throw new Error("CSV is empty or missing data rows");
+      const lines = text
+        .trim()
+        .split("\n")
+        .filter((l) => l.trim());
+      if (lines.length < 2)
+        throw new Error("CSV is empty or missing data rows");
 
-      const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
+      const headers = lines[0]
+        .toLowerCase()
+        .split(",")
+        .map((h) => h.trim());
       const rows = lines.slice(1);
 
       const errors: string[] = [];
       let successCount = 0;
 
       for (let i = 0; i < rows.length; i++) {
-        const vals = rows[i].split(",").map(v => v.trim());
+        const vals = rows[i].split(",").map((v) => v.trim());
         const row: Record<string, string> = {};
-        headers.forEach((h, idx) => { row[h] = vals[idx] ?? ""; });
+        headers.forEach((h, idx) => {
+          row[h] = vals[idx] ?? "";
+        });
         const lineNum = i + 2;
 
         if (!row.name || !row.short_name) {
@@ -403,15 +413,17 @@ export default function FacultiesPage() {
 
       const { data: deptCounts } = await supabase
         .from("departments")
-        .select("faculty_id")
+        .select("faculty_name")
         .eq("university_id", profile.university_id);
 
       const countMap: Record<string, number> = {};
       (deptCounts ?? []).forEach((d) => {
-        countMap[d.faculty_id] = (countMap[d.faculty_id] ?? 0) + 1;
+        countMap[d.faculty_name] = (countMap[d.faculty_name] ?? 0) + 1;
       });
 
-      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`);
+      const staffRes = await fetch(
+        `/api/staff?university_id=${profile.university_id}`,
+      );
       const { data: allProfiles } = await staffRes.json();
 
       const deanData = (allProfiles || []).filter(
@@ -436,7 +448,8 @@ export default function FacultiesPage() {
       );
       setDeans(deanData);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'An unknown error occurred'
+      const message =
+        err instanceof Error ? err.message : "An unknown error occurred";
       console.error("Data loading failed:", message);
     }
 
@@ -478,7 +491,10 @@ export default function FacultiesPage() {
     setConfirmDelete(null);
     setSaving(true);
     try {
-      const { error: err } = await supabase.from("faculties").delete().eq("id", id);
+      const { error: err } = await supabase
+        .from("faculties")
+        .delete()
+        .eq("id", id);
       if (err) throw err;
       await loadData();
     } catch (err: any) {
@@ -509,20 +525,50 @@ export default function FacultiesPage() {
         icon={AlertTriangle}
       />
 
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px", gap: "16px", flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: "24px",
+          gap: "16px",
+          flexWrap: "wrap",
+        }}
+      >
         <div>
-          <h1 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>
+          <h1
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: "4px",
+            }}
+          >
             Faculties
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {faculties.length} {faculties.length === 1 ? "faculty" : "faculties"} · Manage and assign deans
+            {faculties.length}{" "}
+            {faculties.length === 1 ? "faculty" : "faculties"} · Manage and
+            assign deans
           </p>
         </div>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            flexShrink: 0,
+          }}
+        >
           <button
             onClick={downloadTemplate}
             className="btn-secondary"
-            style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+            }}
           >
             ↓ CSV Template
           </button>
@@ -554,7 +600,11 @@ export default function FacultiesPage() {
               )}
             </span>
           </label>
-          <button onClick={() => setShowModal(true)} className="btn-primary" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary"
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+          >
             <Plus size={15} /> Add Faculty
           </button>
         </div>
@@ -575,7 +625,8 @@ export default function FacultiesPage() {
           }}
         >
           <p style={{ fontSize: "13px", color: "var(--success)" }}>
-            ✓ {importSuccess} facult{importSuccess !== 1 ? "ies" : "y"} imported successfully
+            ✓ {importSuccess} facult{importSuccess !== 1 ? "ies" : "y"} imported
+            successfully
           </p>
           <button
             onClick={() => setImportSuccess(0)}
@@ -597,8 +648,20 @@ export default function FacultiesPage() {
             marginBottom: "20px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--danger)" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "8px",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "var(--danger)",
+              }}
+            >
               {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
               {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
             </p>
@@ -613,38 +676,88 @@ export default function FacultiesPage() {
             </button>
           </div>
           {importErrors.map((err, i) => (
-            <p key={i} style={{ fontSize: "12px", color: "var(--danger)", lineHeight: 1.6 }}>
+            <p
+              key={i}
+              style={{
+                fontSize: "12px",
+                color: "var(--danger)",
+                lineHeight: 1.6,
+              }}
+            >
               • {err}
             </p>
           ))}
         </div>
       )}
 
-      <div style={{ position: "relative", maxWidth: "360px", marginBottom: "24px" }}>
-        <Search size={14} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+      <div
+        style={{
+          position: "relative",
+          maxWidth: "360px",
+          marginBottom: "24px",
+        }}
+      >
+        <Search
+          size={14}
+          style={{
+            position: "absolute",
+            left: "14px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: "var(--text-muted)",
+          }}
+        />
         <input
           type="text"
           placeholder="Search faculties..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="input"
-          style={{ width: "100%", paddingLeft: "38px", boxSizing: "border-box" }}
+          style={{
+            width: "100%",
+            paddingLeft: "38px",
+            boxSizing: "border-box",
+          }}
         />
       </div>
 
       {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
-          <Loader2 size={24} className="animate-spin" style={{ color: "var(--brand)" }} />
+        <div
+          style={{ display: "flex", justifyContent: "center", padding: "60px" }}
+        >
+          <Loader2
+            size={24}
+            className="animate-spin"
+            style={{ color: "var(--brand)" }}
+          />
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 0", border: "1px dashed var(--border-secondary)", borderRadius: "14px" }}>
-          <BookOpen size={32} style={{ color: "var(--text-muted)", marginBottom: "12px" }} />
+        <div
+          style={{
+            textAlign: "center",
+            padding: "60px 0",
+            border: "1px dashed var(--border-secondary)",
+            borderRadius: "14px",
+          }}
+        >
+          <BookOpen
+            size={32}
+            style={{ color: "var(--text-muted)", marginBottom: "12px" }}
+          />
           <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-            {search ? "No faculties match your search." : "No faculties yet. Add your first faculty."}
+            {search
+              ? "No faculties match your search."
+              : "No faculties yet. Add your first faculty."}
           </p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gap: "16px",
+          }}
+        >
           {filtered.map((f) => (
             <FacultyCard
               key={f.id}
@@ -659,17 +772,54 @@ export default function FacultiesPage() {
 
       {showModal && (
         <Modal title="Add New Faculty" onClose={() => setShowModal(false)}>
-          <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {error && <div style={{ color: "var(--danger)", fontSize: "12px" }}>{error}</div>}
+          <form
+            onSubmit={handleCreate}
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
+            {error && (
+              <div style={{ color: "var(--danger)", fontSize: "12px" }}>
+                {error}
+              </div>
+            )}
             <div>
-              <label className="label" style={{ display: "block", marginBottom: "8px" }}>Faculty Name</label>
-              <input required type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="input" style={{ width: "100%", boxSizing: "border-box" }} />
+              <label
+                className="label"
+                style={{ display: "block", marginBottom: "8px" }}
+              >
+                Faculty Name
+              </label>
+              <input
+                required
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="input"
+                style={{ width: "100%", boxSizing: "border-box" }}
+              />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: "8px" }}>Short Name</label>
-              <input required type="text" value={newShortName} onChange={(e) => setNewShortName(e.target.value)} className="input" style={{ width: "100%", boxSizing: "border-box" }} maxLength={10} />
+              <label
+                className="label"
+                style={{ display: "block", marginBottom: "8px" }}
+              >
+                Short Name
+              </label>
+              <input
+                required
+                type="text"
+                value={newShortName}
+                onChange={(e) => setNewShortName(e.target.value)}
+                className="input"
+                style={{ width: "100%", boxSizing: "border-box" }}
+                maxLength={10}
+              />
             </div>
-            <button type="submit" disabled={saving} className="btn-primary" style={{ width: "100%" }}>
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn-primary"
+              style={{ width: "100%" }}
+            >
               {saving ? "Creating..." : "Create Faculty"}
             </button>
           </form>
