@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import {
   BookOpen,
@@ -251,8 +252,8 @@ export default function UniversityOverviewPage() {
 
   const STAT_CARDS: { icon: React.ElementType; label: string; value: number; colorKey: keyof typeof UI_COLORS; href: string; sub: string }[] = [
     { icon: BookOpen, label: 'Faculties', value: stats.faculties, colorKey: 'blue', href: '/u/faculties', sub: 'active faculties' },
-    { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', href: '/u/faculties', sub: 'manage via Faculties' },
-    { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', href: '/u/faculties', sub: 'staff via Faculties' },
+    { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', href: '/u/departments', sub: 'across all faculties' },
+    { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', href: '/u/lecturers', sub: 'onboarded lecturers' },
     { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', href: '/u/timetable', sub: 'scheduled classes' },
   ]
 
@@ -315,7 +316,7 @@ export default function UniversityOverviewPage() {
             <div style={{ textAlign: 'center', padding: '40px 0' }}>
               <TrendingUp size={28} style={{ color: 'var(--text-muted)', marginBottom: '8px' }} />
               <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                No activity yet. Start by adding faculties.
+                No activity yet. Start by adding faculties or departments.
               </p>
             </div>
           ) : (
@@ -341,19 +342,19 @@ export default function UniversityOverviewPage() {
             {role === 'university_admin' && (
               <>
                 <QuickAction href="/u/faculties" icon={BookOpen} label="Add New Faculty" colorKey="blue" />
-                <QuickAction href="/u/faculties" icon={Building2} label="Manage Departments" colorKey="purple" />
-                <QuickAction href="/u/faculties" icon={Users} label="Onboard Staff" colorKey="yellow" />
+                <QuickAction href="/u/departments" icon={Building2} label="Add Department" colorKey="purple" />
+                <QuickAction href="/u/lecturers" icon={Users} label="Onboard Lecturers" colorKey="yellow" />
               </>
             )}
             {role === 'dean' && (
               <>
-                <QuickAction href="/u/faculties" icon={Building2} label="Manage Departments" colorKey="purple" />
-                <QuickAction href="/u/faculties" icon={Users} label="Manage Staff" colorKey="yellow" />
+                <QuickAction href="/u/departments" icon={Building2} label="Create Department" colorKey="purple" />
+                <QuickAction href="/u/lecturers" icon={Users} label="View Lecturers" colorKey="yellow" />
               </>
             )}
             {role === 'hod' && (
               <>
-                <QuickAction href="/u/faculties" icon={Users} label="Manage Staff" colorKey="yellow" />
+                <QuickAction href="/u/lecturers" icon={Users} label="Upload Lecturers" colorKey="yellow" />
                 <QuickAction href="/u/timetable" icon={CalendarDays} label="Set Timetable" colorKey="green" />
               </>
             )}
