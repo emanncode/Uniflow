@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   Building2,
@@ -13,14 +15,17 @@ import {
   ChevronDown,
   AlertCircle,
   BookOpen,
+  ArrowLeft,
+  Users,
+  GraduationCap,
 } from "lucide-react";
 
 interface Department {
   id: string;
   name: string;
   short_name: string;
-  faculty_id: string;
-  faculty_name: string;
+  faculty_id: string;   // holds the value from the "faculty" text column (usually short_name)
+  faculty_name: string; // resolved display name
   hod_id: string | null;
   hod_name: string | null;
   created_at: string;
@@ -262,6 +267,49 @@ function DeptRow({
       >
         <Trash2 size={13} style={{ color: "var(--text-muted)" }} />
       </button>
+
+      {/* Sub access under this department: Students are dept-specific. Lecturers are faculty-level (link filters for convenience). */}
+      <div
+        style={{
+          gridColumn: "1 / -1",
+          padding: "6px 16px 10px",
+          borderTop: "1px dashed var(--border-primary)",
+          marginTop: "2px",
+          display: "flex",
+          gap: "12px",
+        }}
+      >
+        <Link
+          href={`/u/lecturers?department=${dept.id}`}
+          style={{
+            fontSize: "11px",
+            color: "var(--brand)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "2px 6px",
+            borderRadius: "4px",
+          }}
+        >
+          <Users size={12} /> Lecturers (faculty)
+        </Link>
+        <Link
+          href={`/u/students?department=${dept.id}`}
+          style={{
+            fontSize: "11px",
+            color: "var(--brand)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "4px",
+            padding: "2px 6px",
+            borderRadius: "4px",
+          }}
+        >
+          <GraduationCap size={12} /> Students
+        </Link>
+      </div>
     </div>
   );
 }
@@ -286,6 +334,17 @@ export default function DepartmentsPage() {
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccess, setImportSuccess] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState<Department | null>(null);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Auto-filter by faculty when arriving from Faculties page (?faculty=...)
+  useEffect(() => {
+    const facParam = searchParams.get("faculty");
+    if (facParam) {
+      setFilterFac(facParam);
+    }
+  }, [searchParams]);
 
   const CSV_TEMPLATE = `name,short_name,faculty_short_name\nComputer Science,CSC,FOS\nMathematics,MTH,FOS\nEconomics,ECO,FOA`;
 
@@ -353,7 +412,7 @@ export default function DepartmentsPage() {
         const { error: insErr } = await supabase.from("departments").insert({
           name: row.name,
           short_name: row.short_name.toUpperCase(),
-          faculty_name: faculty.id,
+          faculty: faculty ? faculty.short_name : null,   // store short_name in the text column
           university_id: uniId,
         });
 
@@ -423,11 +482,10 @@ export default function DepartmentsPage() {
         console.error("Error fetching faculties:", facRes.error);
 
       // 2. Fetch departments via Supabase
+      // Note: "faculty" column is text (usually stores the faculty short_name)
       const deptRes = await supabase
         .from("departments")
-        .select(
-          "id, name, short_name, faculty_name, hod_id, created_at, faculties!faculty_name(name)",
-        )
+        .select("id, name, short_name, faculty, hod_id, created_at")
         .eq("university_id", profile.university_id)
         .order("created_at", { ascending: false });
       if (deptRes.error)
@@ -453,9 +511,9 @@ export default function DepartmentsPage() {
       );
       console.log(`DepartmentsPage: Filtered ${hodData.length} HODs via API`);
 
-      const facMap: Record<string, string> = {};
+      const facShortMap: Record<string, string> = {};
       (facRes.data ?? []).forEach((f: Faculty) => {
-        facMap[f.id] = f.name;
+        facShortMap[f.short_name] = f.name;
       });
 
       const hodMap: Record<string, string> = {};
@@ -470,13 +528,8 @@ export default function DepartmentsPage() {
           id: d.id,
           name: d.name,
           short_name: d.short_name,
-          faculty_id: d.faculty_name,
-          faculty_name:
-            (Array.isArray(d.faculties)
-              ? (d.faculties as Faculty[])[0]?.name
-              : (d.faculties as { name: string } | null)?.name) ??
-            facMap[d.faculty_name] ??
-            "—",
+          faculty_id: d.faculty,           // stores short_name (text)
+          faculty_name: facShortMap[d.faculty] ?? d.faculty ?? "—",
           hod_id: d.hod_id,
           hod_name: d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
           created_at: d.created_at,
@@ -496,10 +549,12 @@ export default function DepartmentsPage() {
     setError("");
     setSaving(true);
     try {
+      // Find the selected faculty to get its short_name (the value stored in departments.faculty)
+      const selectedFac = faculties.find((f) => f.id === newFacultyId);
       const { error: err } = await supabase.from("departments").insert({
         name: newName.trim(),
         short_name: newShortName.trim().toUpperCase(),
-        faculty_name: newFacultyId,
+        faculty: selectedFac ? selectedFac.short_name : null,
         university_id: uniId,
       });
       if (err) throw new Error(err.message);
@@ -544,7 +599,7 @@ export default function DepartmentsPage() {
     const matchSearch =
       d.name.toLowerCase().includes(search.toLowerCase()) ||
       d.short_name.toLowerCase().includes(search.toLowerCase());
-    const matchFac = !filterFac || d.faculty_id === filterFac;
+    const matchFac = !filterFac || d.faculty_id === filterFac;   // faculty_id holds the short_name from DB "faculty" column
     return matchSearch && matchFac;
   });
 
@@ -574,6 +629,31 @@ export default function DepartmentsPage() {
         }}
       >
         <div>
+          {/* Back button */}
+          <button
+            onClick={() => router.back()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              background: "none",
+              border: "none",
+              color: "var(--text-muted)",
+              fontSize: "12px",
+              padding: "0 0 4px 0",
+              cursor: "pointer",
+              marginBottom: "2px",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--brand)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
+            }}
+          >
+            <ArrowLeft size={13} /> Back to Faculties
+          </button>
+
           <h1
             style={{
               fontSize: "20px",
@@ -586,7 +666,7 @@ export default function DepartmentsPage() {
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             {departments.length} department{departments.length !== 1 ? "s" : ""}{" "}
-            · Assign HODs and manage structure
+            · Assign HODs · Manage staff &amp; students per department
           </p>
         </div>
         <div
@@ -774,7 +854,7 @@ export default function DepartmentsPage() {
           >
             <option value="">All Faculties</option>
             {faculties.map((f) => (
-              <option key={f.id} value={f.id}>
+              <option key={f.id} value={f.short_name}>
                 {f.name}
               </option>
             ))}

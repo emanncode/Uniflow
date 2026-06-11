@@ -68,7 +68,18 @@ export interface Profile {
   is_active: boolean;
   created_at: string;
   // joined
-  universities?: Pick<University, "name" | "short_name">;
+  university?: Pick<University, "name" | "short_name">;
+  department?: {
+    id: string;
+    name: string;
+    short_name: string;
+    faculty: string | null;
+  };
+  faculty?: {
+    id: string;
+    name: string;
+    short_name: string;
+  };
 }
 
 export interface Faculty {

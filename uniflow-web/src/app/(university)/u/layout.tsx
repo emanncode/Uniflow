@@ -9,14 +9,11 @@ import UniflowLogo from "@/components/ui/UniflowLogo";
 import {
   LayoutDashboard,
   BookOpen,
-  Building2,
-  Users,
   CalendarDays,
   LogOut,
   Menu,
   Bell,
   Settings,
-  GraduationCap,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -32,22 +29,18 @@ const NAV_ITEMS: Record<
   university_admin: [
     { label: "Overview", href: "/u", icon: LayoutDashboard },
     { label: "Faculties", href: "/u/faculties", icon: BookOpen },
-    { label: "Departments", href: "/u/departments", icon: Building2 },
-    { label: "Lecturers", href: "/u/lecturers", icon: Users },
-    { label: "Students", href: "/u/students", icon: GraduationCap },
     { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
     { label: "Notifications", href: "/u/notifications", icon: Bell },
     { label: "Settings", href: "/u/settings", icon: Settings },
   ],
   dean: [
     { label: "Overview", href: "/u", icon: LayoutDashboard },
-    { label: "Departments", href: "/u/departments", icon: Building2 },
-    { label: "Lecturers", href: "/u/lecturers", icon: Users },
+    { label: "Faculties", href: "/u/faculties", icon: BookOpen },
     { label: "Settings", href: "/u/settings", icon: Settings },
   ],
   hod: [
     { label: "Overview", href: "/u", icon: LayoutDashboard },
-    { label: "Lecturers", href: "/u/lecturers", icon: Users },
+    { label: "Faculties", href: "/u/faculties", icon: BookOpen },
     { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
     { label: "Settings", href: "/u/settings", icon: Settings },
   ],

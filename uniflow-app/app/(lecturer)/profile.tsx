@@ -309,8 +309,8 @@ export default function LecturerProfile() {
   if (!profile) return null;
 
   const isUniflowAdmin = profile.role === 'uniflow_admin';
-  const universityName = isUniflowAdmin ? 'System Administrator' : ((profile.universities as any)?.name ?? 'Unknown University');
-  const universityShort = isUniflowAdmin ? 'Admin' : ((profile.universities as any)?.short_name ?? '');
+  const universityName = isUniflowAdmin ? 'System Administrator' : (profile.university?.name ?? 'Unknown University');
+  const universityShort = isUniflowAdmin ? 'Admin' : (profile.university?.short_name ?? '');
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -371,6 +371,16 @@ export default function LecturerProfile() {
             label="Institution"
             value={universityName}
           />
+          {profile.role === 'lecturer' && (profile.faculty || profile.department) && (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+                label="Faculty"
+                value={profile.faculty?.name || profile.department?.faculty || '—'}
+              />
+            </>
+          )}
         </View>
       </View>
 

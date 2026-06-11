@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -18,7 +19,8 @@ import {
   Key,
   Copy,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from "lucide-react";
 import { validateAndNormalizeEmail } from "@/lib/email";
 
@@ -222,6 +224,17 @@ export default function LecturersPage() {
   const [importSuccess, setImportSuccess] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Support direct links from Departments page: ?department=ID pre-filters the list
+  useEffect(() => {
+    const deptParam = searchParams.get("department");
+    if (deptParam) {
+      setFilterDept(deptParam);
+    }
+  }, [searchParams]);
 
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -618,6 +631,31 @@ export default function LecturersPage() {
           }}
         >
           <div>
+            {/* Back button */}
+            <button
+              onClick={() => router.back()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                background: "none",
+                border: "none",
+                color: "var(--text-muted)",
+                fontSize: "12px",
+                padding: "0 0 4px 0",
+                cursor: "pointer",
+                marginBottom: "2px",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--brand)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
+              }}
+            >
+              <ArrowLeft size={13} /> Back to Faculties
+            </button>
+
             <h1
               style={{
                 fontSize: "20px",

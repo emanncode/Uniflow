@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
   BookOpen,
@@ -12,8 +13,8 @@ import {
   UserCheck,
   Building2,
   ChevronDown,
-  AlertCircle,
   AlertTriangle,
+  Users,
 } from "lucide-react";
 
 interface Faculty {
@@ -284,6 +285,59 @@ function FacultyCard({
           </div>
         )}
       </div>
+
+      {/* Access sub-pages under this faculty.
+          - Departments: students are registered here (depts belong to faculty)
+          - Lecturers: assigned at faculty level, can teach across depts/courses
+      */}
+      <div
+        style={{
+          borderTop: "1px solid var(--border-primary)",
+          paddingTop: "12px",
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+        }}
+      >
+        <Link
+          href={`/u/departments?faculty=${faculty.short_name}`}
+          style={{
+            fontSize: "12px",
+            color: "var(--brand)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "6px 10px",
+            background: "var(--bg-hover)",
+            borderRadius: "6px",
+            border: "1px solid var(--border-primary)",
+            fontWeight: 500,
+          }}
+        >
+          <Building2 size={13} /> Departments
+          <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>(students here)</span>
+        </Link>
+
+        <Link
+          href="/u/lecturers"
+          style={{
+            fontSize: "12px",
+            color: "var(--brand)",
+            textDecoration: "none",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "6px 10px",
+            background: "var(--bg-hover)",
+            borderRadius: "6px",
+            border: "1px solid var(--border-primary)",
+            fontWeight: 500,
+          }}
+        >
+          <Users size={13} /> Lecturers / Staff
+        </Link>
+      </div>
     </div>
   );
 }
@@ -413,12 +467,13 @@ export default function FacultiesPage() {
 
       const { data: deptCounts } = await supabase
         .from("departments")
-        .select("faculty_name")
+        .select("faculty")
         .eq("university_id", profile.university_id);
 
       const countMap: Record<string, number> = {};
-      (deptCounts ?? []).forEach((d) => {
-        countMap[d.faculty_name] = (countMap[d.faculty_name] ?? 0) + 1;
+      (deptCounts ?? []).forEach((d: any) => {
+        const key = d.faculty;
+        if (key) countMap[key] = (countMap[key] ?? 0) + 1;
       });
 
       const staffRes = await fetch(
@@ -442,7 +497,7 @@ export default function FacultiesPage() {
           short_name: f.short_name,
           dean_id: f.dean_id,
           dean_name: f.dean_id ? (deanMap[f.dean_id] ?? null) : null,
-          dept_count: countMap[f.id] ?? 0,
+          dept_count: countMap[f.short_name] ?? 0,   // departments.faculty stores the short_name
           created_at: f.created_at,
         })),
       );
@@ -548,8 +603,7 @@ export default function FacultiesPage() {
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
             {faculties.length}{" "}
-            {faculties.length === 1 ? "faculty" : "faculties"} · Manage and
-            assign deans
+            {faculties.length === 1 ? "faculty" : "faculties"} · Manage departments, lecturers and students
           </p>
         </div>
         <div

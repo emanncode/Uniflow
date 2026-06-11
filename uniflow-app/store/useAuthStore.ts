@@ -48,10 +48,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return { error: "Sign in failed. Please try again." };
     }
 
-    // Fetch profile with university info joined
+    // Fetch profile with university and department joined
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("*, universities(name, short_name)")
+      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty)")
       .eq("id", data.user.id)
       .single();
 
@@ -59,6 +59,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       await supabase.auth.signOut();
       set({ isLoading: false });
       return { error: "Could not load your profile. Please contact support." };
+    }
+
+    // Enrich lecturer profile with full faculty name (department.faculty holds short_name)
+    if (profile.role === 'lecturer' && (profile as any).department?.faculty) {
+      const { data: facultyData } = await supabase
+        .from('faculties')
+        .select('id, name, short_name')
+        .eq('short_name', (profile as any).department.faculty)
+        .single();
+      if (facultyData) {
+        (profile as any).faculty = facultyData;
+      }
     }
 
     // Block web-only roles from accessing the mobile app
@@ -110,7 +122,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("*, universities(name, short_name)")
+      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty)")
       .eq("id", session.user.id)
       .single();
 
@@ -121,6 +133,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       await supabase.auth.signOut();
       set({ isHydrated: true });
       return;
+    }
+
+    // Enrich lecturer profile with full faculty name (department.faculty holds short_name)
+    if (profile.role === 'lecturer' && (profile as any).department?.faculty) {
+      const { data: facultyData } = await supabase
+        .from('faculties')
+        .select('id, name, short_name')
+        .eq('short_name', (profile as any).department.faculty)
+        .single();
+      if (facultyData) {
+        (profile as any).faculty = facultyData;
+      }
     }
 
     const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin"];

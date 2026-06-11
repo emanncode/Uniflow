@@ -44,8 +44,6 @@ const DOMAIN_TYPO_CORRECTIONS: Record<string, string> = {
   'gmil.com': 'gmail.com',
   'gemail.com': 'gmail.com',
   'gmeil.com': 'gmail.com',
-  'gmaill.com': 'gmail.com',
-  'gmial.com': 'gmail.com',
 
   // Yahoo
   'yahooo.com': 'yahoo.com',
