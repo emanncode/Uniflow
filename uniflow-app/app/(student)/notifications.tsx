@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -449,6 +449,22 @@ const styles = StyleSheet.create({
     borderColor: C.borderPrimary,
     padding: 40,
     alignItems: "center",
+    gap: 8,
+  },
+  emptyTitle: {
+    color: C.textSecondary,
+    fontSize: 15,
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  emptySubtitle: {
+    color: C.textMuted,
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 19,
+  },
+});
+
     gap: 8,
   },
   emptyTitle: {

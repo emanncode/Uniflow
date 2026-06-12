@@ -285,8 +285,8 @@ export default function StudentCourses() {
   const totalUnits = courses.reduce((sum, c) => sum + c.credit_units, 0)
   const totalSlots = courses.reduce((sum, c) => sum + c.slots.length, 0)
 
-  return (
-    <View style={styles.root}>
+  const renderHeader = () => (
+    <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={styles.headerTitle}>My Courses</Text>
@@ -314,9 +314,29 @@ export default function StudentCourses() {
           </View>
         </View>
       )}
+    </>
+  );
 
-      {/* List */}
-      <ScrollView
+  const renderEmpty = () => (
+    <View style={styles.emptyCard}>
+      <BookOpen size={32} color={C.textMuted} strokeWidth={1.5} />
+      <Text style={styles.emptyTitle}>No courses yet</Text>
+      <Text style={styles.emptySubtitle}>
+        Your HOD or admin will enroll you in courses
+      </Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      <FlatList
+        data={courses}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <CourseCard course={item} onPress={handleCoursePress} />
+        )}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={isLoading ? null : renderEmpty}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: insets.bottom + 32 },
@@ -329,25 +349,7 @@ export default function StudentCourses() {
             tintColor={C.brand}
           />
         }
-      >
-        {courses.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <BookOpen size={32} color={C.textMuted} strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>No courses yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Your HOD or admin will enroll you in courses
-            </Text>
-          </View>
-        ) : (
-          courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onPress={handleCoursePress}
-            />
-          ))
-        )}
-      </ScrollView>
+      />
 
       {/* Detail modal */}
       <CourseDetailModal

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import {
   Building2, Globe, Users, Mail,
-  ExternalLink, Search, CheckCircle2, Key, Loader2, X, Copy, Check, AlertTriangle
+  ExternalLink, Search, CheckCircle2, Key, Loader2, AlertTriangle
 } from 'lucide-react'
 
 interface University {
@@ -41,9 +41,7 @@ export default function UniversitiesPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [resettingId, setResettingId] = useState<string | null>(null)
-  const [tempPassword, setTempPassword] = useState<{ password: string, email: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<{ email: string, id: string } | null>(null)
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => { fetchUniversities(setUniversities, setLoading) }, [])
 
@@ -59,7 +57,7 @@ export default function UniversitiesPage() {
 
       const data = await res.json()
       if (data.success) {
-        setTempPassword({ password: data.tempPassword, email })
+        alert('A secure password reset link has been sent to ' + email)
       } else {
         alert(data.error || 'Failed to reset password')
       }
@@ -68,12 +66,6 @@ export default function UniversitiesPage() {
     } finally {
       setResettingId(null)
     }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   const filtered = universities.filter(u =>
@@ -370,7 +362,7 @@ export default function UniversitiesPage() {
                 lineHeight: 1.5,
               }}>
                 Are you sure you want to reset the admin password for <strong>{confirmReset.email}</strong>? 
-                A new temporary password will be generated immediately.
+                A secure password reset link will be sent to their email.
               </p>
 
               <div style={{ display: 'flex', gap: '12px' }}>
@@ -397,100 +389,6 @@ export default function UniversitiesPage() {
                   Yes, Reset
                 </button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Password Result Modal */}
-      <AnimatePresence>
-        {tempPassword && (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(4px)',
-          }}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              style={{
-                width: '100%', maxWidth: '400px',
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-primary)',
-                padding: '24px', position: 'relative',
-              }}
-            >
-              <button
-                onClick={() => setTempPassword(null)}
-                style={{
-                  position: 'absolute', right: '16px', top: '16px',
-                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                  cursor: 'pointer', padding: '4px',
-                }}
-              >
-                <X size={18} />
-              </button>
-
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%',
-                backgroundColor: 'var(--success-muted)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '16px', border: '1px solid var(--success-muted)',
-              }}>
-                <Key size={24} color="var(--success)" />
-              </div>
-
-              <h3 style={{
-                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Password Reset Successfully
-              </h3>
-              <p style={{
-                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px',
-              }}>
-                A new temporary password has been generated for <strong>{tempPassword.email}</strong>.
-                Please share this with the administrator.
-              </p>
-
-              <div style={{
-                padding: '16px', borderRadius: 'var(--radius-md)',
-                backgroundColor: 'rgba(0,0,0,0.2)',
-                border: '1px solid var(--border-primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: '12px', marginBottom: '20px',
-              }}>
-                <code style={{
-                  fontSize: '16px', fontWeight: 700, color: 'var(--brand)',
-                  letterSpacing: '0.05em',
-                }}>
-                  {tempPassword.password}
-                </code>
-                <button
-                  onClick={() => copyToClipboard(tempPassword.password)}
-                  style={{
-                    background: 'none', border: 'none', color: 'var(--text-muted)',
-                    cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
-                  }}
-                >
-                  {copied ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
-                </button>
-              </div>
-
-              <button
-                onClick={() => setTempPassword(null)}
-                style={{
-                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--brand)', color: 'white',
-                  fontWeight: 700, fontSize: '14px', border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                Done
-              </button>
             </motion.div>
           </div>
         )}

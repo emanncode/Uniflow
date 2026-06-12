@@ -253,42 +253,71 @@ export default function LecturerNotifications() {
     )
   }
 
+  // ── Flattened data for FlatList ─────────────────────────────────────
+
+  const listData = notifications.length === 0 ? [] : [
+    ...(todayNotifs.length > 0 ? [{ type: 'header', title: 'Today' } as const, ...todayNotifs] : []),
+    ...(earlierNotifs.length > 0 ? [{ type: 'header', title: 'Earlier' } as const, ...earlierNotifs] : []),
+  ];
+
   // ── Render ────────────────────────────────────────────────────────────
 
-  return (
-    <View style={styles.root}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          {unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
-            </View>
-          )}
-        </View>
-
+  const renderHeader = () => (
+    <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <View style={styles.headerLeft}>
+        <Text style={styles.headerTitle}>Notifications</Text>
         {unreadCount > 0 && (
-          <TouchableOpacity
-            style={styles.markAllBtn}
-            onPress={handleMarkAllRead}
-            disabled={isMarkingAll}
-            activeOpacity={0.75}
-          >
-            {isMarkingAll ? (
-              <ActivityIndicator size="small" color={C.brand} />
-            ) : (
-              <>
-                <CheckCheck size={14} color={C.brand} strokeWidth={2} />
-                <Text style={styles.markAllText}>Mark all read</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
+          </View>
         )}
       </View>
 
-      {/* List */}
-      <ScrollView
+      {unreadCount > 0 && (
+        <TouchableOpacity
+          style={styles.markAllBtn}
+          onPress={handleMarkAllRead}
+          disabled={isMarkingAll}
+          activeOpacity={0.75}
+        >
+          {isMarkingAll ? (
+            <ActivityIndicator size="small" color={C.brand} />
+          ) : (
+            <>
+              <CheckCheck size={14} color={C.brand} strokeWidth={2} />
+              <Text style={styles.markAllText}>Mark all read</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.emptyCard}>
+      <BellOff size={32} color={C.textMuted} strokeWidth={1.5} />
+      <Text style={styles.emptyTitle}>No notifications yet</Text>
+      <Text style={styles.emptySubtitle}>
+        You'll be notified about class updates and more
+      </Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      <FlatList
+        data={listData}
+        keyExtractor={(item, index) => 
+          item.type === 'header' ? `header-${item.title}` : (item as Notification).id
+        }
+        renderItem={({ item }) => {
+          if (item.type === 'header') {
+            return <SectionHeader title={(item as any).title} />;
+          }
+          return <NotifRow notif={item as Notification} onPress={handlePress} />;
+        }}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={isLoading ? null : renderEmpty}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: insets.bottom + 32 },
@@ -301,39 +330,7 @@ export default function LecturerNotifications() {
             tintColor={C.brand}
           />
         }
-      >
-        {notifications.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <BellOff size={32} color={C.textMuted} strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>No notifications yet</Text>
-            <Text style={styles.emptySubtitle}>
-              You'll be notified about class updates and more
-            </Text>
-          </View>
-        ) : (
-          <>
-            {/* Today */}
-            {todayNotifs.length > 0 && (
-              <>
-                <SectionHeader title="Today" />
-                {todayNotifs.map((n) => (
-                  <NotifRow key={n.id} notif={n} onPress={handlePress} />
-                ))}
-              </>
-            )}
-
-            {/* Earlier */}
-            {earlierNotifs.length > 0 && (
-              <>
-                <SectionHeader title="Earlier" />
-                {earlierNotifs.map((n) => (
-                  <NotifRow key={n.id} notif={n} onPress={handlePress} />
-                ))}
-              </>
-            )}
-          </>
-        )}
-      </ScrollView>
+      />
     </View>
   )
 }

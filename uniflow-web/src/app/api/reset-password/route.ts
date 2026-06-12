@@ -1,10 +1,17 @@
 import { createAdminClient } from '@/lib/supabase-admin'
-import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 import { validateAndNormalizeEmail } from '@/lib/email'
+import { isSuperAdmin } from '@/lib/auth'
 
 export async function POST(req: Request) {
   try {
+    // ── Security: SuperAdmin Authorization Check ───────────────────────────
+    const authorized = await isSuperAdmin()
+    if (!authorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     const { email } = await req.json()
 
     if (!email) {
@@ -31,22 +38,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    const userId = profile.id
+    // ── Security Hardening: Standard Reset Email ───────────────────────────
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(lookupEmail)
 
-    // 2. Generate new temporary password
-    const newPassword = generateTempPassword()
+    if (resetError) throw resetError
 
-    // 3. Update user's password
-    const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
-      password: newPassword
-    })
-
-    if (updateError) throw updateError
-
-    // 4. Optionally send reset email too, but return the password so admin can share it
-    await supabase.auth.resetPasswordForEmail(lookupEmail)
-
-    return NextResponse.json({ success: true, tempPassword: newPassword })
+    return NextResponse.json({ success: true, message: 'Password reset link sent.' })
   } catch (err: any) {
     console.error('Reset Password Error:', err.message)
     return NextResponse.json({ error: err.message }, { status: 500 })

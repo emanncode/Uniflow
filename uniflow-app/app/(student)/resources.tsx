@@ -291,8 +291,8 @@ export default function StudentResources() {
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  return (
-    <View style={styles.root}>
+  const renderHeader = () => (
+    <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={styles.headerTitle}>Resources</Text>
@@ -352,9 +352,40 @@ export default function StudentResources() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+    </>
+  );
 
-      {/* Resource list */}
-      <ScrollView
+  const renderEmpty = () => (
+    <View style={styles.emptyCard}>
+      <FolderDown size={32} color={C.textMuted} strokeWidth={1.5} />
+      <Text style={styles.emptyTitle}>
+        {resources.length === 0 ? 'No resources yet' : 'No matches'}
+      </Text>
+      <Text style={styles.emptySubtitle}>
+        {resources.length === 0
+          ? 'Lecturers will upload notes and past questions here'
+          : 'Try a different filter'}
+      </Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ResourceCard
+            resource={item}
+            onDownload={
+              downloadingId === item.id
+                ? () => {}
+                : handleDownload
+            }
+          />
+        )}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={isLoading ? null : renderEmpty}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: insets.bottom + 32 },
@@ -367,33 +398,7 @@ export default function StudentResources() {
             tintColor={C.brand}
           />
         }
-      >
-        {filtered.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <FolderDown size={32} color={C.textMuted} strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>
-              {resources.length === 0 ? 'No resources yet' : 'No matches'}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {resources.length === 0
-                ? 'Lecturers will upload notes and past questions here'
-                : 'Try a different filter'}
-            </Text>
-          </View>
-        ) : (
-          filtered.map((resource) => (
-            <ResourceCard
-              key={resource.id}
-              resource={resource}
-              onDownload={
-                downloadingId === resource.id
-                  ? () => {}
-                  : handleDownload
-              }
-            />
-          ))
-        )}
-      </ScrollView>
+      />
     </View>
   )
 }

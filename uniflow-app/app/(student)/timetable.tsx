@@ -598,11 +598,11 @@ const styles = StyleSheet.create({
   dayDotActive: { backgroundColor: C.textPrimary },
 
   slotList: { paddingHorizontal: 20, gap: 10 },
+  dayLabelRowWrap: { paddingHorizontal: 20, marginBottom: 4 },
   dayLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 4,
   },
   dayLabel: { color: C.textSecondary, fontSize: 14, fontWeight: '600' },
   todayTag: {
@@ -714,5 +714,7 @@ const styles = StyleSheet.create({
   },
   actionText: { flex: 1, gap: 2 },
   actionLabel: { color: C.textPrimary, fontSize: 15, fontWeight: '600' },
+  actionDesc: { color: C.textMuted, fontSize: 12 },
+})imary, fontSize: 15, fontWeight: '600' },
   actionDesc: { color: C.textMuted, fontSize: 12 },
 })

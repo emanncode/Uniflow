@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -640,11 +641,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 10,
   },
+  dayLabelRowWrap: {
+    paddingHorizontal: 20,
+    marginBottom: 4,
+  },
   dayLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    marginBottom: 4,
   },
   dayLabel: {
     color: C.textSecondary,
@@ -828,6 +832,13 @@ const styles = StyleSheet.create({
     color: C.textPrimary,
     fontSize: 15,
     fontWeight: "600",
+  },
+  actionDesc: {
+    color: C.textMuted,
+    fontSize: 12,
+  },
+});
+",
   },
   actionDesc: {
     color: C.textMuted,
