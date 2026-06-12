@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase-admin'
 import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
+import { canManageUniversity } from '@/lib/auth'
 
 export async function GET(req: Request) {
   try {
@@ -10,6 +11,13 @@ export async function GET(req: Request) {
     if (!universityId) {
       return NextResponse.json({ error: 'University ID is required' }, { status: 400 })
     }
+
+    // ── Security: Authorization Check ──────────────────────────────────────
+    const isAuthorized = await canManageUniversity(universityId)
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     const supabase = createAdminClient()
 
@@ -40,14 +48,21 @@ export async function PATCH(req: Request) {
     // Get current profile to check if email changed
     const { data: currentProfile, error: fetchError } = await supabase
       .from('profiles')
-      .select('email')
+      .select('email, university_id')
       .eq('id', id)
       .single()
 
-    if (fetchError) {
-      console.error('API Staff PATCH: Fetch current profile failed:', fetchError.message)
+    if (fetchError || !currentProfile) {
+      console.error('API Staff PATCH: Fetch current profile failed:', fetchError?.message)
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
     }
+
+    // ── Security: Authorization Check ──────────────────────────────────────
+    const isAuthorized = await canManageUniversity(currentProfile.university_id)
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     const updates: any = {}
     if (full_name !== undefined) updates.full_name = full_name

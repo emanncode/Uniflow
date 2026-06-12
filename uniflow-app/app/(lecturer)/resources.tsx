@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
+  FlatList,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -832,15 +833,6 @@ const styles = StyleSheet.create({
 
   uploadBtn: {
     backgroundColor: C.brand,
-    borderRadius: R.sm,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 4,
-  },
-  uploadBtnLoading: { flexDirection: "row", alignItems: "center", gap: 10 },
-  uploadBtnText: { color: C.textPrimary, fontSize: 15, fontWeight: "700" },
-});
-  backgroundColor: C.brand,
     borderRadius: R.sm,
     paddingVertical: 15,
     alignItems: "center",

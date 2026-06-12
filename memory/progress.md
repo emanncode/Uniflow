@@ -11,6 +11,8 @@
 - Lecturers
 - Timetable
 - Role-Based University Portal
+- Security Audit & Hardening (Admin APIs, Password Resets)
+- Performance Optimizations (Mobile List Rendering)
 
 ## In Progress
 

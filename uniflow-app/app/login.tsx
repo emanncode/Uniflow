@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
-  Clipboard
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -85,17 +84,7 @@ export default function LoginScreen() {
 
     setIsGenerating(true);
     try {
-      // Use the web API endpoint. We assume it's on the same base domain or env var
-      const baseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.replace('.supabase.co', '') || '';
-      // Since we don't have a reliable way to get the web URL in all envs, we'll try a common pattern
-      // but for local dev, it might need to be hardcoded or passed in.
-      // Let's assume the web app is at uniflow.com.ng or localhost:3000
-      // When running in Expo Go on a physical device, __DEV__ is true, 
-      // but 10.0.2.2 only works on the Emulator.
-      // Use the production URL for physical devices.
       const webUrl = "https://uniflow-ebon.vercel.app";
-      
-      console.log("Attempting to fetch password from:", `${webUrl}/api/public/generate-temp-password`);
       
       const res = await fetch(`${webUrl}/api/public/generate-temp-password`, {
         method: "POST",
@@ -103,23 +92,15 @@ export default function LoginScreen() {
         body: JSON.stringify({ email: genEmail.toLowerCase().trim() })
       });
 
-      console.log("Fetch response status:", res.status);
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate password.");
 
-      setGeneratedPass(data.tempPassword);
+      setGeneratedPass("SENT"); // Flag to show success state
+      Alert.alert("Success", "A password reset link has been sent to your email.");
     } catch (err: any) {
       Alert.alert("Error", err.message);
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    if (generatedPass) {
-      Clipboard.setString(generatedPass);
-      Alert.alert("Copied", "Password copied to clipboard.");
     }
   };
 
@@ -244,7 +225,7 @@ export default function LoginScreen() {
 
             {/* Help text */}
             <Text style={styles.helpText}>
-              Need a temporary password?{" "}
+              Need a password reset?{" "}
               <Text 
                 style={{ color: Theme.colors.brand, fontWeight: '600' }}
                 onPress={() => setShowPassModal(true)}
@@ -261,7 +242,7 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ── Temp Password Modal ── */}
+      {/* ── Password Reset Modal ── */}
       <CustomModal
         visible={showPassModal}
         onClose={() => {
@@ -511,50 +492,4 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '600',
   },
-  passContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: Theme.radius.md,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: Theme.colors.borderPrimary,
-  },
-  passCode: {
-    color: Theme.colors.brand,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  copyBtn: {
-    padding: 8,
-  }
-});
-  color: '#60a5fa',
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: '600',
-  },
-  passContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: Theme.radius.md,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: Theme.colors.borderPrimary,
-  },
-  passCode: {
-    color: Theme.colors.brand,
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  copyBtn: {
-    padding: 8,
-  }
 });
