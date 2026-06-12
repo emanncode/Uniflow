@@ -313,8 +313,8 @@ export default function LecturerCourses() {
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  return (
-    <View style={styles.root}>
+  const renderHeader = () => (
+    <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={styles.headerTitle}>My Courses</Text>
@@ -348,9 +348,29 @@ export default function LecturerCourses() {
           </View>
         </View>
       )}
+    </>
+  );
 
-      {/* Course list */}
-      <ScrollView
+  const renderEmpty = () => (
+    <View style={styles.emptyCard}>
+      <BookOpen size={32} color={C.textMuted} strokeWidth={1.5} />
+      <Text style={styles.emptyTitle}>No courses assigned</Text>
+      <Text style={styles.emptySubtitle}>
+        Contact your HOD to get courses assigned
+      </Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      <FlatList
+        data={courses}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <CourseCard course={item} onPress={handleCoursePress} />
+        )}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={isLoading ? null : renderEmpty}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: insets.bottom + 32 },
@@ -363,25 +383,7 @@ export default function LecturerCourses() {
             tintColor={C.brand}
           />
         }
-      >
-        {courses.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <BookOpen size={32} color={C.textMuted} strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>No courses assigned</Text>
-            <Text style={styles.emptySubtitle}>
-              Contact your HOD to get courses assigned
-            </Text>
-          </View>
-        ) : (
-          courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              onPress={handleCoursePress}
-            />
-          ))
-        )}
-      </ScrollView>
+      />
 
       {/* Course detail modal */}
       <CourseDetailModal

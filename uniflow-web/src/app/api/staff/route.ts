@@ -95,8 +95,26 @@ export async function DELETE(req: Request) {
     const { id } = await req.json()
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
 
-    console.log(`API Staff DELETE: Removing staff member ${id}`)
     const supabase = createAdminClient()
+
+    // ── Security: Authorization Check ──────────────────────────────────────
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('university_id')
+      .eq('id', id)
+      .single()
+
+    if (!currentProfile) {
+      return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
+    }
+
+    const isAuthorized = await canManageUniversity(currentProfile.university_id)
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    console.log(`API Staff DELETE: Removing staff member ${id}`)
 
     // 1. Delete from auth (cascades to profile if set up, or removes login)
     const { error: authError } = await supabase.auth.admin.deleteUser(id)

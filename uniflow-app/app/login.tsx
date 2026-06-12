@@ -269,13 +269,13 @@ export default function LoginScreen() {
           setGeneratedPass(null);
           setGenEmail("");
         }}
-        title={generatedPass ? "Password Generated" : "Get Temporary Password"}
+        title={generatedPass ? "Reset Link Sent" : "Get Reset Link"}
         type="sheet"
       >
         {!generatedPass ? (
           <View>
             <Text style={styles.modalSubtitle}>
-              Enter your registered email address to receive a temporary login password.
+              Enter your registered email address to receive a secure password reset link.
             </Text>
             <TextInput
               style={styles.input}
@@ -294,7 +294,7 @@ export default function LoginScreen() {
               {isGenerating ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text style={styles.buttonText}>Generate Now</Text>
+                <Text style={styles.buttonText}>Send Reset Link</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -302,26 +302,18 @@ export default function LoginScreen() {
           <View>
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
-                SECURITY NOTE: This temporary password will be invalidated immediately after your first successful login.
+                Check your inbox! We've sent a secure link to {genEmail} to reset your password.
               </Text>
-            </View>
-            
-            <View style={styles.passContainer}>
-              <Text style={styles.passCode}>{generatedPass}</Text>
-              <TouchableOpacity onPress={copyToClipboard} style={styles.copyBtn}>
-                <Text style={{ color: Theme.colors.brand, fontWeight: '700' }}>Copy</Text>
-              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
               style={[styles.button, { marginTop: 10 }]}
               onPress={() => {
-                setEmail(genEmail);
                 setShowPassModal(false);
                 setGeneratedPass(null);
               }}
             >
-              <Text style={styles.buttonText}>Proceed to Login</Text>
+              <Text style={styles.buttonText}>Back to Login</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -515,6 +507,32 @@ const styles = StyleSheet.create({
   },
   warningText: {
     color: '#60a5fa',
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  passContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: Theme.radius.md,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderPrimary,
+  },
+  passCode: {
+    color: Theme.colors.brand,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  copyBtn: {
+    padding: 8,
+  }
+});
+  color: '#60a5fa',
     fontSize: 12,
     lineHeight: 18,
     fontWeight: '600',

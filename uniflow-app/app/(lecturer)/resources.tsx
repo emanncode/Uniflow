@@ -559,8 +559,8 @@ export default function LecturerResources() {
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  return (
-    <View style={styles.root}>
+  const renderHeader = () => (
+    <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <View>
@@ -580,50 +580,52 @@ export default function LecturerResources() {
       </View>
 
       {/* Course filter */}
-      <ScrollView
+      <FlatList
         horizontal
+        data={[{ id: "all", code: "All" }, ...courses]}
+        keyExtractor={(item) => item.id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filterStrip}
-      >
-        <TouchableOpacity
-          style={[
-            styles.filterPill,
-            selectedCourseId === "all" && styles.filterPillActive,
-          ]}
-          onPress={() => setSelectedCourseId("all")}
-        >
-          <Text
-            style={[
-              styles.filterPillText,
-              selectedCourseId === "all" && styles.filterPillTextActive,
-            ]}
-          >
-            All
-          </Text>
-        </TouchableOpacity>
-        {courses.map((c) => (
+        renderItem={({ item }) => (
           <TouchableOpacity
-            key={c.id}
             style={[
               styles.filterPill,
-              selectedCourseId === c.id && styles.filterPillActive,
+              selectedCourseId === item.id && styles.filterPillActive,
             ]}
-            onPress={() => setSelectedCourseId(c.id)}
+            onPress={() => setSelectedCourseId(item.id)}
           >
             <Text
               style={[
                 styles.filterPillText,
-                selectedCourseId === c.id && styles.filterPillTextActive,
+                selectedCourseId === item.id && styles.filterPillTextActive,
               ]}
             >
-              {c.code}
+              {item.code}
             </Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        )}
+      />
+    </>
+  );
 
-      {/* Resource list */}
-      <ScrollView
+  const renderEmpty = () => (
+    <View style={styles.emptyCard}>
+      <Upload size={32} color={C.textMuted} strokeWidth={1.5} />
+      <Text style={styles.emptyTitle}>No resources yet</Text>
+      <Text style={styles.emptySubtitle}>
+        Tap Upload to share notes, past questions, or materials
+      </Text>
+    </View>
+  );
+
+  return (
+    <View style={styles.root}>
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <ResourceCard resource={item} />}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={isLoading ? null : renderEmpty}
         contentContainerStyle={[
           styles.list,
           { paddingBottom: insets.bottom + 32 },
@@ -636,19 +638,7 @@ export default function LecturerResources() {
             tintColor={C.brand}
           />
         }
-      >
-        {filtered.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Upload size={32} color={C.textMuted} strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>No resources yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Tap Upload to share notes, past questions, or materials
-            </Text>
-          </View>
-        ) : (
-          filtered.map((r) => <ResourceCard key={r.id} resource={r} />)
-        )}
-      </ScrollView>
+      />
 
       {/* Upload sheet */}
       <UploadSheet
@@ -842,6 +832,15 @@ const styles = StyleSheet.create({
 
   uploadBtn: {
     backgroundColor: C.brand,
+    borderRadius: R.sm,
+    paddingVertical: 15,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  uploadBtnLoading: { flexDirection: "row", alignItems: "center", gap: 10 },
+  uploadBtnText: { color: C.textPrimary, fontSize: 15, fontWeight: "700" },
+});
+  backgroundColor: C.brand,
     borderRadius: R.sm,
     paddingVertical: 15,
     alignItems: "center",

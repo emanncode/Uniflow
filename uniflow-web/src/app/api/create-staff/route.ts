@@ -2,10 +2,23 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
+import { canManageUniversity } from '@/lib/auth'
 
 export async function POST(req: Request) {
   try {
     const { full_name, email, role, department_id, university_id } = await req.json()
+
+    // ── Security: Authorization Check ──────────────────────────────────────
+    if (!university_id) {
+      return NextResponse.json({ error: 'University ID is required' }, { status: 400 })
+    }
+    
+    const isAuthorized = await canManageUniversity(university_id)
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: You do not have permission to create staff for this university.' }, { status: 403 })
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     const normalizedRole = (role || 'lecturer').toLowerCase();
 
     // Server-side domain typo correction + validation.

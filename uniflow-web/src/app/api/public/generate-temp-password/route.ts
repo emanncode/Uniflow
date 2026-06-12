@@ -31,19 +31,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'This email is not registered in our system. Please contact your school administrator.' }, { status: 404 })
     }
 
-    // 2. Generate new temporary password
-    const newPassword = generateTempPassword()
+    // ── Security Hardening: No more plaintext passwords ────────────────────
+    // Instead of generating a temp password here and returning it (unsafe),
+    // we trigger a standard secure password reset email.
+    
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(lookupEmail)
 
-    // 3. Update user's password in Auth
-    const { error: updateError } = await supabase.auth.admin.updateUserById(profile.id, {
-      password: newPassword
-    })
-
-    if (updateError) throw updateError
+    if (resetError) {
+      console.error('Public Reset Error:', resetError.message)
+      throw resetError
+    }
 
     return NextResponse.json({ 
       success: true, 
-      tempPassword: newPassword,
+      message: 'A secure password reset link has been sent to your email address.',
       name: profile.full_name,
       role: profile.role
     })

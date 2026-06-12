@@ -2,9 +2,17 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
+import { isSuperAdmin } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
+    // ── Security: SuperAdmin Authorization Check ───────────────────────────
+    const authorized = await isSuperAdmin()
+    if (!authorized) {
+      return NextResponse.json({ error: 'Unauthorized: Only Uniflow Admins can approve universities.' }, { status: 403 })
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     const { registrationId } = await request.json()
     const supabase = createAdminClient()
 
