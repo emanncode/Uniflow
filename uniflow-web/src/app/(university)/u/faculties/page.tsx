@@ -31,6 +31,7 @@ interface Profile {
   id: string;
   full_name: string;
   email: string;
+  faculty: string | null;
 }
 
 import Modal from "@/components/ui/Modal";
@@ -48,6 +49,9 @@ function FacultyCard({
   onDelete: (id: string) => void;
 }) {
   const [assigning, setAssigning] = useState(false);
+
+  // Filter deans to only show those registered under THIS faculty
+  const eligibleDeans = deans.filter(d => d.faculty === faculty.short_name);
 
   return (
     <div
@@ -249,9 +253,9 @@ function FacultyCard({
                 }}
               >
                 <option value="" disabled>
-                  Select a dean...
+                  {eligibleDeans.length > 0 ? "Select a dean..." : "No deans found in this faculty"}
                 </option>
-                {deans.map((d) => (
+                {eligibleDeans.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.full_name} — {d.email}
                   </option>
@@ -320,7 +324,7 @@ function FacultyCard({
         </Link>
 
         <Link
-          href="/u/lecturers"
+          href={`/u/lecturers?faculty=${faculty.short_name}`}
           style={{
             fontSize: "12px",
             color: "var(--brand)",

@@ -22,9 +22,21 @@ export async function GET(req: Request) {
     const supabase = createAdminClient()
 
     // Fetch all profiles for this university using the service role (bypassing RLS)
+    // Join with departments to get the faculty short name
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, email, role, status, department_id, created_at')
+      .select(`
+        id, 
+        full_name, 
+        email, 
+        role, 
+        status, 
+        department_id, 
+        created_at,
+        departments (
+          faculty
+        )
+      `)
       .eq('university_id', universityId)
       .order('created_at', { ascending: false })
 
@@ -32,7 +44,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ data })
+    // Flatten the departments.faculty into a simple property for easier consumption
+    const flattened = (data || []).map((p: any) => ({
+      ...p,
+      faculty: p.departments?.faculty || null,
+      departments: undefined // remove the nested object
+    }))
+
+    return NextResponse.json({ data: flattened })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }

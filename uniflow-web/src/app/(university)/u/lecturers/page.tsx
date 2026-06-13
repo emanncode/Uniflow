@@ -31,11 +31,19 @@ interface Lecturer {
   role: string
   department_id: string | null
   department_name: string | null
+  faculty: string | null
   status: string
   created_at: string
 }
 
 interface Department {
+  id: string
+  name: string
+  short_name: string
+  faculty: string
+}
+
+interface Faculty {
   id: string
   name: string
   short_name: string
@@ -213,8 +221,10 @@ function LecturerRow({
 export default function LecturersPage() {
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
   const [filterDept, setFilterDept] = useState("");
+  const [filterFaculty, setFilterFaculty] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -228,13 +238,27 @@ export default function LecturersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Support direct links from Departments page: ?department=ID pre-filters the list
+  // Support direct links from Departments page: ?department=CODE&faculty=CODE
   useEffect(() => {
+    if (departments.length === 0) return;
+
     const deptParam = searchParams.get("department");
-    if (deptParam) {
-      setFilterDept(deptParam);
+    const facParam = searchParams.get("faculty");
+
+    if (facParam) {
+      setFilterFaculty(facParam);
     }
-  }, [searchParams]);
+
+    if (deptParam) {
+      // Find the department ID from the short name if necessary
+      const dept = departments.find(d => d.short_name === deptParam || d.id === deptParam);
+      if (dept) {
+        setFilterDept(dept.id);
+      } else {
+        setFilterDept(deptParam);
+      }
+    }
+  }, [searchParams, departments]);
 
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -362,12 +386,16 @@ export default function LecturersPage() {
     setUniId(profile.university_id);
 
     try {
-      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
-      const { data: allProfiles } = await staffRes.json()
+      const { data: facData } = await supabase
+          .from("faculties")
+          .select("id, name, short_name")
+          .eq("university_id", profile.university_id)
+          .order("name");
+      setFaculties(facData ?? []);
 
       const { data: deptData } = await supabase
           .from("departments")
-          .select("id, name, short_name")
+          .select("id, name, short_name, faculty")
           .eq("university_id", profile.university_id)
           .order("name");
 
@@ -377,6 +405,9 @@ export default function LecturersPage() {
       });
 
       const lecRoles = ['lecturer', 'dean', 'hod'];
+      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
+      const { data: allProfiles } = await staffRes.json()
+
       const lecturersData = (allProfiles || []).filter((p: { role: string }) => {
         const normalizedRole = (p.role || "").toLowerCase().trim();
         return lecRoles.includes(normalizedRole);
@@ -393,6 +424,7 @@ export default function LecturersPage() {
           department_name: l.department_id
             ? (deptMap[l.department_id] ?? null)
             : null,
+          faculty: l.faculty,
           status: l.status ?? "pending",
           created_at: l.created_at,
         })),
@@ -519,9 +551,13 @@ export default function LecturersPage() {
     const matchSearch =
       (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
       (l.email || "").toLowerCase().includes(search.toLowerCase());
+    
+    const dept = departments.find(d => d.id === l.department_id);
     const matchDept = !filterDept || l.department_id === filterDept;
+    const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
     const matchStatus = !filterStatus || l.status === filterStatus;
-    return matchSearch && matchDept && matchStatus;
+    
+    return matchSearch && matchDept && matchFac && matchStatus;
   });
 
   const counts = {
@@ -653,7 +689,7 @@ export default function LecturersPage() {
                 (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
               }}
             >
-              <ArrowLeft size={13} /> Back to Faculties
+              <ArrowLeft size={13} /> Back to {searchParams.get("department") ? "Departments" : "Faculties"}
             </button>
 
             <h1
@@ -819,13 +855,44 @@ export default function LecturersPage() {
           </div>
           <div style={{ position: "relative" }}>
             <select
+              value={filterFaculty}
+              onChange={(e) => {
+                setFilterFaculty(e.target.value);
+                setFilterDept(""); // Reset department when faculty changes
+              }}
+              className="select"
+              style={{ paddingRight: "32px", minWidth: "160px" }}
+            >
+              <option value="">All Faculties</option>
+              {faculties.map((f) => (
+                <option key={f.id} value={f.short_name}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={14}
+              style={{
+                position: "absolute",
+                right: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--text-muted)",
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+          <div style={{ position: "relative" }}>
+            <select
               value={filterDept}
               onChange={(e) => setFilterDept(e.target.value)}
               className="select"
               style={{ paddingRight: "32px", minWidth: "160px" }}
             >
               <option value="">All Departments</option>
-              {departments.map((d) => (
+              {departments
+                .filter(d => !filterFaculty || d.faculty === filterFaculty)
+                .map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
@@ -1076,13 +1143,11 @@ export default function LecturersPage() {
                     className="label"
                     style={{ display: "block", marginBottom: "8px" }}
                   >
-                    Department{" "}
-                    <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
-                      (optional)
-                    </span>
+                    Department
                   </label>
                   <div style={{ position: "relative" }}>
                     <select
+                      required
                       value={newDeptId}
                       onChange={(e) => setNewDeptId(e.target.value)}
                       className="select"
@@ -1092,7 +1157,7 @@ export default function LecturersPage() {
                         boxSizing: "border-box",
                       }}
                     >
-                      <option value="">No department</option>
+                      <option value="" disabled>Select department...</option>
                       {departments.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name}

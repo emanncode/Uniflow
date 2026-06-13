@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   CalendarDays,
@@ -14,6 +15,8 @@ import {
   Users,
   AlertTriangle,
   ChevronDown,
+  Building2,
+  Search,
 } from "lucide-react";
 import { validateAndNormalizeEmail } from "@/lib/email";
 
@@ -26,6 +29,7 @@ interface TimetableSlot {
   day: string;
   start_time: string;
   end_time: string;
+  department_id: string | null;
   department_name: string;
   conflict?: boolean;
 }
@@ -43,6 +47,13 @@ interface Lecturer {
 interface Department {
   id: string;
   name: string;
+  short_name: string;
+  faculty: string;
+}
+interface Faculty {
+  id: string;
+  name: string;
+  short_name: string;
 }
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -304,7 +315,11 @@ export default function TimetablePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [activeDay, setActiveDay] = useState("Monday");
+  const [search, setSearch] = useState("");
+  const [filterDept, setFilterDept] = useState("");
+  const [filterFaculty, setFilterFaculty] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -315,6 +330,30 @@ export default function TimetablePage() {
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
   const [conflictCheck, setConflictCheck] = useState<string | null>(null);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Support direct links from Departments page: ?department=CODE&faculty=CODE
+  useEffect(() => {
+    if (departments.length === 0) return;
+
+    const deptParam = searchParams.get("department");
+    const facParam = searchParams.get("faculty");
+
+    if (facParam) {
+      setFilterFaculty(facParam);
+    }
+
+    if (deptParam) {
+      const dept = departments.find(d => d.short_name === deptParam || d.id === deptParam);
+      if (dept) {
+        setFilterDept(dept.id);
+      } else {
+        setFilterDept(deptParam);
+      }
+    }
+  }, [searchParams, departments]);
 
   const [newCourseId, setNewCourseId] = useState("");
   const [newLecturerId, setNewLecturerId] = useState("");
@@ -460,11 +499,11 @@ export default function TimetablePage() {
     if (!profile) return;
     setUniId(profile.university_id);
 
-    const [ttRes, courseRes, lecRes, deptRes] = await Promise.all([
+    const [ttRes, courseRes, lecRes, deptRes, facRes] = await Promise.all([
       supabase
         .from("timetable")
         .select(
-          `id, venue, day, start_time, end_time, courses(name, code), profiles(full_name), departments(name)`,
+          `id, venue, day, start_time, end_time, course_id, department_id, courses(name, code), profiles(full_name), departments(name)`,
         )
         .eq("university_id", profile.university_id)
         .order("day")
@@ -482,7 +521,12 @@ export default function TimetablePage() {
         .order("full_name"),
       supabase
         .from("departments")
-        .select("id, name")
+        .select("id, name, short_name, faculty")
+        .eq("university_id", profile.university_id)
+        .order("name"),
+      supabase
+        .from("faculties")
+        .select("id, name, short_name")
         .eq("university_id", profile.university_id)
         .order("name"),
     ]);
@@ -496,6 +540,7 @@ export default function TimetablePage() {
       day: t.day,
       start_time: t.start_time,
       end_time: t.end_time,
+      department_id: t.department_id,
       department_name: t.departments?.name ?? "—",
     }));
 
@@ -503,6 +548,7 @@ export default function TimetablePage() {
     setCourses(courseRes.data ?? []);
     setLecturers(lecRes.data ?? []);
     setDepartments(deptRes.data ?? []);
+    setFaculties(facRes.data ?? []);
     setLoading(false);
   }
 
@@ -573,7 +619,21 @@ export default function TimetablePage() {
     await loadData();
   }
 
-  const daySlots = slots.filter((s) => s.day === activeDay);
+  const filtered = slots.filter((s) => {
+    const matchDay = s.day === activeDay;
+    const matchSearch = 
+      s.course_name.toLowerCase().includes(search.toLowerCase()) || 
+      s.course_code.toLowerCase().includes(search.toLowerCase()) ||
+      s.lecturer_name.toLowerCase().includes(search.toLowerCase());
+    
+    const dept = departments.find(d => d.id === s.department_id);
+    const matchDept = !filterDept || s.department_id === filterDept;
+    const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
+
+    return matchDay && matchSearch && matchDept && matchFac;
+  });
+
+  const daySlots = filtered;
   const conflictCount = slots.filter((s) => s.conflict).length;
 
   return (
@@ -590,6 +650,31 @@ export default function TimetablePage() {
         }}
       >
         <div>
+          {/* Back button */}
+          <button
+            onClick={() => router.back()}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              background: "none",
+              border: "none",
+              color: "var(--text-muted)",
+              fontSize: "12px",
+              padding: "0 0 4px 0",
+              cursor: "pointer",
+              marginBottom: "2px",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--brand)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
+            }}
+          >
+            <ArrowLeft size={13} /> Back to {searchParams.get("department") ? "Departments" : "Faculties"}
+          </button>
+
           <h1
             style={{
               fontSize: "20px",
@@ -773,6 +858,98 @@ export default function TimetablePage() {
           </p>
         </div>
       )}
+
+      {/* Filters */}
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          marginBottom: "20px",
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
+          <Search
+            size={14}
+            style={{
+              position: "absolute",
+              left: "14px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-muted)",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search course or lecturer..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="input"
+            style={{
+              width: "100%",
+              paddingLeft: "38px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+        <div style={{ position: "relative" }}>
+          <select
+            value={filterFaculty}
+            onChange={(e) => {
+              setFilterFaculty(e.target.value);
+              setFilterDept(""); // Reset department when faculty changes
+            }}
+            className="select"
+            style={{ paddingRight: "32px", minWidth: "160px" }}
+          >
+            <option value="">All Faculties</option>
+            {faculties.map((f) => (
+              <option key={f.id} value={f.short_name}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={14}
+            style={{
+              position: "absolute",
+              right: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-muted)",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+        <div style={{ position: "relative" }}>
+          <select
+            value={filterDept}
+            onChange={(e) => setFilterDept(e.target.value)}
+            className="select"
+            style={{ paddingRight: "32px", minWidth: "160px" }}
+          >
+            <option value="">All Departments</option>
+            {departments
+              .filter(d => !filterFaculty || d.faculty === filterFaculty)
+              .map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={14}
+            style={{
+              position: "absolute",
+              right: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "var(--text-muted)",
+              pointerEvents: "none",
+            }}
+          />
+        </div>
+      </div>
 
       {/* Day tabs */}
       <div
