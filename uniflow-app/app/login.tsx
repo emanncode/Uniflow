@@ -283,7 +283,7 @@ export default function LoginScreen() {
           <View>
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
-                Check your inbox! We've sent a secure link to {genEmail} to reset your password.
+                Check your inbox! We&apos;ve sent a secure link to {genEmail} to reset your password.
               </Text>
             </View>
 

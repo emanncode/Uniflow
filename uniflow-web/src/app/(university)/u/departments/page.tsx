@@ -7,17 +7,20 @@ import { supabase } from "@/lib/supabase";
 import {
   Building2,
   Plus,
-  Search,
+  Users,
   X,
   Loader2,
   Trash2,
   UserCheck,
-  ChevronDown,
-  BookOpen,
   ArrowLeft,
   GraduationCap,
+  CalendarDays,
+  AlertTriangle,
+  Search,
   LayoutGrid,
   List,
+  ChevronDown,
+  BookOpen
 } from "lucide-react";
 
 interface Department {
@@ -45,7 +48,6 @@ interface Profile {
 
 import Modal from "@/components/ui/Modal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import { AlertTriangle } from "lucide-react";
 
 function DeptCard({
   dept,

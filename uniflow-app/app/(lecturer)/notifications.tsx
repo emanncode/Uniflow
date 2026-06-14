@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   View,
   Text,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -298,7 +298,7 @@ export default function LecturerNotifications() {
       <BellOff size={32} color={C.textMuted} strokeWidth={1.5} />
       <Text style={styles.emptyTitle}>No notifications yet</Text>
       <Text style={styles.emptySubtitle}>
-        You'll be notified about class updates and more
+        You&apos;ll be notified about class updates and more
       </Text>
     </View>
   );

@@ -195,11 +195,7 @@ function LecturerRow({
 
 export default function LecturersPage() {
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
-  const [filterDept, setFilterDept] = useState("");
-  const [filterFac, setFilterFac] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -211,31 +207,9 @@ export default function LecturersPage() {
   const [uniId, setUniId] = useState<string | null>(null);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Support direct links from Departments page: ?department=CODE&faculty=CODE
-  useEffect(() => {
-    if (departments.length === 0) return;
-
-    const deptParam = searchParams.get("department");
-    const facParam = searchParams.get("faculty");
-
-    if (facParam) {
-      setFilterFac(facParam);
-    }
-
-    if (deptParam) {
-      // Find the department ID from the short name if necessary
-      const dept = departments.find(d => d.short_name === deptParam || d.id === deptParam);
-      if (dept) {
-        setFilterDept(dept.id);
-      }
-    }
-  }, [searchParams, departments]);
 
   const [newName, setNewName] = useState("");
   const [newEmail, setNewEmail] = useState("");
-  const [newDeptId, setNewDeptId] = useState("");
   const [newRole, setNewRole] = useState<'lecturer' | 'dean' | 'hod'>('lecturer')
 
   const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
@@ -301,11 +275,6 @@ export default function LecturersPage() {
           errors.push(`Row ${lineNum}: ${emailResult.error} "${row.email}"`);
           continue;
         }
-
-        const dept = departments.find(d => 
-          d.short_name.toLowerCase() === row.department_short_name?.toLowerCase() &&
-          (!filterFac || d.faculty === filterFac)
-        );
         
         try {
           const res = await fetch('/api/create-staff', {
@@ -315,7 +284,7 @@ export default function LecturersPage() {
               full_name: row.full_name,
               email: emailResult.normalized,
               role: (row.role.toLowerCase() as any),
-              department_id: dept?.id || null,
+              department_id: null,
               university_id: uniId,
             }),
           });
@@ -362,36 +331,12 @@ export default function LecturersPage() {
       const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
       const { data: allProfiles } = await staffRes.json()
 
-      const { data: facData } = await supabase
-          .from("faculties")
-          .select("id, name, short_name")
-          .eq("university_id", profile.university_id)
-          .order("name");
-
-      const { data: deptData } = await supabase
-          .from("departments")
-          .select("id, name, short_name, faculty")
-          .eq("university_id", profile.university_id)
-          .order("name");
-
-      const deptMap: Record<string, string> = {};
-      (deptData ?? []).forEach((d) => {
-        deptMap[d.id] = d.name;
-      });
-
       const lecRoles = ['lecturer', 'dean', 'hod'];
       const lecturersData = (allProfiles || []).filter((p: { role: string }) => {
         const normalizedRole = (p.role || "").toLowerCase().trim();
         return lecRoles.includes(normalizedRole);
       });
 
-      setFaculties(facData ?? []);
-      setDepartments((deptData ?? []).map((d: any) => ({
-        id: d.id,
-        name: d.name,
-        short_name: d.short_name,
-        faculty: d.faculty
-      })));
       setLecturers(
         lecturersData.map((l: any) => ({
           id: l.id,
@@ -399,9 +344,7 @@ export default function LecturersPage() {
           email: l.email || "",
           role: l.role,
           department_id: l.department_id,
-          department_name: l.department_id
-            ? (deptMap[l.department_id] ?? null)
-            : null,
+          department_name: null,
           status: l.status ?? "pending",
           created_at: l.created_at,
         })),
@@ -440,14 +383,14 @@ export default function LecturersPage() {
           full_name: newName.trim(),
           email: emailResult.normalized,
           role: newRole,
-          department_id: newDeptId || null,
+          department_id: null,
           university_id: uniId,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
 
-      setNewName(''); setNewEmail(''); setNewDeptId(''); setNewRole('lecturer')
+      setNewName(''); setNewEmail(''); setNewRole('lecturer')
       setShowModal(false)
       alert(`Success! ${newName} has been added. They can now generate their login password on the login page using their email.`)
       await loadData()
@@ -529,14 +472,9 @@ export default function LecturersPage() {
       (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
       (l.email || "").toLowerCase().includes(search.toLowerCase());
     
-    const dept = departments.find(d => d.id === l.department_id);
-    const facultyShortName = dept?.faculty || "";
-    
-    const matchFac = !filterFac || facultyShortName === filterFac;
-    const matchDept = !filterDept || l.department_id === filterDept;
     const matchStatus = !filterStatus || l.status === filterStatus;
     
-    return matchSearch && matchFac && matchDept && matchStatus;
+    return matchSearch && matchStatus;
   });
 
   const counts = {
@@ -665,7 +603,7 @@ export default function LecturersPage() {
                 (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
               }}
             >
-              <ArrowLeft size={13} /> Back to Faculties
+              <ArrowLeft size={13} /> Back
             </button>
 
             <h1
@@ -736,64 +674,7 @@ export default function LecturersPage() {
           </div>
         </div>
 
-        {importSuccess > 0 && importErrors.length === 0 && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              background: "var(--success-muted)",
-              border: "1px solid rgba(34,197,94,0.2)",
-              borderRadius: "12px",
-              padding: "12px 16px",
-              marginBottom: "20px",
-            }}
-          >
-            <p style={{ fontSize: "13px", color: "var(--success)" }}>
-              ✓ {importSuccess} staff member{importSuccess !== 1 ? "s" : ""} imported successfully
-            </p>
-            <button
-              onClick={() => setImportSuccess(0)}
-              style={{ background: "none", border: "none", cursor: "pointer" }}
-            >
-              <X size={14} style={{ color: "var(--success)" }} />
-            </button>
-          </div>
-        )}
-
-        {importErrors.length > 0 && (
-          <div
-            style={{
-              background: "var(--danger-muted)",
-              border: "1px solid rgba(239,68,68,0.2)",
-              borderRadius: "12px",
-              padding: "14px 16px",
-              marginBottom: "20px",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--danger)" }}>
-                {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
-                {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
-              </p>
-              <button
-                onClick={() => {
-                  setImportErrors([]);
-                  setImportSuccess(0);
-                }}
-                style={{ background: "none", border: "none", cursor: "pointer" }}
-              >
-                <X size={14} style={{ color: "var(--danger)" }} />
-              </button>
-            </div>
-            {importErrors.map((err, i) => (
-              <p key={i} style={{ fontSize: "12px", color: "var(--danger)", lineHeight: 1.6 }}>
-                • {err}
-              </p>
-            ))}
-          </div>
-        )}
-
+        {/* Filters */}
         <div
           style={{
             display: "flex",
@@ -828,60 +709,6 @@ export default function LecturersPage() {
           </div>
           <div style={{ position: "relative" }}>
             <select
-              value={filterFac}
-              onChange={(e) => { setFilterFac(e.target.value); setFilterDept(""); }}
-              className="select"
-              style={{ paddingRight: "32px", minWidth: "160px" }}
-            >
-              <option value="">All Faculties</option>
-              {faculties.map((f) => (
-                <option key={f.id} value={f.short_name}>
-                  {f.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              style={{
-                position: "absolute",
-                right: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--text-muted)",
-                pointerEvents: "none",
-              }}
-            />
-          </div>
-          <div style={{ position: "relative" }}>
-            <select
-              value={filterDept}
-              onChange={(e) => setFilterDept(e.target.value)}
-              className="select"
-              style={{ paddingRight: "32px", minWidth: "160px" }}
-            >
-              <option value="">All Departments</option>
-              {departments
-                .filter(d => !filterFac || d.faculty === filterFac)
-                .map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              style={{
-                position: "absolute",
-                right: "12px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: "var(--text-muted)",
-                pointerEvents: "none",
-              }}
-            />
-          </div>
-          <div style={{ position: "relative" }}>
-            <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="select"
@@ -906,6 +733,7 @@ export default function LecturersPage() {
           </div>
         </div>
 
+        {/* Table */}
         <div
           style={{
             background: "var(--bg-card)",
@@ -961,7 +789,7 @@ export default function LecturersPage() {
                 style={{ color: "var(--text-muted)", marginBottom: "12px" }}
               />
               <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                {search || filterDept || filterStatus
+                {search || filterStatus
                   ? "No staff match your filters."
                   : "No staff yet. Add or upload a CSV to get started."}
               </p>
@@ -973,6 +801,7 @@ export default function LecturersPage() {
           )}
         </div>
 
+        {/* Add Modal */}
         {showModal && (
           <Modal
             title="Add Staff"
@@ -1092,49 +921,6 @@ export default function LecturersPage() {
                       <option value="lecturer">Lecturer</option>
                       <option value="dean">Dean</option>
                       <option value="hod">Head of Department (HOD)</option>
-                    </select>
-                    <ChevronDown
-                      size={14}
-                      style={{
-                        position: "absolute",
-                        right: "12px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        color: "var(--text-muted)",
-                        pointerEvents: "none",
-                      }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label
-                    className="label"
-                    style={{ display: "block", marginBottom: "8px" }}
-                  >
-                    Department{" "}
-                    <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
-                      (optional)
-                    </span>
-                  </label>
-                  <div style={{ position: "relative" }}>
-                    <select
-                      value={newDeptId}
-                      onChange={(e) => setNewDeptId(e.target.value)}
-                      className="select"
-                      style={{
-                        width: "100%",
-                        paddingRight: "32px",
-                        boxSizing: "border-box",
-                      }}
-                    >
-                      <option value="">No department</option>
-                      {departments
-                        .filter(d => !filterFac || d.faculty === filterFac)
-                        .map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
                     </select>
                     <ChevronDown
                       size={14}

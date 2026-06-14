@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Building2,
   Search,
+  ArrowLeft
 } from "lucide-react";
 import { validateAndNormalizeEmail } from "@/lib/email";
 
