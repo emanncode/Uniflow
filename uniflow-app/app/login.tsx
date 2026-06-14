@@ -77,26 +77,36 @@ export default function LoginScreen() {
   };
 
   const handleGeneratePassword = async () => {
-    if (!genEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(genEmail.trim())) {
-      Alert.alert("Invalid Email", "Please enter a valid registered email address.");
+    if (
+      !genEmail.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(genEmail.trim())
+    ) {
+      Alert.alert(
+        "Invalid Email",
+        "Please enter a valid registered email address.",
+      );
       return;
     }
 
     setIsGenerating(true);
     try {
       const webUrl = "https://uniflow-ebon.vercel.app";
-      
+
       const res = await fetch(`${webUrl}/api/public/generate-temp-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: genEmail.toLowerCase().trim() })
+        body: JSON.stringify({ email: genEmail.toLowerCase().trim() }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate password.");
+      if (!res.ok)
+        throw new Error(data.error || "Failed to generate password.");
 
       setGeneratedPass(data.tempPassword);
-      Alert.alert("Success", `Temporary password generated: ${data.tempPassword}`);
+      Alert.alert(
+        "Success",
+        `Temporary password generated: ${data.tempPassword}`,
+      );
     } catch (err: any) {
       Alert.alert("Error", err.message);
     } finally {
@@ -165,8 +175,17 @@ export default function LoginScreen() {
 
             {/* Password field */}
             <View style={styles.fieldGroup}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Text style={[styles.label, { marginBottom: 0 }]}>Password</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <Text style={[styles.label, { marginBottom: 0 }]}>
+                  Password
+                </Text>
                 <TouchableOpacity onPress={() => setShowPassModal(true)}>
                   <Text style={styles.forgotText}>Forgot?</Text>
                 </TouchableOpacity>
@@ -217,7 +236,10 @@ export default function LoginScreen() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator size="small" color={Theme.colors.textPrimary} />
+                <ActivityIndicator
+                  size="small"
+                  color={Theme.colors.textPrimary}
+                />
               ) : (
                 <Text style={styles.buttonText}>Sign in</Text>
               )}
@@ -226,8 +248,8 @@ export default function LoginScreen() {
             {/* Help text */}
             <Text style={styles.helpText}>
               Need a password reset?{" "}
-              <Text 
-                style={{ color: Theme.colors.brand, fontWeight: '600' }}
+              <Text
+                style={{ color: Theme.colors.brand, fontWeight: "600" }}
                 onPress={() => setShowPassModal(true)}
               >
                 Click here
@@ -256,7 +278,8 @@ export default function LoginScreen() {
         {!generatedPass ? (
           <View>
             <Text style={styles.modalSubtitle}>
-              Enter your registered email address to receive a secure password reset link.
+              Enter your registered email address to receive a secure password
+              reset link.
             </Text>
             <TextInput
               style={styles.input}
@@ -268,7 +291,11 @@ export default function LoginScreen() {
               autoCapitalize="none"
             />
             <TouchableOpacity
-              style={[styles.button, { marginTop: 20 }, isGenerating ? styles.buttonDisabled : null]}
+              style={[
+                styles.button,
+                { marginTop: 20 },
+                isGenerating ? styles.buttonDisabled : null,
+              ]}
               onPress={handleGeneratePassword}
               disabled={isGenerating}
             >
@@ -283,7 +310,8 @@ export default function LoginScreen() {
           <View>
             <View style={styles.warningBox}>
               <Text style={styles.warningText}>
-                Check your inbox! We&apos;ve sent a secure link to {genEmail} to reset your password.
+                Check your inbox! We&apos;ve sent a secure link to {genEmail} to
+                reset your password.
               </Text>
             </View>
 
@@ -479,17 +507,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   warningBox: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
+    borderColor: "rgba(59, 130, 246, 0.2)",
     borderRadius: Theme.radius.md,
     padding: 12,
     marginBottom: 20,
   },
   warningText: {
-    color: '#60a5fa',
+    color: "#60a5fa",
     fontSize: 12,
     lineHeight: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
