@@ -31,19 +31,11 @@ interface Lecturer {
   role: string
   department_id: string | null
   department_name: string | null
-  faculty: string | null
   status: string
   created_at: string
 }
 
 interface Department {
-  id: string
-  name: string
-  short_name: string
-  faculty: string
-}
-
-interface Faculty {
   id: string
   name: string
   short_name: string
@@ -82,13 +74,11 @@ const STATUS_COLORS: Record<
 
 function LecturerRow({
   lecturer,
-  departments,
   onDelete,
   onResetPassword,
   onUpdate,
 }: {
   lecturer: Lecturer;
-  departments: Department[];
   onDelete: (id: string) => void;
   onResetPassword: (lecturer: Lecturer) => void;
   onUpdate: (id: string, updates: Partial<Lecturer>) => Promise<void>;
@@ -96,7 +86,6 @@ function LecturerRow({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(lecturer.full_name);
   const [editEmail, setEditEmail] = useState(lecturer.email);
-  const [editDeptId, setEditDeptId] = useState(lecturer.department_id || "");
   const [saving, setSaving] = useState(false);
 
   const s = STATUS_COLORS[lecturer.status] ?? STATUS_COLORS.pending;
@@ -107,7 +96,6 @@ function LecturerRow({
       await onUpdate(lecturer.id, {
         full_name: editName,
         email: editEmail,
-        department_id: editDeptId || null,
       });
       setIsEditing(false);
     } catch (e: any) {
@@ -121,7 +109,7 @@ function LecturerRow({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "2fr 1fr 120px 80px",
+        gridTemplateColumns: "3fr 120px 80px",
         alignItems: "center",
         gap: "16px",
         padding: "10px 16px",
@@ -129,7 +117,6 @@ function LecturerRow({
         transition: "all var(--transition)",
       }}
     >
-      {/* Name + Email */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {isEditing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
@@ -167,24 +154,6 @@ function LecturerRow({
         )}
       </div>
 
-      {/* Department */}
-      <div>
-        {isEditing ? (
-          <select className="select" value={editDeptId} onChange={(e) => setEditDeptId(e.target.value)} style={{ padding: '4px', width: '100%' }} disabled={saving}>
-            <option value="">No department</option>
-            {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <Building2 size={11} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-              {lecturer.department_name ?? "—"}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Status */}
       <div>
         <span
           style={{
@@ -204,7 +173,6 @@ function LecturerRow({
         </span>
       </div>
 
-      {/* Actions */}
       <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
         {isEditing ? (
           <>
@@ -231,9 +199,8 @@ export default function LecturersPage() {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
   const [filterDept, setFilterDept] = useState("");
-  const [filterFaculty, setFilterFaculty] = useState("");
+  const [filterFac, setFilterFac] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -254,7 +221,7 @@ export default function LecturersPage() {
     const facParam = searchParams.get("faculty");
 
     if (facParam) {
-      setFilterFaculty(facParam);
+      setFilterFac(facParam);
     }
 
     if (deptParam) {
@@ -262,8 +229,6 @@ export default function LecturersPage() {
       const dept = departments.find(d => d.short_name === deptParam || d.id === deptParam);
       if (dept) {
         setFilterDept(dept.id);
-      } else {
-        setFilterDept(deptParam);
       }
     }
   }, [searchParams, departments]);
@@ -283,7 +248,6 @@ export default function LecturersPage() {
   function validateEmail(email: string) {
     const result = validateAndNormalizeEmail(email);
     if (result.valid && result.wasCorrected) {
-      // If it was corrected, we treat it as an error to force the user to fix the typo
       return {
         ...result,
         valid: false,
@@ -379,9 +343,7 @@ export default function LecturersPage() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) {
-      return;
-    }
+    if (!session) return;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -397,16 +359,17 @@ export default function LecturersPage() {
     setUniId(profile.university_id);
 
     try {
+      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
+      const { data: allProfiles } = await staffRes.json()
+
       const { data: facData } = await supabase
           .from("faculties")
           .select("id, name, short_name")
           .eq("university_id", profile.university_id)
           .order("name");
-      setFaculties(facData ?? []);
 
       const { data: deptData } = await supabase
           .from("departments")
-          .select("id, name, short_name, faculty")
           .select("id, name, short_name, faculty")
           .eq("university_id", profile.university_id)
           .order("name");
@@ -417,9 +380,6 @@ export default function LecturersPage() {
       });
 
       const lecRoles = ['lecturer', 'dean', 'hod'];
-      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
-      const { data: allProfiles } = await staffRes.json()
-
       const lecturersData = (allProfiles || []).filter((p: { role: string }) => {
         const normalizedRole = (p.role || "").toLowerCase().trim();
         return lecRoles.includes(normalizedRole);
@@ -442,7 +402,6 @@ export default function LecturersPage() {
           department_name: l.department_id
             ? (deptMap[l.department_id] ?? null)
             : null,
-          faculty: l.faculty,
           status: l.status ?? "pending",
           created_at: l.created_at,
         })),
@@ -571,11 +530,13 @@ export default function LecturersPage() {
       (l.email || "").toLowerCase().includes(search.toLowerCase());
     
     const dept = departments.find(d => d.id === l.department_id);
+    const facultyShortName = dept?.faculty || "";
+    
+    const matchFac = !filterFac || facultyShortName === filterFac;
     const matchDept = !filterDept || l.department_id === filterDept;
-    const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
     const matchStatus = !filterStatus || l.status === filterStatus;
     
-    return matchSearch && matchDept && matchFac && matchStatus;
+    return matchSearch && matchFac && matchDept && matchStatus;
   });
 
   const counts = {
@@ -586,7 +547,6 @@ export default function LecturersPage() {
 
   return (
     <>
-      {/* Confirmation Modal */}
       <ConfirmationModal
         visible={!!confirmReset}
         onClose={() => setConfirmReset(null)}
@@ -611,7 +571,6 @@ export default function LecturersPage() {
         icon={Trash2}
       />
 
-      {/* Password Result Modal */}
       {tempPassword && (
         <Modal
           title="Temporary Credentials"
@@ -685,7 +644,6 @@ export default function LecturersPage() {
           }}
         >
           <div>
-            {/* Back button */}
             <button
               onClick={() => router.back()}
               style={{
@@ -707,7 +665,7 @@ export default function LecturersPage() {
                 (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
               }}
             >
-              <ArrowLeft size={13} /> Back to {searchParams.get("department") ? "Departments" : "Faculties"}
+              <ArrowLeft size={13} /> Back to Faculties
             </button>
 
             <h1
@@ -778,7 +736,6 @@ export default function LecturersPage() {
           </div>
         </div>
 
-        {/* Import success */}
         {importSuccess > 0 && importErrors.length === 0 && (
           <div
             style={{
@@ -804,7 +761,6 @@ export default function LecturersPage() {
           </div>
         )}
 
-        {/* Import errors */}
         {importErrors.length > 0 && (
           <div
             style={{
@@ -838,7 +794,6 @@ export default function LecturersPage() {
           </div>
         )}
 
-        {/* Filters */}
         <div
           style={{
             display: "flex",
@@ -873,11 +828,8 @@ export default function LecturersPage() {
           </div>
           <div style={{ position: "relative" }}>
             <select
-              value={filterFaculty}
-              onChange={(e) => {
-                setFilterFaculty(e.target.value);
-                setFilterDept(""); // Reset department when faculty changes
-              }}
+              value={filterFac}
+              onChange={(e) => { setFilterFac(e.target.value); setFilterDept(""); }}
               className="select"
               style={{ paddingRight: "32px", minWidth: "160px" }}
             >
@@ -909,7 +861,7 @@ export default function LecturersPage() {
             >
               <option value="">All Departments</option>
               {departments
-                .filter(d => !filterFaculty || d.faculty === filterFaculty)
+                .filter(d => !filterFac || d.faculty === filterFac)
                 .map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
@@ -954,7 +906,6 @@ export default function LecturersPage() {
           </div>
         </div>
 
-        {/* Table */}
         <div
           style={{
             background: "var(--bg-card)",
@@ -966,14 +917,14 @@ export default function LecturersPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "2fr 1fr 120px 80px",
+              gridTemplateColumns: "3fr 120px 80px",
               gap: "16px",
               padding: "12px 16px",
               borderBottom: "1px solid var(--border-primary)",
               background: "var(--bg-secondary)",
             }}
           >
-            {["Staff", "Department", "Status", ""].map((h) => (
+            {["Staff", "Status", ""].map((h) => (
               <span
                 key={h}
                 style={{
@@ -1017,12 +968,11 @@ export default function LecturersPage() {
             </div>
           ) : (
             filtered.map((l) => (
-              <LecturerRow key={l.id} lecturer={l} departments={departments} onDelete={setConfirmDeleteId} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
+              <LecturerRow key={l.id} lecturer={l} onDelete={setConfirmDeleteId} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
             ))
           )}
         </div>
 
-        {/* Add Modal */}
         {showModal && (
           <Modal
             title="Add Staff"
@@ -1161,11 +1111,13 @@ export default function LecturersPage() {
                     className="label"
                     style={{ display: "block", marginBottom: "8px" }}
                   >
-                    Department
+                    Department{" "}
+                    <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
+                      (optional)
+                    </span>
                   </label>
                   <div style={{ position: "relative" }}>
                     <select
-                      required
                       value={newDeptId}
                       onChange={(e) => setNewDeptId(e.target.value)}
                       className="select"
@@ -1175,8 +1127,10 @@ export default function LecturersPage() {
                         boxSizing: "border-box",
                       }}
                     >
-                      <option value="" disabled>Select department...</option>
-                      {departments.map((d) => (
+                      <option value="">No department</option>
+                      {departments
+                        .filter(d => !filterFac || d.faculty === filterFac)
+                        .map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name}
                         </option>
