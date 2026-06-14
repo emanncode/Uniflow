@@ -464,19 +464,3 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 });
-
-    gap: 8,
-  },
-  emptyTitle: {
-    color: C.textSecondary,
-    fontSize: 15,
-    fontWeight: "600",
-    marginTop: 4,
-  },
-  emptySubtitle: {
-    color: C.textMuted,
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 19,
-  },
-});

@@ -838,10 +838,3 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
-",
-  },
-  actionDesc: {
-    color: C.textMuted,
-    fontSize: 12,
-  },
-});

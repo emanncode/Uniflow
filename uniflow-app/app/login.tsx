@@ -95,8 +95,8 @@ export default function LoginScreen() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate password.");
 
-      setGeneratedPass("SENT"); // Flag to show success state
-      Alert.alert("Success", "A password reset link has been sent to your email.");
+      setGeneratedPass(data.tempPassword);
+      Alert.alert("Success", `Temporary password generated: ${data.tempPassword}`);
     } catch (err: any) {
       Alert.alert("Error", err.message);
     } finally {

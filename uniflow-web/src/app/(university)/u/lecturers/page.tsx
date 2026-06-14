@@ -47,6 +47,13 @@ interface Faculty {
   id: string
   name: string
   short_name: string
+  faculty: string
+}
+
+interface Faculty {
+  id: string
+  name: string
+  short_name: string
 }
 
 import Modal from "@/components/ui/Modal";
@@ -226,6 +233,7 @@ export default function LecturersPage() {
   const [filterDept, setFilterDept] = useState("");
   const [filterFaculty, setFilterFaculty] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -330,7 +338,10 @@ export default function LecturersPage() {
           continue;
         }
 
-        const dept = departments.find(d => d.short_name.toLowerCase() === row.department_short_name?.toLowerCase());
+        const dept = departments.find(d => 
+          d.short_name.toLowerCase() === row.department_short_name?.toLowerCase() &&
+          (!filterFac || d.faculty === filterFac)
+        );
         
         try {
           const res = await fetch('/api/create-staff', {
@@ -396,6 +407,7 @@ export default function LecturersPage() {
       const { data: deptData } = await supabase
           .from("departments")
           .select("id, name, short_name, faculty")
+          .select("id, name, short_name, faculty")
           .eq("university_id", profile.university_id)
           .order("name");
 
@@ -413,7 +425,13 @@ export default function LecturersPage() {
         return lecRoles.includes(normalizedRole);
       });
 
-      setDepartments(deptData ?? []);
+      setFaculties(facData ?? []);
+      setDepartments((deptData ?? []).map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        short_name: d.short_name,
+        faculty: d.faculty
+      })));
       setLecturers(
         lecturersData.map((l: any) => ({
           id: l.id,

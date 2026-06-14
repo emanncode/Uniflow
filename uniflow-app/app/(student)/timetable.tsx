@@ -715,6 +715,4 @@ const styles = StyleSheet.create({
   actionText: { flex: 1, gap: 2 },
   actionLabel: { color: C.textPrimary, fontSize: 15, fontWeight: '600' },
   actionDesc: { color: C.textMuted, fontSize: 12 },
-})imary, fontSize: 15, fontWeight: '600' },
-  actionDesc: { color: C.textMuted, fontSize: 12 },
-})
+});
