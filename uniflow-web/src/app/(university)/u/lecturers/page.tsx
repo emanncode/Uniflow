@@ -410,6 +410,9 @@ export default function LecturersPage() {
         return lecRoles.includes(normalizedRole);
       });
 
+      console.log("LecturersPage: Raw Staff:", allProfiles?.length);
+      console.log("LecturersPage: Filtered Roles:", lecturersData.length);
+
       setLecturers(
         lecturersData.map((l: any) => {
           let deptId = l.department_id;
@@ -429,7 +432,7 @@ export default function LecturersPage() {
             }
           }
 
-          return {
+          const mapped = {
             id: l.id,
             full_name: l.full_name || "Unknown",
             email: l.email || "",
@@ -440,6 +443,8 @@ export default function LecturersPage() {
             status: l.status ?? "pending",
             created_at: l.created_at,
           };
+          console.log("LecturersPage: Mapped staff:", mapped);
+          return mapped;
         }),
       );
     } catch (err: unknown) {
@@ -568,6 +573,8 @@ export default function LecturersPage() {
     const matchFac = !filterFac || l.faculty === filterFac;
     const matchDept = !filterDept || l.department_id === filterDept;
     const matchStatus = !filterStatus || l.status === filterStatus;
+    
+    console.log(`LecturersPage: Filter l=${l.full_name} fac=${l.faculty} matchFac=${matchFac} matchDept=${matchDept}`);
     
     return matchSearch && matchFac && matchDept && matchStatus;
   });
