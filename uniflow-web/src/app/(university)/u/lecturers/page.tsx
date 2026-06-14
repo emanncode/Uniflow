@@ -536,8 +536,9 @@ export default function LecturersPage() {
         (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
         (l.email || "").toLowerCase().includes(search.toLowerCase());
       
-      const matchFac = !filterFac || l.faculty === filterFac;
-      const matchDept = !filterDept || l.department_id === filterDept;
+      // If a filter is selected, show people in that faculty/dept OR people with NO faculty/dept
+      const matchFac = !filterFac || l.faculty === filterFac || !l.faculty;
+      const matchDept = !filterDept || l.department_id === filterDept || !l.department_id;
       const matchStatus = !filterStatus || l.status === filterStatus;
       
       return matchSearch && matchFac && matchDept && matchStatus;
@@ -545,10 +546,10 @@ export default function LecturersPage() {
   }, [lecturers, search, filterFac, filterDept, filterStatus]);
 
   const counts = useMemo(() => ({
-    total: filtered.length,
-    active: filtered.filter((l) => l.status === "active").length,
-    pending: filtered.filter((l) => l.status === "pending").length,
-  }), [filtered]);
+    total: lecturers.length,
+    active: lecturers.filter((l) => l.status === "active").length,
+    pending: lecturers.filter((l) => l.status === "pending").length,
+  }), [lecturers]);
 
   return (
     <>
@@ -602,7 +603,7 @@ export default function LecturersPage() {
             </button>
             <h1 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>Staff</h1>
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              {counts.total} staff in view · {counts.active} active · {counts.pending} pending
+              {counts.total} total · {counts.active} active · {counts.pending} pending
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
