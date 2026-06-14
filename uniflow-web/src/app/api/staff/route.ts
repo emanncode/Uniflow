@@ -21,8 +21,10 @@ export async function GET(req: Request) {
 
     const supabase = createAdminClient()
 
+    console.log('API Staff GET: Fetching for university:', universityId)
+
     // Fetch all profiles for this university using the service role (bypassing RLS)
-    // Join with departments to get the faculty short name
+    // We attempt the join first, but we'll log exactly what happens
     const { data, error } = await supabase
       .from('profiles')
       .select(`
@@ -41,8 +43,28 @@ export async function GET(req: Request) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('API Staff GET: Supabase error:', error.message, error.details, error.hint)
+      
+      // Fallback: If the join failed, try fetching without the join to see if data exists at all
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, role, status, department_id, created_at')
+        .eq('university_id', universityId)
+        .order('created_at', { ascending: false })
+      
+      if (fallbackError) {
+        console.error('API Staff GET: Fallback also failed:', fallbackError.message)
+        return NextResponse.json({ error: error.message }, { status: 500 })
+      }
+
+      console.log(`API Staff GET: Fallback succeeded. Found ${fallbackData?.length || 0} staff.`)
+      return NextResponse.json({ 
+        data: fallbackData, 
+        warning: 'Faculty mapping disabled due to join error: ' + error.message 
+      })
     }
+
+    console.log(`API Staff GET: Success. Found ${data?.length || 0} staff members.`)
 
     // Flatten the departments.faculty into a simple property for easier consumption
     const flattened = (data || []).map((p: any) => ({

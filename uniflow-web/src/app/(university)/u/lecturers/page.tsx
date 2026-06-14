@@ -362,22 +362,32 @@ export default function LecturersPage() {
     try {
       // 1. Fetch Staff
       const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
-      const { data: allProfiles } = await staffRes.json()
+      const staffData = await staffRes.json()
+      
+      if (!staffRes.ok) {
+        throw new Error(staffData.error || `API Error: ${staffRes.status}`)
+      }
+      
+      const allProfiles = staffData.data || []
 
       // 2. Fetch Faculties
-      const { data: facData } = await supabase
+      const { data: facData, error: facErr } = await supabase
           .from("faculties")
           .select("id, name, short_name, dean_id")
           .eq("university_id", profile.university_id)
           .order("name");
+      
+      if (facErr) console.error("LecturersPage: Fetch faculties error:", facErr.message);
       setFaculties(facData ?? []);
 
       // 3. Fetch Departments
-      const { data: deptData } = await supabase
+      const { data: deptData, error: deptErr } = await supabase
           .from("departments")
           .select("id, name, short_name, faculty, hod_id")
           .eq("university_id", profile.university_id)
           .order("name");
+      
+      if (deptErr) console.error("LecturersPage: Fetch departments error:", deptErr.message);
       
       const departmentsList = (deptData ?? []).map((d: any) => ({
         id: d.id,
@@ -410,14 +420,14 @@ export default function LecturersPage() {
         return lecRoles.includes(normalizedRole);
       });
 
-      console.log("LecturersPage: Raw Staff:", allProfiles?.length);
-      console.log("LecturersPage: Filtered Roles:", lecturersData.length);
+      console.log("LecturersPage: API Response Data:", allProfiles.length);
+      console.log("LecturersPage: Filtered Roles (lecturer, dean, hod):", lecturersData.length);
 
       setLecturers(
         lecturersData.map((l: any) => {
           let deptId = l.department_id;
           let deptName = l.department_id ? (deptMap[l.department_id]?.name ?? null) : null;
-          let faculty = l.department_id ? (deptMap[l.department_id]?.faculty ?? null) : null;
+          let faculty = l.department_id ? (deptMap[l.department_id]?.faculty ?? null) : (l.faculty || null);
 
           // If Dean/HOD has no department_id in profile, check the lookup maps
           if (l.role === 'dean' && !faculty) {
@@ -443,7 +453,6 @@ export default function LecturersPage() {
             status: l.status ?? "pending",
             created_at: l.created_at,
           };
-          console.log("LecturersPage: Mapped staff:", mapped);
           return mapped;
         }),
       );
