@@ -40,6 +40,7 @@ interface Profile {
   id: string;
   full_name: string;
   email: string;
+  faculty: string | null;
 }
 
 import Modal from "@/components/ui/Modal";
@@ -58,6 +59,9 @@ function DeptCard({
   onDelete: (id: string) => void;
 }) {
   const [assigning, setAssigning] = useState(false);
+
+  // Filter HODs to only show those registered under THIS faculty
+  const eligibleHods = hods.filter(h => h.faculty === dept.faculty_id);
 
   return (
     <div
@@ -95,9 +99,11 @@ function DeptCard({
         <p style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>HOD</p>
         {assigning ? (
           <div style={{ position: "relative" }}>
-            <select onChange={(e) => { onAssignHod(dept.id, e.target.value); setAssigning(false); }} className="select" style={{ width: "100%", fontSize: "12px" }}>
-              <option value="">Select HOD...</option>
-              {hods.map(h => <option key={h.id} value={h.id}>{h.full_name}</option>)}
+            <select onChange={(e) => { if(e.target.value) { onAssignHod(dept.id, e.target.value); setAssigning(false); } }} className="select" style={{ width: "100%", fontSize: "12px" }}>
+              <option value="">
+                {eligibleHods.length > 0 ? "Select HOD..." : "No HODs found in this faculty"}
+              </option>
+              {eligibleHods.map(h => <option key={h.id} value={h.id}>{h.full_name} — {h.email}</option>)}
             </select>
             <button onClick={() => setAssigning(false)} style={{ marginTop: "6px", background: "none", border: "none", fontSize: "11px", color: "var(--text-muted)", cursor: "pointer" }}>Cancel</button>
           </div>
