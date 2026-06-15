@@ -170,16 +170,32 @@ export default function DepartmentsPage() {
       const { data: facData } = await supabase.from("faculties").select("id, name, short_name").eq("university_id", profile.university_id);
       const { data: deptData } = await supabase.from("departments").select("id, name, short_name, faculty, hod_id, created_at").eq("university_id", profile.university_id);
       const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`);
-      const { data: allProfiles } = await staffRes.json();
+      const staffData = await staffRes.json();
+      const allProfiles = staffData.data || [];
 
-      const hodData = (allProfiles || []).filter((p: any) => (p.role || "").toLowerCase().trim() === "hod");
+      // Create a map of currently assigned HODs: profile_id -> faculty_short_name
+      const hodAssignmentMap: Record<string, string> = {};
+      (deptData ?? []).forEach(d => {
+        if (d.hod_id) hodAssignmentMap[d.hod_id] = d.faculty;
+      });
+
+      const hodData = allProfiles.filter((p: any) => (p.role || "").toLowerCase().trim() === "hod");
+      
+      const mappedHods = hodData.map((h: any) => ({
+        id: h.id,
+        full_name: h.full_name,
+        email: h.email,
+        faculty: h.faculty || hodAssignmentMap[h.id] || null
+      }));
+
       const facShortMap: Record<string, string> = {};
       (facData ?? []).forEach((f: any) => facShortMap[f.short_name] = f.name);
-      const hodMap: Record<string, string> = {};
-      hodData.forEach((h: any) => hodMap[h.id] = h.full_name);
+      
+      const hodNameMap: Record<string, string> = {};
+      mappedHods.forEach((h: any) => hodNameMap[h.id] = h.full_name);
 
       setFaculties(facData ?? []);
-      setHods(hodData);
+      setHods(mappedHods);
       setDepartments((deptData ?? []).map((d: any) => ({
         id: d.id,
         name: d.name,
@@ -187,7 +203,7 @@ export default function DepartmentsPage() {
         faculty_id: d.faculty,
         faculty_name: facShortMap[d.faculty] ?? d.faculty ?? "—",
         hod_id: d.hod_id,
-        hod_name: d.hod_id ? (hodMap[d.hod_id] ?? null) : null,
+        hod_name: d.hod_id ? (hodNameMap[d.hod_id] ?? null) : null,
         created_at: d.created_at,
       })));
     } catch (err) { console.error("Data loading failed:", err); }

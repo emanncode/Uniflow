@@ -485,13 +485,26 @@ export default function FacultiesPage() {
       );
       const { data: allProfiles } = await staffRes.json();
 
+      // Create a map of currently assigned deans: profile_id -> faculty_short_name
+      const deanAssignmentMap: Record<string, string> = {};
+      (facData ?? []).forEach(f => {
+        if (f.dean_id) deanAssignmentMap[f.dean_id] = f.short_name;
+      });
+
       const deanData = (allProfiles || []).filter(
         (p: { role: string }) => (p.role || "").toLowerCase().trim() === "dean",
       );
 
-      const deanMap: Record<string, string> = {};
-      deanData.forEach((d: { id: string; full_name: string }) => {
-        deanMap[d.id] = d.full_name;
+      const mappedDeans = deanData.map((d: any) => ({
+        id: d.id,
+        full_name: d.full_name,
+        email: d.email,
+        faculty: d.faculty || deanAssignmentMap[d.id] || null
+      }));
+
+      const deanNameMap: Record<string, string> = {};
+      mappedDeans.forEach((d: { id: string; full_name: string }) => {
+        deanNameMap[d.id] = d.full_name;
       });
 
       setFaculties(
@@ -500,12 +513,12 @@ export default function FacultiesPage() {
           name: f.name,
           short_name: f.short_name,
           dean_id: f.dean_id,
-          dean_name: f.dean_id ? (deanMap[f.dean_id] ?? null) : null,
+          dean_name: f.dean_id ? (deanNameMap[f.dean_id] ?? null) : null,
           dept_count: countMap[f.short_name] ?? 0,   // departments.faculty stores the short_name
           created_at: f.created_at,
         })),
       );
-      setDeans(deanData);
+      setDeans(mappedDeans);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "An unknown error occurred";
