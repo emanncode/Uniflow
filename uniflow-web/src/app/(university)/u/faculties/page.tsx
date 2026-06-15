@@ -50,8 +50,8 @@ function FacultyCard({
 }) {
   const [assigning, setAssigning] = useState(false);
 
-  // Show all deans in the university for assignment
-  const eligibleDeans = deans;
+  // Filter deans to only show those registered under THIS faculty
+  const eligibleDeans = deans.filter(d => d.faculty === faculty.short_name);
 
   return (
     <div
