@@ -49,6 +49,7 @@ function FacultyCard({
   onDelete: (id: string) => void;
 }) {
   const [assigning, setAssigning] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Filter deans to only show those registered under THIS faculty
   const eligibleDeans = deans.filter(d => d.faculty === faculty.short_name);
@@ -74,6 +75,16 @@ function FacultyCard({
           "var(--border-primary)")
       }
     >
+      <ConfirmationModal
+        visible={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={() => { onDelete(faculty.id); setShowConfirm(false); }}
+        title="Delete Faculty?"
+        message={`Are you sure you want to delete ${faculty.name}?`}
+        confirmText="Yes, Delete"
+        isDestructive
+        icon={Trash2}
+      />
       <div
         style={{
           display: "flex",
@@ -126,7 +137,7 @@ function FacultyCard({
           </div>
         </div>
         <button
-          onClick={() => onDelete(faculty.id)}
+          onClick={() => setShowConfirm(true)}
           style={{
             background: "none",
             border: "none",
