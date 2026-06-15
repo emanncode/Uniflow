@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
@@ -560,18 +561,26 @@ export default function StudentsPage() {
     await loadData();
   }
 
-  const filtered = students.filter((l) => {
-    const matchSearch =
-      (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
-      (l.email || "").toLowerCase().includes(search.toLowerCase());
-    
-    const dept = departments.find(d => d.id === l.department_id);
-    const matchDept = !filterDept || l.department_id === filterDept;
-    const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
-    const matchStatus = !filterStatus || l.status === filterStatus;
-    
-    return matchSearch && matchDept && matchFac && matchStatus;
-  });
+  const filtered = useMemo(() => {
+    return students.filter((l) => {
+      const matchSearch =
+        (l.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (l.email || "").toLowerCase().includes(search.toLowerCase());
+      
+      const dept = departments.find(d => d.id === l.department_id);
+      const matchDept = !filterDept || l.department_id === filterDept;
+      const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
+      const matchStatus = !filterStatus || l.status === filterStatus;
+      
+      return matchSearch && matchDept && matchFac && matchStatus;
+    });
+  }, [students, search, filterFaculty, filterDept, filterStatus, departments]);
+
+  const counts = useMemo(() => ({
+    total: filtered.length,
+    active: filtered.filter((l) => l.status === "active").length,
+    pending: filtered.filter((l) => l.status === "pending").length,
+  }), [filtered]);
 
   return (
     <>
@@ -647,7 +656,7 @@ export default function StudentsPage() {
               Students
             </h1>
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              {students.length} total students · Manage and onboard
+              {counts.total} total students · Manage and onboard
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
