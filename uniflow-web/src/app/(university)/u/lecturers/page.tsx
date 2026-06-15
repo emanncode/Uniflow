@@ -546,14 +546,18 @@ export default function LecturersPage() {
   }, [lecturers, search, filterFac, filterDept, filterStatus]);
 
   const counts = useMemo(() => ({
-    total: lecturers.length,
-    active: lecturers.filter((l) => l.status === "active").length,
-    pending: lecturers.filter((l) => l.status === "pending").length,
-  }), [lecturers]);
+    total: filtered.length,
+    active: filtered.filter((l) => l.status === "active").length,
+    pending: filtered.filter((l) => l.status === "pending").length,
+  }), [filtered]);
+
+  console.log("LecturersPage: Rendering - Total Lecturers in state:", lecturers.length);
+  console.log("LecturersPage: Rendering - Filtered List:", filtered);
 
   return (
     <>
       <ConfirmationModal
+
         visible={!!confirmReset}
         onClose={() => setConfirmReset(null)}
         onConfirm={() => confirmReset && handleResetPassword(confirmReset)}
