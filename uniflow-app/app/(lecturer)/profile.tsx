@@ -370,7 +370,7 @@ export default function LecturerProfile() {
             label="Institution"
             value={universityName}
           />
-          {(profile.role === 'lecturer' || profile.role === 'hod' || profile.role === 'dean') && (profile.faculty || profile.department) && (
+          {['lecturer', 'hod', 'dean'].includes(profile.role) && (profile.faculty || profile.department) && (
             <>
               <View style={styles.rowDivider} />
               <InfoRow
