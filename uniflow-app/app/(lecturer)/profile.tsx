@@ -376,7 +376,7 @@ export default function LecturerProfile() {
               <InfoRow
                 icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Faculty"
-                value={profile.faculty?.name || profile.department?.faculty || '—'}
+                value={profile.faculty ? `${profile.faculty.name} (${profile.faculty.short_name})` : (profile.department?.faculty || '—')}
               />
             </>
           )}
@@ -386,7 +386,7 @@ export default function LecturerProfile() {
               <InfoRow
                 icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Department"
-                value={profile.department.name}
+                value={`${profile.department.name} (${profile.department.short_name})`}
               />
             </>
           )}

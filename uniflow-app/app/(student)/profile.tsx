@@ -356,7 +356,7 @@ return (
               <InfoRow
                 icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Department"
-                value={profile.department.name}
+                value={`${profile.department.name} (${profile.department.short_name})`}
               />
             </>
           )}
