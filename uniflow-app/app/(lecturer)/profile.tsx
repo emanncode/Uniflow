@@ -14,6 +14,7 @@ import {
   Mail,
   Phone,
   Building2,
+  GraduationCap,
   Shield,
   ChevronRight,
   LogOut,
@@ -309,6 +310,7 @@ export default function LecturerProfile() {
   const isUniAdmin = profile.role === 'university_admin';
   const universityName = isUniAdmin ? 'System Administrator' : (profile.university?.name ?? 'Unknown University');
   const universityShort = isUniAdmin ? 'Admin' : (profile.university?.short_name ?? '');
+  const roleDisplay = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -326,8 +328,7 @@ export default function LecturerProfile() {
         <Avatar name={profile.full_name} />
         <Text style={styles.heroName}>{profile.full_name}</Text>
         <View style={styles.roleBadge}>
-          <Shield size={12} color={C.brand} strokeWidth={2} />
-          <Text style={styles.roleText}>Lecturer</Text>
+          <Text style={styles.roleText}>{roleDisplay}</Text>
         </View>
         <Text style={styles.heroUniversity}>{universityShort || universityName}</Text>
       </View>
@@ -369,13 +370,23 @@ export default function LecturerProfile() {
             label="Institution"
             value={universityName}
           />
-          {profile.role === 'lecturer' && (profile.faculty || profile.department) && (
+          {(profile.role === 'lecturer' || profile.role === 'hod' || profile.role === 'dean') && (profile.faculty || profile.department) && (
             <>
               <View style={styles.rowDivider} />
               <InfoRow
                 icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Faculty"
                 value={profile.faculty?.name || profile.department?.faculty || '—'}
+              />
+            </>
+          )}
+          {['hod', 'dean'].includes(profile.role) && profile.department && (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
+                label="Department"
+                value={profile.department.name}
               />
             </>
           )}

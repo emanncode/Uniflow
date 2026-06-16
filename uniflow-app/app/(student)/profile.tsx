@@ -287,11 +287,12 @@ export default function StudentProfile() {
 
   if (!profile) return null;
 
-const isUniAdmin = profile.role === 'university_admin';
-  const universityName = isUniAdmin ? 'System Administrator' : (profile.university?.name ?? "Unknown University");
-  const universityShort = isUniAdmin ? 'Admin' : (profile.university?.short_name ?? "");
+const isUniflowAdmin = profile.role === 'uniflow_admin';
+const universityName = isUniflowAdmin ? 'System Administrator' : (profile.university?.name ?? "Unknown University");
+const universityShort = isUniflowAdmin ? 'Admin' : (profile.university?.short_name ?? "");
+const roleDisplay = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
 
-  return (
+return (
     <ScrollView
       style={styles.root}
       contentContainerStyle={[
@@ -305,8 +306,7 @@ const isUniAdmin = profile.role === 'university_admin';
         <Avatar name={profile.full_name} />
         <Text style={styles.heroName}>{profile.full_name}</Text>
         <View style={styles.roleBadge}>
-          <GraduationCap size={12} color={C.brand} strokeWidth={2} />
-          <Text style={styles.roleText}>Student</Text>
+          <Text style={styles.roleText}>{roleDisplay}</Text>
         </View>
         <Text style={styles.heroUniversity}>
           {universityShort || universityName}
@@ -350,6 +350,26 @@ const isUniAdmin = profile.role === 'university_admin';
             label="Institution"
             value={universityName}
           />
+          {profile.department && (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
+                label="Department"
+                value={profile.department.name}
+              />
+            </>
+          )}
+          {profile.department?.faculty && (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+                label="Faculty"
+                value={profile.department.faculty}
+              />
+            </>
+          )}
         </View>
       </View>
 
