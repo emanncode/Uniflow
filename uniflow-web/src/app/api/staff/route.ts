@@ -81,7 +81,7 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const { id, full_name, email, department_id, status } = await req.json()
+    const { id, full_name, email, department_id, status, role } = await req.json()
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
 
     const supabase = createAdminClient()
@@ -109,6 +109,7 @@ export async function PATCH(req: Request) {
     if (full_name !== undefined) updates.full_name = full_name
     if (department_id !== undefined) updates.department_id = department_id
     if (status !== undefined) updates.status = status
+    if (role !== undefined) updates.role = role.toLowerCase()
 
     if (email && email.toLowerCase() !== currentProfile.email?.toLowerCase()) {
       try {

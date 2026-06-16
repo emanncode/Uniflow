@@ -87,6 +87,7 @@ function LecturerRow({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(lecturer.full_name);
   const [editEmail, setEditEmail] = useState(lecturer.email);
+  const [editRole, setEditRole] = useState(lecturer.role);
   const [saving, setSaving] = useState(false);
 
   const s = STATUS_COLORS[lecturer.status] ?? STATUS_COLORS.pending;
@@ -97,6 +98,7 @@ function LecturerRow({
       await onUpdate(lecturer.id, {
         full_name: editName,
         email: editEmail,
+        role: editRole,
       });
       setIsEditing(false);
     } catch (e: any) {
@@ -123,6 +125,17 @@ function LecturerRow({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
             <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} style={{ padding: '4px' }} disabled={saving} />
             <input className="input" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} style={{ padding: '4px' }} disabled={saving} />
+            <select 
+              className="select" 
+              value={editRole} 
+              onChange={(e) => setEditRole(e.target.value)} 
+              style={{ padding: '4px', height: 'auto', fontSize: '11px' }} 
+              disabled={saving}
+            >
+              <option value="lecturer">Lecturer</option>
+              <option value="dean">Dean</option>
+              <option value="hod">HOD</option>
+            </select>
           </div>
         ) : (
           <>
