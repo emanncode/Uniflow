@@ -28,6 +28,7 @@ import {
 } from "lucide-react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { supabase } from "@/lib/supabase";
+import { ResourcesSkeleton } from "@/components/SkeletonLoader";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";

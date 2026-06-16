@@ -21,6 +21,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
+import { NotificationsSkeleton } from '@/components/SkeletonLoader'
 import type { Notification, NotificationType } from '@/types'
 
 const C = Theme.colors
@@ -245,13 +246,7 @@ export default function LecturerNotifications() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  if (isLoading) {
-    return (
-      <View style={[styles.root, styles.centered]}>
-        <ActivityIndicator size="large" color={C.brand} />
-      </View>
-    )
-  }
+  if (isLoading) return <NotificationsSkeleton />
 
   // ── Flattened data for FlatList ─────────────────────────────────────
 

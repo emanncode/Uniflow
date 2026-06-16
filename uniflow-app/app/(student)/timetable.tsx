@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   Alert,
 } from 'react-native'
@@ -26,6 +25,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import { CustomModal } from '@/components/CustomModal'
+import { TimetableSkeleton, SkeletonBar } from '@/components/SkeletonLoader'
 import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
 import { CLASS_STATUS_COLORS } from '@/types'
 
@@ -240,7 +240,7 @@ function StatusActionSheet({ slot, visible, isSubmitting, onSelect, onClose }: A
 
       {isSubmitting ? (
         <View style={styles.sheetLoading}>
-          <ActivityIndicator color={C.brand} />
+          <SkeletonBar width={40} height={40} borderRadius={20} />
           <Text style={styles.sheetLoadingText}>Submitting report...</Text>
         </View>
       ) : (
@@ -440,13 +440,7 @@ export default function StudentTimetable() {
 
   const slotsForDay = allSlots.filter((s) => s.day_of_week === selectedDay)
 
-  if (isLoading) {
-    return (
-      <View style={[styles.root, styles.centered]}>
-        <ActivityIndicator size="large" color={C.brand} />
-      </View>
-    )
-  }
+  if (isLoading) return <TimetableSkeleton />
 
   // ── Render ────────────────────────────────────────────────────────────
 

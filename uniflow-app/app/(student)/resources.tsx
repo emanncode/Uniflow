@@ -23,6 +23,7 @@ import {
   StickyNote,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
+import { ResourcesSkeleton } from '@/components/SkeletonLoader'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import type { Resource, FileType, ResourceType } from '@/types'
@@ -282,13 +283,7 @@ export default function StudentResources() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  if (isLoading) {
-    return (
-      <View style={[styles.root, styles.centered]}>
-        <ActivityIndicator size="large" color={C.brand} />
-      </View>
-    )
-  }
+  if (isLoading) return <ResourcesSkeleton />
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -576,13 +571,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: C.brand,
+    backgroundColor: Theme.colors.brand,
     borderRadius: R.full,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   downloadBtnText: {
-    color: C.textPrimary,
+    color: Theme.colors.textPrimary,
     fontSize: 12,
     fontWeight: '700',
   },

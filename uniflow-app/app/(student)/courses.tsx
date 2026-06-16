@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -23,6 +22,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import { CustomModal } from '@/components/CustomModal'
+import { CoursesSkeleton } from '@/components/SkeletonLoader'
 import type { Course, TimetableSlot } from '@/types'
 
 const C = Theme.colors
@@ -273,13 +273,7 @@ export default function StudentCourses() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  if (isLoading) {
-    return (
-      <View style={[styles.root, styles.centered]}>
-        <ActivityIndicator size="large" color={C.brand} />
-      </View>
-    )
-  }
+  if (isLoading) return <CoursesSkeleton />
 
   // ── Render ────────────────────────────────────────────────────────────
 
