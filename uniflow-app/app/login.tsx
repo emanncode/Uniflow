@@ -13,6 +13,7 @@ import {
   Alert,
   Clipboard
 } from "react-native";
+import { Key } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/useAuthStore";
 import UniflowLogo from "@/components/UniflowLogo";
@@ -299,29 +300,41 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <View>
-            <View style={styles.warningBox}>
-              <Text style={styles.warningText}>
-                SECURITY NOTE: This temporary password will be invalidated immediately after your first successful login.
-              </Text>
+          <View style={{ alignItems: 'center', paddingBottom: 10 }}>
+            <View style={{ 
+              width: 56, 
+              height: 56, 
+              borderRadius: 28, 
+              backgroundColor: Theme.colors.brandMuted, 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              marginBottom: 16,
+              borderWidth: 1,
+              borderColor: Theme.colors.borderBrand
+            }}>
+              <Key size={24} color={Theme.colors.brand} strokeWidth={2.5} />
             </View>
+
+            <Text style={[styles.modalSubtitle, { textAlign: 'center', marginBottom: 24 }]}>
+              Your temporary password is ready. Use it to log in and set your permanent password.
+            </Text>
             
-            <View style={styles.passContainer}>
+            <View style={[styles.passContainer, { width: '100%' }]}>
               <Text style={styles.passCode}>{generatedPass}</Text>
               <TouchableOpacity onPress={copyToClipboard} style={styles.copyBtn}>
-                <Text style={{ color: Theme.colors.brand, fontWeight: '700' }}>Copy</Text>
+                <Text style={{ color: Theme.colors.brand, fontWeight: '800', fontSize: 13 }}>COPY</Text>
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={[styles.button, { marginTop: 10 }]}
+              style={[styles.button, { width: '100%', marginTop: 12 }]}
               onPress={() => {
                 setEmail(genEmail);
                 setShowPassModal(false);
                 setGeneratedPass(null);
               }}
             >
-              <Text style={styles.buttonText}>Proceed to Login</Text>
+              <Text style={styles.buttonText}>Done</Text>
             </TouchableOpacity>
           </View>
         )}
