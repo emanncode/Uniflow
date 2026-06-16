@@ -74,11 +74,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
 
     // Block web-only roles from accessing the mobile app
-    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin"];
+    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin", "dean", "hod"];
     if (!allowedRoles.includes(profile.role as MobileRole)) {
       await supabase.auth.signOut();
       set({ isLoading: false });
-      return { error: "This app is for lecturers and students only." };
+      return { error: "This app is for lecturers, students, deans, and HODs only." };
     }
 
     // Block inactive accounts
@@ -147,7 +147,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
     }
 
-    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin"];
+    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin", "dean", "hod"];
     if (
       !allowedRoles.includes(profile.role as MobileRole) ||
       !profile.is_active

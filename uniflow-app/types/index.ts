@@ -10,7 +10,7 @@ export type UserRole =
 
 export type MobileRole = Extract<
   UserRole,
-  "lecturer" | "student" | "uniflow_admin"
+  "lecturer" | "student" | "uniflow_admin" | "dean" | "hod"
 >;
 
 export type ClassStatus =
