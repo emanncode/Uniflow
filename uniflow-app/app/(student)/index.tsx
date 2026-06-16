@@ -299,7 +299,7 @@ export default function StudentDashboard() {
 
   if (isLoading) return <DashboardSkeleton />
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Student'
+  const firstName = profile?.full_name ?? 'Student'
   const alertCount = Object.keys(todayUpdates).length
 
   return (

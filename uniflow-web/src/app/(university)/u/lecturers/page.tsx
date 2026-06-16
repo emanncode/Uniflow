@@ -235,6 +235,7 @@ export default function LecturersPage() {
   const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<Lecturer | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [successModal, setSuccessModal] = useState<{ title: string; message: string } | null>(null);
   const [copied, setCopied] = useState(false)
 
   const router = useRouter();
@@ -390,9 +391,13 @@ export default function LecturersPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+      const name = newName;
       setNewName(''); setNewEmail(''); setNewDeptId(''); setNewRole('lecturer')
       setShowModal(false)
-      alert(`Success! ${newName} has been added.`)
+      setSuccessModal({
+        title: "Staff Added",
+        message: `${name} has been added successfully.`
+      });
       await loadData()
     } catch (err: any) {
       setError(err.message)
@@ -469,10 +474,16 @@ export default function LecturersPage() {
         body: JSON.stringify({ email: lecturer.email })
       })
       const data = await res.json()
-      if (data.success) alert(`Password reset link sent for ${lecturer.full_name}.`)
-      else alert(data.error || 'Failed to reset password')
+      if (data.success) {
+        setSuccessModal({
+          title: "Reset Link Sent",
+          message: `A password reset link has been sent to ${lecturer.full_name}'s email.`
+        });
+      } else {
+        setError(data.error || 'Failed to reset password');
+      }
     } catch (err) {
-      alert('An error occurred.')
+      setError('An error occurred while resetting the password.');
     } finally {
       setSaving(false)
     }
@@ -490,7 +501,7 @@ export default function LecturersPage() {
       if (!res.ok) { const data = await res.json(); throw new Error(data.error); }
       await loadData();
     } catch (e: any) {
-      alert(e.message || "Failed to remove staff");
+      setError(e.message || "Failed to remove staff");
     } finally {
       setSaving(false);
     }
@@ -570,7 +581,16 @@ export default function LecturersPage() {
   return (
     <>
       <ConfirmationModal
+        visible={!!successModal}
+        onClose={() => setSuccessModal(null)}
+        onConfirm={() => setSuccessModal(null)}
+        title={successModal?.title || ""}
+        message={successModal?.message || ""}
+        confirmText="OK"
+        icon={Check}
+      />
 
+      <ConfirmationModal
         visible={!!confirmReset}
         onClose={() => setConfirmReset(null)}
         onConfirm={() => confirmReset && handleResetPassword(confirmReset)}

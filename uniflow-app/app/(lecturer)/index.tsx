@@ -263,7 +263,7 @@ export default function LecturerDashboard() {
 
   if (isLoading) return <DashboardSkeleton />
 
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'Lecturer'
+  const firstName = profile?.full_name ?? 'Lecturer'
   const alertCount = Object.keys(todayUpdates).length
 
   // ── Render ────────────────────────────────────────────────────────────
