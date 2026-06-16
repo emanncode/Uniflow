@@ -48,10 +48,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return { error: "Sign in failed. Please try again." };
     }
 
-    // Fetch profile with university and department joined
+    // Fetch profile with university, department, and faculty joined
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty)")
+      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculty_id(id, name, short_name)")
       .eq("id", data.user.id)
       .single();
 
@@ -122,7 +122,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty)")
+      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculty_id(id, name, short_name)")
       .eq("id", session.user.id)
       .single();
 
