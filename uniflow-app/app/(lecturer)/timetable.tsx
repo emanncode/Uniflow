@@ -1,13 +1,11 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
-  FlatList,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -451,7 +449,7 @@ export default function LecturerTimetable() {
   return (
     <View style={styles.root}>
       {/* ── Header ── */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>My Timetable</Text>
         <Text style={styles.headerSub}>
           {allSlots.length} class{allSlots.length !== 1 ? "es" : ""} total
@@ -600,19 +598,18 @@ const styles = StyleSheet.create({
   // Day Strip
   dayStrip: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    gap: 8,
     flexDirection: "row",
+    gap: 8,
   },
   dayPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: R.full,
+    minWidth: 56,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: C.bgCard,
     borderWidth: 1,
     borderColor: C.borderPrimary,
     alignItems: "center",
-    gap: 5,
+    justifyContent: "center",
   },
   dayPillActive: {
     backgroundColor: C.brand,
@@ -642,7 +639,9 @@ const styles = StyleSheet.create({
   // Slot List
   slotList: {
     paddingHorizontal: 20,
+    paddingTop: 8,
     gap: 10,
+    flexGrow: 0,
   },
   dayLabelRowWrap: {
     paddingHorizontal: 20,
@@ -679,7 +678,7 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: "center",
     gap: 6,
-    marginTop: 8,
+    marginTop: 0,
   },
   emptyTitle: {
     color: C.textSecondary,

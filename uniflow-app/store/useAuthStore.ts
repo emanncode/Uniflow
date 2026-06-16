@@ -51,10 +51,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     // Fetch profile with university, department, and faculty joined
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculty_id(id, name, short_name)")
+      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculties!profiles_faculty_id_fkey(id, name, short_name)")
       .eq("id", data.user.id)
       .single();
-
+      console.log("Profile Error:", profileError);
     if (profileError || !profile) {
       await supabase.auth.signOut();
       set({ isLoading: false });
@@ -122,7 +122,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculty_id(id, name, short_name)")
+      .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculties!profiles_faculty_id_fkey(id, name, short_name)")
       .eq("id", session.user.id)
       .single();
 
@@ -135,7 +135,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return;
     }
 
-    // Enrich lecturer profile with full faculty name (department.faculty holds short_name)
+    // Enrich lecturer profile with full faculty name (department.faceulty holds short_name)
     if (profile.role === 'lecturer' && (profile as any).department?.faculty) {
       const { data: facultyData } = await supabase
         .from('faculties')

@@ -2,10 +2,9 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   Pressable,
 } from 'react-native'
@@ -34,7 +33,6 @@ function timeAgo(dateStr: string): string {
   const mins = Math.floor(diff / 60000)
   const hours = Math.floor(mins / 60)
   const days = Math.floor(hours / 24)
-
   if (mins < 1) return 'Just now'
   if (mins < 60) return `${mins}m ago`
   if (hours < 24) return `${hours}h ago`
@@ -46,19 +44,19 @@ function timeAgo(dateStr: string): string {
 function isToday(dateStr: string): boolean {
   const d = new Date(dateStr)
   const now = new Date()
-  return (
-    d.getDate() === now.getDate() &&
+  return d.getDate() === now.getDate() &&
     d.getMonth() === now.getMonth() &&
     d.getFullYear() === now.getFullYear()
-  )
 }
 
 // ─── Type Config ───────────────────────────────────────────────────────────
 
-const TYPE_CONFIG: Record<
-  NotificationType,
-  { icon: React.ReactNode; color: string; background: string; label: string }
-> = {
+const TYPE_CONFIG: Record<NotificationType, {
+  icon: React.ReactNode
+  color: string
+  background: string
+  label: string
+}> = {
   class_update: {
     icon: <Zap size={16} color={C.brand} strokeWidth={1.8} />,
     color: C.brand,
@@ -80,36 +78,31 @@ const TYPE_CONFIG: Record<
   system: {
     icon: <Settings size={16} color={C.textMuted} strokeWidth={1.8} />,
     color: C.textMuted,
-    background: 'rgba(148, 163, 184, 0.1)',
+    background: 'rgba(148,163,184,0.1)',
     label: 'System',
   },
 }
 
 // ─── Notification Row ──────────────────────────────────────────────────────
 
-interface NotifRowProps {
-  notif: Notification
-  onPress: (notif: Notification) => void
-}
-
-function NotifRow({ notif, onPress }: NotifRowProps) {
+function NotifRow({ notif, onPress }: { notif: Notification; onPress: (n: Notification) => void }) {
   const config = TYPE_CONFIG[notif.type]
 
   return (
     <Pressable
-      style={[styles.row, !notif.is_read && styles.rowUnread]}
+      style={({ pressed }) => [
+        styles.row,
+        !notif.is_read && styles.rowUnread,
+        pressed && { opacity: 0.75 },
+      ]}
       onPress={() => onPress(notif)}
-      android_ripple={{ color: C.bgHover }}
     >
-      {/* Unread dot */}
       {!notif.is_read && <View style={styles.unreadDot} />}
 
-      {/* Icon */}
       <View style={[styles.iconWrap, { backgroundColor: config.background }]}>
         {config.icon}
       </View>
 
-      {/* Content */}
       <View style={styles.rowContent}>
         <View style={styles.rowTop}>
           <Text
@@ -123,29 +116,19 @@ function NotifRow({ notif, onPress }: NotifRowProps) {
         <Text style={styles.rowMessage} numberOfLines={2}>
           {notif.message}
         </Text>
-        <View style={styles.typeTag}>
-          <Text style={[styles.typeTagText, { color: config.color }]}>
-            {config.label}
-          </Text>
-        </View>
+        <Text style={[styles.typeLabel, { color: config.color }]}>
+          {config.label}
+        </Text>
       </View>
     </Pressable>
   )
 }
 
-// ─── Section Header ────────────────────────────────────────────────────────
+// ─── Screen ────────────────────────────────────────────────────────────────
+// Used for BOTH lecturer and student — pass channelName as prop
+// or just duplicate with different channel name
 
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-  )
-}
-
-// ─── Main Screen ───────────────────────────────────────────────────────────
-
-export default function LecturerNotifications() {
+export default function NotificationsScreen({ role = 'lecturer' }: { role?: 'lecturer' | 'student' }) {
   const insets = useSafeAreaInsets()
   const profile = useAuthStore((s) => s.profile)
 
@@ -156,8 +139,6 @@ export default function LecturerNotifications() {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length
 
-  // ── Fetch ─────────────────────────────────────────────────────────────
-
   const fetchData = useCallback(async () => {
     if (!profile) return
     try {
@@ -167,7 +148,6 @@ export default function LecturerNotifications() {
         .eq('user_id', profile.id)
         .order('created_at', { ascending: false })
         .limit(50)
-
       if (data) setNotifications(data)
     } catch (e) {
       console.error('Notifications fetch error:', e)
@@ -184,148 +164,110 @@ export default function LecturerNotifications() {
     setIsRefreshing(false)
   }, [fetchData])
 
-  // ── Realtime ──────────────────────────────────────────────────────────
-
   useEffect(() => {
     if (!profile) return
-
     const channel = supabase
-      .channel('lecturer-notifications')
+      .channel(`${role}-notifications`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'notifications',
         filter: `user_id=eq.${profile.id}`,
       }, (payload) => {
-        const newNotif = payload.new as Notification
-        setNotifications((prev) => [newNotif, ...prev])
+        setNotifications((prev) => [payload.new as Notification, ...prev])
       })
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [profile])
 
-  // ── Mark Single as Read ───────────────────────────────────────────────
-
   const handlePress = useCallback(async (notif: Notification) => {
     if (notif.is_read) return
-
-    // Optimistic update
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
-    )
-
-    await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', notif.id)
+    setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, is_read: true } : n))
+    await supabase.from('notifications').update({ is_read: true }).eq('id', notif.id)
   }, [])
-
-  // ── Mark All as Read ──────────────────────────────────────────────────
 
   const handleMarkAllRead = useCallback(async () => {
     if (!profile || unreadCount === 0) return
     setIsMarkingAll(true)
-
-    // Optimistic update
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-
     await supabase
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', profile.id)
       .eq('is_read', false)
-
     setIsMarkingAll(false)
   }, [profile, unreadCount])
-
-  // ── Group notifications ───────────────────────────────────────────────
 
   const todayNotifs = notifications.filter((n) => isToday(n.created_at))
   const earlierNotifs = notifications.filter((n) => !isToday(n.created_at))
 
-  // ── Loading ───────────────────────────────────────────────────────────
-
   if (isLoading) return <NotificationsSkeleton />
-
-  // ── Flattened data for FlatList ─────────────────────────────────────
-
-  const listData = notifications.length === 0 ? [] : [
-    ...(todayNotifs.length > 0 ? [{ type: 'header', title: 'Today' } as const, ...todayNotifs] : []),
-    ...(earlierNotifs.length > 0 ? [{ type: 'header', title: 'Earlier' } as const, ...earlierNotifs] : []),
-  ];
-
-  // ── Render ────────────────────────────────────────────────────────────
-
-  const renderHeader = () => (
-    <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-      <View style={styles.headerLeft}>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        {unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
-          </View>
-        )}
-      </View>
-
-      {unreadCount > 0 && (
-        <TouchableOpacity
-          style={styles.markAllBtn}
-          onPress={handleMarkAllRead}
-          disabled={isMarkingAll}
-          activeOpacity={0.75}
-        >
-          {isMarkingAll ? (
-            <ActivityIndicator size="small" color={C.brand} />
-          ) : (
-            <>
-              <CheckCheck size={14} color={C.brand} strokeWidth={2} />
-              <Text style={styles.markAllText}>Mark all read</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  const renderEmpty = () => (
-    <View style={styles.emptyCard}>
-      <BellOff size={32} color={C.textMuted} strokeWidth={1.5} />
-      <Text style={styles.emptyTitle}>No notifications yet</Text>
-      <Text style={styles.emptySubtitle}>
-        You&apos;ll be notified about class updates and more
-      </Text>
-    </View>
-  );
 
   return (
     <View style={styles.root}>
-      <FlatList
-        data={listData}
-        keyExtractor={(item, index) => 
-          item.type === 'header' ? `header-${item.title}` : (item as Notification).id
-        }
-        renderItem={({ item }) => {
-          if (item.type === 'header') {
-            return <SectionHeader title={(item as any).title} />;
-          }
-          return <NotifRow notif={item as Notification} onPress={handlePress} />;
-        }}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={isLoading ? null : renderEmpty}
-        contentContainerStyle={[
-          styles.list,
-          { paddingBottom: insets.bottom + 32 },
-        ]}
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle}>Notifications</Text>
+          {unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadBadgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </View>
+        {unreadCount > 0 && (
+          <TouchableOpacity
+            style={styles.markAllBtn}
+            onPress={handleMarkAllRead}
+            disabled={isMarkingAll}
+            activeOpacity={0.75}
+          >
+            <CheckCheck size={14} color={C.brand} strokeWidth={2} />
+            <Text style={styles.markAllText}>Mark all read</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={onRefresh}
-            tintColor={C.brand}
-          />
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={C.brand} />
         }
-      />
+        contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+      >
+        {notifications.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <BellOff size={30} color={C.textMuted} strokeWidth={1.5} />
+            <Text style={styles.emptyTitle}>No notifications yet</Text>
+            <Text style={styles.emptySubtitle}>
+              Class updates and alerts will appear here
+            </Text>
+          </View>
+        ) : (
+          <>
+            {todayNotifs.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Today</Text>
+                </View>
+                {todayNotifs.map((n) => (
+                  <NotifRow key={n.id} notif={n} onPress={handlePress} />
+                ))}
+              </>
+            )}
+            {earlierNotifs.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Earlier</Text>
+                </View>
+                {earlierNotifs.map((n) => (
+                  <NotifRow key={n.id} notif={n} onPress={handlePress} />
+                ))}
+              </>
+            )}
+          </>
+        )}
+      </ScrollView>
     </View>
   )
 }
@@ -333,28 +275,16 @@ export default function LecturerNotifications() {
 // ─── Styles ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: C.bgDeep,
-  },
-  centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  root: { flex: 1, backgroundColor: C.bgDeep },
 
-  // Header
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   headerTitle: {
     color: C.textPrimary,
     fontSize: 26,
@@ -370,11 +300,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 6,
   },
-  unreadBadgeText: {
-    color: C.textPrimary,
-    fontSize: 11,
-    fontWeight: '800',
-  },
+  unreadBadgeText: { color: C.textPrimary, fontSize: 11, fontWeight: '800' },
   markAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -385,27 +311,13 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderWidth: 1,
     borderColor: C.borderBrand,
-    minWidth: 44,
-    minHeight: 34,
-    justifyContent: 'center',
   },
-  markAllText: {
-    color: C.brand,
-    fontSize: 12,
-    fontWeight: '600',
-  },
+  markAllText: { color: C.brand, fontSize: 12, fontWeight: '600' },
 
-  // List
-  list: {
-    gap: 2,
-    paddingHorizontal: 0,
-  },
-
-  // Section header
   sectionHeader: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 6,
+    paddingBottom: 4,
   },
   sectionTitle: {
     color: C.textMuted,
@@ -415,7 +327,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
 
-  // Row
+  // Row — unread gets bgSecondary background, read is transparent
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -423,16 +335,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 12,
     position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: C.borderPrimary,
   },
-  rowUnread: {
-    backgroundColor: C.bgSecondary,
-  },
+  rowUnread: { backgroundColor: C.bgSecondary },
   unreadDot: {
     position: 'absolute',
-    left: 8,
+    left: 7,
     top: 20,
-    width: 6,
-    height: 6,
+    width: 5,
+    height: 5,
     borderRadius: 3,
     backgroundColor: C.brand,
   },
@@ -444,10 +356,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  rowContent: {
-    flex: 1,
-    gap: 3,
-  },
+  rowContent: { flex: 1, gap: 3 },
   rowTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -461,34 +370,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 20,
   },
-  rowTitleUnread: {
-    color: C.textPrimary,
-    fontWeight: '700',
-  },
-  rowTime: {
-    color: C.textMuted,
-    fontSize: 11,
-    flexShrink: 0,
-    marginTop: 2,
-  },
-  rowMessage: {
-    color: C.textMuted,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  typeTag: {
-    marginTop: 4,
-    alignSelf: 'flex-start',
-  },
-  typeTagText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
+  rowTitleUnread: { color: C.textPrimary, fontWeight: '700' },
+  rowTime: { color: C.textMuted, fontSize: 11, flexShrink: 0, marginTop: 2 },
+  rowMessage: { color: C.textMuted, fontSize: 13, lineHeight: 18 },
+  typeLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
 
-  // Empty
   emptyCard: {
     margin: 20,
-    backgroundColor: C.bgCard,
+    backgroundColor: C.bgSecondary,
     borderRadius: R.md,
     borderWidth: 1,
     borderColor: C.borderPrimary,

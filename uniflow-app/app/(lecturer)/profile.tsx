@@ -15,7 +15,6 @@ import {
   Phone,
   Building2,
   GraduationCap,
-  Shield,
   ChevronRight,
   LogOut,
   Lock,
@@ -306,6 +305,8 @@ export default function LecturerProfile() {
   }, [signOut]);
 
   if (!profile) return null;
+
+  console.log("DEBUG Profile:", JSON.stringify(profile, null, 2));
 
   const isUniAdmin = profile.role === 'university_admin';
   const universityName = isUniAdmin ? 'System Administrator' : (profile.university?.name ?? 'Unknown University');
