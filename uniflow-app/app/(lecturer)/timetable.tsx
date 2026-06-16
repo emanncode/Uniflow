@@ -19,11 +19,13 @@ import {
   PlayCircle,
   StopCircle,
   ChevronDown,
+  AlertCircle,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { TimetableSkeleton, SkeletonBar } from "@/components/SkeletonLoader";
 import type {
   TimetableSlot,
@@ -293,6 +295,7 @@ export default function LecturerTimetable() {
   const [updates, setUpdates] = useState<Record<string, ClassUpdate>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Action sheet state
   const [activeSlot, setActiveSlot] = useState<TimetableSlot | null>(null);
@@ -427,10 +430,7 @@ export default function LecturerTimetable() {
         setSheetVisible(false);
         setActiveSlot(null);
       } catch (_) {
-        Alert.alert(
-          "Error",
-          "Could not update class status. Please try again.",
-        );
+        setError("Could not update class status. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
@@ -543,6 +543,15 @@ export default function LecturerTimetable() {
       </ScrollView>
 
       {/* ── Status Action Sheet ── */}
+      <ConfirmationModal
+        visible={!!error}
+        onClose={() => setError(null)}
+        onConfirm={() => setError(null)}
+        title="Error"
+        message={error || ""}
+        confirmText="OK"
+        icon={AlertCircle}
+      />
       <StatusActionSheet
         slot={activeSlot}
         visible={sheetVisible}
