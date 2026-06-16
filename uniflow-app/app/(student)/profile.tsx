@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   TextInput,
-  KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -288,9 +287,9 @@ export default function StudentProfile() {
 
   if (!profile) return null;
 
-  const isUniflowAdmin = profile.role === 'uniflow_admin';
-  const universityName = isUniflowAdmin ? 'System Administrator' : (profile.university?.name ?? "Unknown University");
-  const universityShort = isUniflowAdmin ? 'Admin' : (profile.university?.short_name ?? "");
+const isUniAdmin = profile.role === 'university_admin';
+  const universityName = isUniAdmin ? 'System Administrator' : (profile.university?.name ?? "Unknown University");
+  const universityShort = isUniAdmin ? 'Admin' : (profile.university?.short_name ?? "");
 
   return (
     <ScrollView
