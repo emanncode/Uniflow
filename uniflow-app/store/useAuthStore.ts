@@ -74,7 +74,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
 
     // Block web-only roles from accessing the mobile app
-    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin", "dean", "hod"];
+    const allowedRoles: MobileRole[] = ["lecturer", "student", "dean", "hod"];
     if (!allowedRoles.includes(profile.role as MobileRole)) {
       await supabase.auth.signOut();
       set({ isLoading: false });
@@ -147,7 +147,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
     }
 
-    const allowedRoles: MobileRole[] = ["lecturer", "student", "uniflow_admin", "dean", "hod"];
+    const allowedRoles: MobileRole[] = ["lecturer", "student", "dean", "hod"];
     if (
       !allowedRoles.includes(profile.role as MobileRole) ||
       !profile.is_active
