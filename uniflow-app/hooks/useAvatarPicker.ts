@@ -83,7 +83,11 @@ export function useAvatarPicker() {
         .update({ avatar_url: avatarUrl })
         .eq("id", profile.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw new Error(
+          updateError.message || "Photo uploaded but profile could not be saved.",
+        );
+      }
 
       updateProfile({ avatar_url: avatarUrl });
       reset();
