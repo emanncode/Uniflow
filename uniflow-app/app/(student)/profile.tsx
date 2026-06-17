@@ -32,6 +32,7 @@ import {
   getDepartmentLabel,
   getFacultyLabel,
 } from "@/lib/enrichProfile";
+import { getMobileRoleLabel } from "@/lib/roleLabel";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -404,7 +405,9 @@ return (
         </View>
       </View>
 
-      <Text style={styles.appInfo}>Uniflow Mobile · Student</Text>
+      <Text style={styles.appInfo}>
+        Uniflow Mobile · {getMobileRoleLabel(profile.role)}
+      </Text>
 
       <ChangePasswordModal
         visible={passwordModalVisible}

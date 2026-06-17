@@ -26,6 +26,7 @@ import {
 } from "lucide-react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { supabase } from "@/lib/supabase";
+import { ResourcesSkeleton } from "@/components/SkeletonLoader";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
@@ -549,11 +550,7 @@ export default function LecturerResources() {
   // ── Loading ───────────────────────────────────────────────────────────
 
   if (isLoading) {
-    return (
-      <View style={[styles.root, styles.centered]}>
-        <ActivityIndicator size="large" color={C.brand} />
-      </View>
-    );
+    return <ResourcesSkeleton />;
   }
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -654,7 +651,7 @@ export default function LecturerResources() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
-  centered: { alignItems: "center", justifyContent: "center" },
+
 
   header: {
     paddingHorizontal: 20,
