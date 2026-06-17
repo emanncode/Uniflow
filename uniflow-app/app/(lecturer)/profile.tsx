@@ -28,6 +28,10 @@
   import { ProfileAvatar } from "@/components/ProfileAvatar";
   import { AvatarConfirmModal } from "@/components/AvatarConfirmModal";
   import { useAvatarPicker } from "@/hooks/useAvatarPicker";
+  import {
+    getDepartmentLabel,
+    getFacultyLabel,
+  } from "@/lib/enrichProfile";
 
   const C = Theme.colors;
   const R = Theme.radius;
@@ -38,14 +42,22 @@
     icon: React.ReactNode;
     label: string;
     value: string;
+    badge?: string;
   }
 
-  function InfoRow({ icon, label, value }: InfoRowProps) {
+  function InfoRow({ icon, label, value, badge }: InfoRowProps) {
     return (
       <View style={styles.infoRow}>
         <View style={styles.infoIcon}>{icon}</View>
         <View style={styles.infoContent}>
-          <Text style={styles.infoLabel}>{label}</Text>
+          <View style={styles.infoLabelRow}>
+            <Text style={styles.infoLabel}>{label}</Text>
+            {badge ? (
+              <View style={styles.infoBadge}>
+                <Text style={styles.infoBadgeText}>{badge}</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={styles.infoValue}>{value}</Text>
         </View>
       </View>
@@ -305,6 +317,11 @@
     const universityName = isUniAdmin ? 'System Administrator' : (profile.university?.name ?? 'Unknown University');
     const universityShort = isUniAdmin ? 'Admin' : (profile.university?.short_name ?? '');
     const roleDisplay = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+    const facultyLabel = getFacultyLabel(profile);
+    const departmentLabel = getDepartmentLabel(profile);
+    const showDepartment = profile.role === "hod" && !!departmentLabel;
+    const showFaculty =
+      ["lecturer", "hod", "dean"].includes(profile.role) && !!facultyLabel;
 
     // ── Render ────────────────────────────────────────────────────────────
 
@@ -370,26 +387,28 @@
               label="Institution"
               value={universityName}
             />
-            {['lecturer', 'hod', 'dean'].includes(profile.role) && (profile.faculty || profile.department) && (
-              <>
-                <View style={styles.rowDivider} />
-                <InfoRow
-                  icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
-                  label="Faculty"
-                  value={profile.faculty ? `${profile.faculty.name} (${profile.faculty.short_name})` : (profile.department?.faculty || '—')}
-                />
-              </>
-            )}
-            {['hod', 'dean'].includes(profile.role) && profile.department && (
+            {showDepartment && departmentLabel ? (
               <>
                 <View style={styles.rowDivider} />
                 <InfoRow
                   icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
                   label="Department"
-                  value={`${profile.department.name} (${profile.department.short_name})`}
+                  value={departmentLabel}
+                  badge="HOD"
                 />
               </>
-            )}
+            ) : null}
+            {showFaculty && facultyLabel ? (
+              <>
+                <View style={styles.rowDivider} />
+                <InfoRow
+                  icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+                  label="Faculty"
+                  value={facultyLabel}
+                  badge={profile.role === "dean" ? "Dean" : undefined}
+                />
+              </>
+            ) : null}
           </View>
         </View>
 
@@ -535,12 +554,32 @@
       flex: 1,
       gap: 2,
     },
+    infoLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flexWrap: 'wrap',
+    },
     infoLabel: {
       color: C.textMuted,
       fontSize: 11,
       fontWeight: '600',
       textTransform: 'uppercase',
       letterSpacing: 0.4,
+    },
+    infoBadge: {
+      backgroundColor: C.brandMuted,
+      borderRadius: R.full,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderWidth: 1,
+      borderColor: C.borderBrand,
+    },
+    infoBadgeText: {
+      color: C.brand,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 0.3,
     },
     infoValue: {
       color: C.textPrimary,

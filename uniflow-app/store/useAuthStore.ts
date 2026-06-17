@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
+import { enrichProfile } from "@/lib/enrichProfile";
 import type { AuthUser, Profile, MobileRole } from "@/types";
 
 // ─── State Shape ───────────────────────────────────────────────────────────
@@ -61,29 +62,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return { error: "Could not load your profile. Please contact support." };
     }
 
-    // Enrich profile with full faculty (department.faculty holds short_name)
-    if ((profile as Profile).department?.faculty) {
-      const { data: facultyData } = await supabase
-        .from('faculties')
-        .select('id, name, short_name')
-        .eq('short_name', (profile as Profile).department!.faculty!)
-        .eq('university_id', profile.university_id)
-        .maybeSingle();
-      if (facultyData) {
-        (profile as Profile).faculty = facultyData;
-      }
-    }
+    const enrichedProfile = await enrichProfile(profile as Profile);
 
     // Block web-only roles from accessing the mobile app
     const allowedRoles: MobileRole[] = ["lecturer", "student", "dean", "hod"];
-    if (!allowedRoles.includes(profile.role as MobileRole)) {
+    if (!allowedRoles.includes(enrichedProfile.role as MobileRole)) {
       await supabase.auth.signOut();
       set({ isLoading: false });
       return { error: "This app is for lecturers, students, deans, and HODs only." };
     }
 
     // Block inactive accounts
-    if (!profile.is_active) {
+    if (!enrichedProfile.is_active) {
       await supabase.auth.signOut();
       set({ isLoading: false });
       return {
@@ -94,7 +84,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     set({
       user: { id: data.user.id, email: data.user.email! },
-      profile,
+      profile: enrichedProfile,
       isLoading: false,
     });
 
@@ -134,23 +124,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return;
     }
 
-    // Enrich profile with full faculty (department.faculty holds short_name)
-    if ((profile as Profile).department?.faculty) {
-      const { data: facultyData } = await supabase
-        .from('faculties')
-        .select('id, name, short_name')
-        .eq('short_name', (profile as Profile).department!.faculty!)
-        .eq('university_id', profile.university_id)
-        .maybeSingle();
-      if (facultyData) {
-        (profile as Profile).faculty = facultyData;
-      }
-    }
+    const enrichedProfile = await enrichProfile(profile as Profile);
 
     const allowedRoles: MobileRole[] = ["lecturer", "student", "dean", "hod"];
     if (
-      !allowedRoles.includes(profile.role as MobileRole) ||
-      !profile.is_active
+      !allowedRoles.includes(enrichedProfile.role as MobileRole) ||
+      !enrichedProfile.is_active
     ) {
       await supabase.auth.signOut();
       set({ isHydrated: true });
@@ -159,7 +138,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     set({
       user: { id: session.user.id, email: session.user.email! },
-      profile,
+      profile: enrichedProfile,
       isHydrated: true,
     });
   },

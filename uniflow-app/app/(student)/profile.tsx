@@ -28,6 +28,10 @@ import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { ProfileAvatar } from "@/components/ProfileAvatar";
 import { AvatarConfirmModal } from "@/components/AvatarConfirmModal";
 import { useAvatarPicker } from "@/hooks/useAvatarPicker";
+import {
+  getDepartmentLabel,
+  getFacultyLabel,
+} from "@/lib/enrichProfile";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -285,6 +289,8 @@ const isUniflowAdmin = profile.role === 'uniflow_admin';
 const universityName = isUniflowAdmin ? 'System Administrator' : (profile.university?.name ?? "Unknown University");
 const universityShort = isUniflowAdmin ? 'Admin' : (profile.university?.short_name ?? "");
 const roleDisplay = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+const departmentLabel = getDepartmentLabel(profile);
+const facultyLabel = getFacultyLabel(profile);
 
 return (
     <ScrollView
@@ -350,30 +356,26 @@ return (
             label="Institution"
             value={universityName}
           />
-          {profile.department && (
+          {departmentLabel ? (
             <>
               <View style={styles.rowDivider} />
               <InfoRow
                 icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Department"
-                value={`${profile.department.name} (${profile.department.short_name})`}
+                value={departmentLabel}
               />
             </>
-          )}
-          {profile.department?.faculty && (
+          ) : null}
+          {facultyLabel ? (
             <>
               <View style={styles.rowDivider} />
               <InfoRow
                 icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Faculty"
-                value={
-                  profile.faculty
-                    ? `${profile.faculty.name} (${profile.faculty.short_name})`
-                    : profile.department.faculty
-                }
+                value={facultyLabel}
               />
             </>
-          )}
+          ) : null}
         </View>
       </View>
 
