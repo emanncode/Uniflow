@@ -1,5 +1,20 @@
 # Decisions
 
+## Session End Workflow
+
+Before finishing any chat:
+
+1. Run build-time checks for **both** projects:
+   - Web: `cd uniflow-web && npm run build`
+   - App: `cd uniflow-app && npx tsc --noEmit` (and `npm run lint` when relevant)
+2. If errors exist → fix them, then commit and push.
+3. If no errors → commit and push any uncommitted changes.
+
+Reason:
+User-requested quality gate so broken builds never land on `main`.
+
+---
+
 ## Design
 
 Accent Colors
