@@ -9,7 +9,6 @@ import UniflowLogo from "@/components/ui/UniflowLogo";
 import {
   LayoutDashboard,
   BookOpen,
-  CalendarDays,
   LogOut,
   Menu,
   Bell,
@@ -29,7 +28,6 @@ const NAV_ITEMS: Record<
   university_admin: [
     { label: "Overview", href: "/u", icon: LayoutDashboard },
     { label: "Faculties", href: "/u/faculties", icon: BookOpen },
-    { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
     { label: "Notifications", href: "/u/notifications", icon: Bell },
     { label: "Settings", href: "/u/settings", icon: Settings },
   ],
@@ -41,7 +39,6 @@ const NAV_ITEMS: Record<
   hod: [
     { label: "Overview", href: "/u", icon: LayoutDashboard },
     { label: "Faculties", href: "/u/faculties", icon: BookOpen },
-    { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
     { label: "Settings", href: "/u/settings", icon: Settings },
   ],
 };

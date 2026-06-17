@@ -107,5 +107,5 @@ export function usePushNotifications() {
     return () => {
       mounted = false;
     };
-  }, [profile?.id]); // only re-run if the logged-in user changes
+  }, [profile, updateProfile]); // only re-run if the logged-in user changes
 }

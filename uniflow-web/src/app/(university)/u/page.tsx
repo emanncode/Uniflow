@@ -254,7 +254,7 @@ export default function UniversityOverviewPage() {
     { icon: BookOpen, label: 'Faculties', value: stats.faculties, colorKey: 'blue', href: '/u/faculties', sub: 'active faculties' },
     { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', href: '/u/departments', sub: 'across all faculties' },
     { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', href: '/u/lecturers', sub: 'onboarded lecturers' },
-    { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', href: '/u/timetable', sub: 'scheduled classes' },
+    { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', href: '/u/faculties', sub: 'scheduled classes' },
   ]
 
   // Role-filtered stat cards (Faculties is always the entry point for sub-entities)
@@ -355,7 +355,7 @@ export default function UniversityOverviewPage() {
             {role === 'hod' && (
               <>
                 <QuickAction href="/u/lecturers" icon={Users} label="Upload Lecturers" colorKey="yellow" />
-                <QuickAction href="/u/timetable" icon={CalendarDays} label="Set Timetable" colorKey="green" />
+                <QuickAction href="/u/faculties" icon={CalendarDays} label="Set Timetable" colorKey="green" />
               </>
             )}
           </div>

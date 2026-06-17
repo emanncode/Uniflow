@@ -15,7 +15,6 @@ import {
   Users,
   AlertTriangle,
   ChevronDown,
-  Building2,
   Search,
   ArrowLeft
 } from "lucide-react";
@@ -51,12 +50,6 @@ interface Department {
   short_name: string;
   faculty: string;
 }
-interface Faculty {
-  id: string;
-  name: string;
-  short_name: string;
-}
-
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const HOURS = [
   "07:00",
@@ -316,11 +309,9 @@ export default function TimetablePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [faculties, setFaculties] = useState<Faculty[]>([]);
+  const [activeDept, setActiveDept] = useState<Department | null>(null);
   const [activeDay, setActiveDay] = useState("Monday");
   const [search, setSearch] = useState("");
-  const [filterDept, setFilterDept] = useState("");
-  const [filterFaculty, setFilterFaculty] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -335,26 +326,28 @@ export default function TimetablePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Support direct links from Departments page: ?department=CODE&faculty=CODE
+  // Timetable is department-scoped — accessed from the Departments page
   useEffect(() => {
     if (departments.length === 0) return;
 
     const deptParam = searchParams.get("department");
-    const facParam = searchParams.get("faculty");
-
-    if (facParam) {
-      setFilterFaculty(facParam);
+    if (!deptParam) {
+      setLoading(false);
+      router.replace("/u/faculties");
+      return;
     }
 
-    if (deptParam) {
-      const dept = departments.find(d => d.short_name === deptParam || d.id === deptParam);
-      if (dept) {
-        setFilterDept(dept.id);
-      } else {
-        setFilterDept(deptParam);
-      }
+    const dept = departments.find(
+      (d) => d.id === deptParam || d.short_name === deptParam,
+    );
+    if (!dept) {
+      setLoading(false);
+      router.replace("/u/faculties");
+      return;
     }
-  }, [searchParams, departments]);
+
+    setActiveDept(dept);
+  }, [searchParams, departments, router]);
 
   const [newCourseId, setNewCourseId] = useState("");
   const [newLecturerId, setNewLecturerId] = useState("");
@@ -362,7 +355,6 @@ export default function TimetablePage() {
   const [newDay, setNewDay] = useState("Monday");
   const [newStart, setNewStart] = useState("08:00");
   const [newEnd, setNewEnd] = useState("10:00");
-  const [newDeptId, setNewDeptId] = useState("");
 
   const CSV_TEMPLATE = `course_code,lecturer_email,venue,day,start_time,end_time\nCSC301,lecturer@email.com,LT1,Monday,08:00,10:00\nMTH201,john@email.com,Hall A,Tuesday,10:00,12:00`;
 
@@ -378,7 +370,7 @@ export default function TimetablePage() {
 
   async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !activeDept) return;
     setImporting(true);
     setImportErrors([]);
     setImportSuccess(0);
@@ -459,6 +451,7 @@ export default function TimetablePage() {
       const { error: insErr } = await supabase.from("timetable").insert({
         course_id: course.id,
         lecturer_id: lecProfile.id,
+        department_id: activeDept.id,
         venue: row.venue,
         day: row.day,
         start_time: row.start_time,
@@ -482,10 +475,48 @@ export default function TimetablePage() {
   }
 
   useEffect(() => {
-    loadData();
+    loadDepartments();
   }, []);
 
-  async function loadData() {
+  useEffect(() => {
+    if (!activeDept) return;
+    loadTimetableData(activeDept.id);
+  }, [activeDept]);
+
+  async function loadDepartments() {
+    setLoading(true);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("university_id")
+      .eq("id", session.user.id)
+      .single();
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
+    setUniId(profile.university_id);
+
+    const { data: deptRes } = await supabase
+      .from("departments")
+      .select("id, name, short_name, faculty")
+      .eq("university_id", profile.university_id)
+      .order("name");
+
+    setDepartments(deptRes ?? []);
+    if (!searchParams.get("department")) {
+      setLoading(false);
+    }
+  }
+
+  async function loadTimetableData(departmentId: string) {
     setLoading(true);
     const {
       data: { session },
@@ -498,15 +529,15 @@ export default function TimetablePage() {
       .eq("id", session.user.id)
       .single();
     if (!profile) return;
-    setUniId(profile.university_id);
 
-    const [ttRes, courseRes, lecRes, deptRes, facRes] = await Promise.all([
+    const [ttRes, courseRes, lecRes] = await Promise.all([
       supabase
         .from("timetable")
         .select(
           `id, venue, day, start_time, end_time, course_id, department_id, courses(name, code), profiles(full_name), departments(name)`,
         )
         .eq("university_id", profile.university_id)
+        .eq("department_id", departmentId)
         .order("day")
         .order("start_time"),
       supabase
@@ -520,16 +551,6 @@ export default function TimetablePage() {
         .eq("university_id", profile.university_id)
         .eq("role", "lecturer")
         .order("full_name"),
-      supabase
-        .from("departments")
-        .select("id, name, short_name, faculty")
-        .eq("university_id", profile.university_id)
-        .order("name"),
-      supabase
-        .from("faculties")
-        .select("id, name, short_name")
-        .eq("university_id", profile.university_id)
-        .order("name"),
     ]);
 
     const rawSlots: TimetableSlot[] = (ttRes.data ?? []).map((t: any) => ({
@@ -548,9 +569,12 @@ export default function TimetablePage() {
     setSlots(detectConflicts(rawSlots));
     setCourses(courseRes.data ?? []);
     setLecturers(lecRes.data ?? []);
-    setDepartments(deptRes.data ?? []);
-    setFaculties(facRes.data ?? []);
     setLoading(false);
+  }
+
+  async function loadData() {
+    if (!activeDept) return;
+    await loadTimetableData(activeDept.id);
   }
 
   function checkConflictLive() {
@@ -581,6 +605,7 @@ export default function TimetablePage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
+    if (!activeDept) return;
     if (conflictCheck) {
       setError("Resolve conflicts before saving.");
       return;
@@ -593,7 +618,7 @@ export default function TimetablePage() {
       const { error: err } = await supabase.from("timetable").insert({
         course_id: newCourseId,
         lecturer_id: newLecturerId,
-        department_id: newDeptId || null,
+        department_id: activeDept.id,
         venue: newVenue.trim(),
         day: newDay,
         start_time: newStart,
@@ -604,7 +629,6 @@ export default function TimetablePage() {
       setNewCourseId("");
       setNewLecturerId("");
       setNewVenue("");
-      setNewDeptId("");
       setShowModal(false);
       await loadData();
     } catch (err: any) {
@@ -622,16 +646,12 @@ export default function TimetablePage() {
 
   const filtered = slots.filter((s) => {
     const matchDay = s.day === activeDay;
-    const matchSearch = 
-      s.course_name.toLowerCase().includes(search.toLowerCase()) || 
+    const matchSearch =
+      s.course_name.toLowerCase().includes(search.toLowerCase()) ||
       s.course_code.toLowerCase().includes(search.toLowerCase()) ||
       s.lecturer_name.toLowerCase().includes(search.toLowerCase());
-    
-    const dept = departments.find(d => d.id === s.department_id);
-    const matchDept = !filterDept || s.department_id === filterDept;
-    const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
 
-    return matchDay && matchSearch && matchDept && matchFac;
+    return matchDay && matchSearch;
   });
 
   const daySlots = filtered;
@@ -653,7 +673,13 @@ export default function TimetablePage() {
         <div>
           {/* Back button */}
           <button
-            onClick={() => router.back()}
+            onClick={() =>
+              router.push(
+                activeDept
+                  ? `/u/departments?faculty=${activeDept.faculty}`
+                  : "/u/faculties",
+              )
+            }
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -673,7 +699,7 @@ export default function TimetablePage() {
               (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
             }}
           >
-            <ArrowLeft size={13} /> Back to {searchParams.get("department") ? "Departments" : "Faculties"}
+            <ArrowLeft size={13} /> Back to Departments
           </button>
 
           <h1
@@ -684,10 +710,22 @@ export default function TimetablePage() {
               marginBottom: "4px",
             }}
           >
-            Timetable
+            {activeDept ? `${activeDept.name} Timetable` : "Timetable"}
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {slots.length} scheduled slots
+            {activeDept?.short_name && (
+              <span
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  marginRight: "8px",
+                }}
+              >
+                {activeDept.short_name}
+              </span>
+            )}
+            {slots.length} scheduled slot{slots.length !== 1 ? "s" : ""}
             {conflictCount > 0 && (
               <span style={{ color: "var(--danger)", marginLeft: "8px" }}>
                 · {conflictCount} conflict{conflictCount !== 1 ? "s" : ""}
@@ -715,13 +753,13 @@ export default function TimetablePage() {
           >
             ↓ CSV Template
           </button>
-          <label style={{ cursor: importing ? "not-allowed" : "pointer" }}>
+          <label style={{ cursor: importing || !activeDept ? "not-allowed" : "pointer" }}>
             <input
               type="file"
               accept=".csv"
               onChange={handleCSVImport}
               style={{ display: "none" }}
-              disabled={importing}
+              disabled={importing || !activeDept}
             />
             <span
               className="btn-secondary"
@@ -730,8 +768,8 @@ export default function TimetablePage() {
                 alignItems: "center",
                 gap: "6px",
                 fontSize: "13px",
-                cursor: importing ? "not-allowed" : "pointer",
-                opacity: importing ? 0.6 : 1,
+                cursor: importing || !activeDept ? "not-allowed" : "pointer",
+                opacity: importing || !activeDept ? 0.6 : 1,
               }}
             >
               {importing ? (
@@ -745,8 +783,14 @@ export default function TimetablePage() {
           </label>
           <button
             onClick={() => setShowModal(true)}
+            disabled={!activeDept}
             className="btn-primary"
-            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              opacity: activeDept ? 1 : 0.5,
+            }}
           >
             <Plus size={15} /> Add Slot
           </button>
@@ -860,7 +904,7 @@ export default function TimetablePage() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Search */}
       <div
         style={{
           display: "flex",
@@ -890,63 +934,6 @@ export default function TimetablePage() {
               width: "100%",
               paddingLeft: "38px",
               boxSizing: "border-box",
-            }}
-          />
-        </div>
-        <div style={{ position: "relative" }}>
-          <select
-            value={filterFaculty}
-            onChange={(e) => {
-              setFilterFaculty(e.target.value);
-              setFilterDept(""); // Reset department when faculty changes
-            }}
-            className="select"
-            style={{ paddingRight: "32px", minWidth: "160px" }}
-          >
-            <option value="">All Faculties</option>
-            {faculties.map((f) => (
-              <option key={f.id} value={f.short_name}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            style={{
-              position: "absolute",
-              right: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-muted)",
-              pointerEvents: "none",
-            }}
-          />
-        </div>
-        <div style={{ position: "relative" }}>
-          <select
-            value={filterDept}
-            onChange={(e) => setFilterDept(e.target.value)}
-            className="select"
-            style={{ paddingRight: "32px", minWidth: "160px" }}
-          >
-            <option value="">All Departments</option>
-            {departments
-              .filter(d => !filterFaculty || d.faculty === filterFaculty)
-              .map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            style={{
-              position: "absolute",
-              right: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "var(--text-muted)",
-              pointerEvents: "none",
             }}
           />
         </div>
