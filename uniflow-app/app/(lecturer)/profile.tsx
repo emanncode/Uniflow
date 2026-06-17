@@ -306,8 +306,6 @@
 
     if (!profile) return null;
 
-    console.log("DEBUG Profile:", JSON.stringify(profile, null, 2));
-
     const isUniAdmin = profile.role === 'university_admin';
     const universityName = isUniAdmin ? 'System Administrator' : (profile.university?.name ?? 'Unknown University');
     const universityShort = isUniAdmin ? 'Admin' : (profile.university?.short_name ?? '');

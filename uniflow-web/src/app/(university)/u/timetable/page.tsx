@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -474,49 +474,7 @@ export default function TimetablePage() {
     e.target.value = "";
   }
 
-  useEffect(() => {
-    loadDepartments();
-  }, []);
-
-  useEffect(() => {
-    if (!activeDept) return;
-    loadTimetableData(activeDept.id);
-  }, [activeDept]);
-
-  async function loadDepartments() {
-    setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("university_id")
-      .eq("id", session.user.id)
-      .single();
-    if (!profile) {
-      setLoading(false);
-      return;
-    }
-    setUniId(profile.university_id);
-
-    const { data: deptRes } = await supabase
-      .from("departments")
-      .select("id, name, short_name, faculty")
-      .eq("university_id", profile.university_id)
-      .order("name");
-
-    setDepartments(deptRes ?? []);
-    if (!searchParams.get("department")) {
-      setLoading(false);
-    }
-  }
-
-  async function loadTimetableData(departmentId: string) {
+  const loadTimetableData = useCallback(async (departmentId: string) => {
     setLoading(true);
     const {
       data: { session },
@@ -570,14 +528,56 @@ export default function TimetablePage() {
     setCourses(courseRes.data ?? []);
     setLecturers(lecRes.data ?? []);
     setLoading(false);
-  }
+  }, [uniId]);
 
-  async function loadData() {
+  const loadDepartments = useCallback(async () => {
+    setLoading(true);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      setLoading(false);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("university_id")
+      .eq("id", session.user.id)
+      .single();
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
+    setUniId(profile.university_id);
+
+    const { data: deptRes } = await supabase
+      .from("departments")
+      .select("id, name, short_name, faculty")
+      .eq("university_id", profile.university_id)
+      .order("name");
+
+    setDepartments(deptRes ?? []);
+    if (!searchParams.get("department")) {
+      setLoading(false);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    loadDepartments();
+  }, [loadDepartments]);
+
+  useEffect(() => {
+    if (!activeDept) return;
+    loadTimetableData(activeDept.id);
+  }, [activeDept, loadTimetableData]); // uniId is used here
+
+  const loadData = useCallback(async () => {
     if (!activeDept) return;
     await loadTimetableData(activeDept.id);
-  }
+  }, [activeDept, loadTimetableData]);
 
-  function checkConflictLive() {
+  const checkConflictLive = useCallback(() => {
     if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) {
       setConflictCheck(null);
       return;
@@ -597,11 +597,11 @@ export default function TimetablePage() {
         ? `⚠️ Conflict with "${clash.course_name}" at ${clash.start_time}–${clash.end_time} ${clash.venue === newVenue ? `(same venue: ${newVenue})` : "(same lecturer)"}`
         : null,
     );
-  }
+  }, [newVenue, newDay, newStart, newEnd, newLecturerId, slots, lecturers]);
 
   useEffect(() => {
     checkConflictLive();
-  }, [newVenue, newDay, newStart, newEnd, newLecturerId]);
+  }, [checkConflictLive]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();

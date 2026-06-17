@@ -126,8 +126,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .eq("id", session.user.id)
       .single();
 
-    console.log("Fetched profile:", JSON.stringify(profile, null, 2));
-
     if (error || !profile) {
       // Session exists but profile fetch failed — clear and force re-login
       await supabase.auth.signOut();
