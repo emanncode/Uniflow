@@ -38,7 +38,7 @@ export function SkeletonBar({
     )
     anim.start()
     return () => anim.stop()
-  }, [])
+  }, [opacity])
 
   return (
     <Animated.View

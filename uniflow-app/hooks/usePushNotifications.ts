@@ -31,7 +31,7 @@ export function usePushNotifications() {
   useEffect(() => {
     // Only run if not in Expo Go
     if (Constants.appOwnership === "expo") {
-      console.log("[Push] Skipping – Expo Go not supported");
+      if (__DEV__) console.log("[Push] Skipping – Expo Go not supported");
       return;
     }
 
@@ -44,7 +44,7 @@ export function usePushNotifications() {
       try {
         // Push notifications only work on real devices
         if (!Device.isDevice) {
-          console.log("[Push] Skipping — not a physical device");
+          if (__DEV__) console.log("[Push] Skipping — not a physical device");
           return;
         }
 
@@ -59,7 +59,7 @@ export function usePushNotifications() {
         }
 
         if (finalStatus !== "granted") {
-          console.log("[Push] Permission denied");
+          if (__DEV__) console.log("[Push] Permission denied");
           return;
         }
 
@@ -85,7 +85,7 @@ export function usePushNotifications() {
 
         // Update local store so profile.push_token stays in sync
         updateProfile({ push_token: token });
-        console.log("[Push] Token registered:", token);
+        if (__DEV__) console.log("[Push] Token registered");
 
         // Android notification channel setup
         if (Platform.OS === "android") {

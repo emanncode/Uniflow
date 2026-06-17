@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   Linking,
   Alert,
@@ -266,7 +265,7 @@ export default function StudentResources() {
           r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r
         )
       )
-    } catch (_) {
+    } catch {
       Alert.alert('Error', 'Could not open file. Please try again.')
     } finally {
       setDownloadingId(null)

@@ -17,7 +17,6 @@ import {
   Clock,
   MapPin,
   ChevronRight,
-  User,
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'

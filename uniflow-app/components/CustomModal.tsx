@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
   Modal,
   View,
@@ -9,7 +9,6 @@ import {
   Dimensions,
   Platform,
   KeyboardAvoidingView,
-  Animated,
 } from "react-native";
 import { X } from "lucide-react-native";
 import { Theme } from "@/constants/Theme";

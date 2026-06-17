@@ -55,7 +55,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       .select("*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculties!profiles_faculty_id_fkey(id, name, short_name)")
       .eq("id", data.user.id)
       .single();
-      console.log("Profile Error:", profileError);
     if (profileError || !profile) {
       await supabase.auth.signOut();
       set({ isLoading: false });
@@ -158,8 +157,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
 export const useUser = () => useAuthStore((s) => s.user);
 export const useProfile = () => useAuthStore((s) => s.profile);
+/** Staff roles routed to the (lecturer) app group — lecturer, dean, or HOD. */
 export const useIsLecturer = () =>
-  useAuthStore((s) => s.profile?.role === "lecturer" || s.profile?.role === "uniflow_admin");
+  useAuthStore((s) => {
+    const role = s.profile?.role;
+    return role === "lecturer" || role === "dean" || role === "hod";
+  });
 export const useIsStudent = () =>
   useAuthStore((s) => s.profile?.role === "student");
 export const useIsHydrated = () => useAuthStore((s) => s.isHydrated);

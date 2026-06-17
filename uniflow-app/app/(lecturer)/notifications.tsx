@@ -178,7 +178,7 @@ export default function NotificationsScreen({ role = 'lecturer' }: { role?: 'lec
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [profile])
+  }, [profile, role])
 
   const handlePress = useCallback(async (notif: Notification) => {
     if (notif.is_read) return

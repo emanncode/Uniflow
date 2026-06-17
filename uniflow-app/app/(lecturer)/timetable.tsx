@@ -427,7 +427,7 @@ export default function LecturerTimetable() {
 
         setSheetVisible(false);
         setActiveSlot(null);
-      } catch (_) {
+      } catch {
         setError("Could not update class status. Please try again.");
       } finally {
         setIsSubmitting(false);

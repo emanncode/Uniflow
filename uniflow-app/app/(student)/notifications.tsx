@@ -128,7 +128,7 @@ function NotifRow({ notif, onPress }: { notif: Notification; onPress: (n: Notifi
 // Used for BOTH lecturer and student — pass channelName as prop
 // or just duplicate with different channel name
 
-export default function NotificationsScreen({ role = 'lecturer' }: { role?: 'lecturer' | 'student' }) {
+export default function NotificationsScreen({ role = 'student' }: { role?: 'lecturer' | 'student' }) {
   const insets = useSafeAreaInsets()
   const profile = useAuthStore((s) => s.profile)
 
@@ -178,7 +178,7 @@ export default function NotificationsScreen({ role = 'lecturer' }: { role?: 'lec
       })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [profile])
+  }, [profile, role])
 
   const handlePress = useCallback(async (notif: Notification) => {
     if (notif.is_read) return

@@ -495,7 +495,7 @@ export default function StudentTimetable() {
 
         setSheetVisible(false);
         setActiveSlot(null);
-      } catch (_) {
+      } catch {
         setError("Could not submit report. Please try again.");
       } finally {
         setIsSubmitting(false);
