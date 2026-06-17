@@ -33,6 +33,7 @@
     getFacultyLabel,
   } from "@/lib/enrichProfile";
   import { getMobileRoleLabel } from "@/lib/roleLabel";
+  import { ProfileBackHeader } from "@/components/ProfileBackHeader";
 
   const C = Theme.colors;
   const R = Theme.radius;
@@ -327,14 +328,16 @@
     // ── Render ────────────────────────────────────────────────────────────
 
     return (
-      <ScrollView
-        style={styles.root}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.root}>
+        <ProfileBackHeader homeRoute="/(lecturer)" />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + 40 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
         {/* ── Hero ── */}
         <View style={styles.hero}>
           <ProfileAvatar
@@ -469,7 +472,8 @@
           onCancel={cancelPhoto}
           onAccept={acceptPhoto}
         />
-      </ScrollView>
+        </ScrollView>
+      </View>
     );
   }
 
@@ -480,8 +484,12 @@
       flex: 1,
       backgroundColor: C.bgDeep,
     },
+    scroll: {
+      flex: 1,
+    },
     content: {
       paddingHorizontal: 20,
+      paddingTop: 8,
       gap: 20,
     },
 

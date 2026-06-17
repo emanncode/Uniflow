@@ -122,10 +122,13 @@ export default function LecturerLayout() {
         }}
       />
 
-      {/* Profile — accessible via header avatar button, not in tab bar */}
+      {/* Profile — stack-style screen: no tab bar, back button on screen */}
       <Tabs.Screen
         name="profile"
-        options={{ href: null }}
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
       />
     </Tabs>
   )
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
   tabItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    // gap: 2,
   },
 
   // The pill that wraps the icon

@@ -33,6 +33,7 @@ import {
   getFacultyLabel,
 } from "@/lib/enrichProfile";
 import { getMobileRoleLabel } from "@/lib/roleLabel";
+import { ProfileBackHeader } from "@/components/ProfileBackHeader";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -294,14 +295,16 @@ const departmentLabel = getDepartmentLabel(profile);
 const facultyLabel = getFacultyLabel(profile);
 
 return (
-    <ScrollView
-      style={styles.root}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.root}>
+      <ProfileBackHeader homeRoute="/(student)" />
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 40 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Hero */}
       <View style={styles.hero}>
         <ProfileAvatar
@@ -434,7 +437,8 @@ return (
         onCancel={cancelPhoto}
         onAccept={acceptPhoto}
       />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -442,7 +446,8 @@ return (
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
-  content: { paddingHorizontal: 20, gap: 20 },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 20, paddingTop: 8, gap: 20 },
 
   hero: { alignItems: "center", paddingVertical: 8, gap: 8 },
   heroName: {

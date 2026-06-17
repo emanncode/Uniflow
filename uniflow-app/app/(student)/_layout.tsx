@@ -152,8 +152,14 @@ export default function StudentLayout() {
         }}
       />
 
-      {/* Profile — hidden from tab bar, accessed via avatar button on dashboard */}
-      <Tabs.Screen name="profile" options={{ href: null }} />
+      {/* Profile — stack-style screen: no tab bar, back button on screen */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
     </Tabs>
   );
 }
