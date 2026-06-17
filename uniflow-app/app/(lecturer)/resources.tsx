@@ -85,7 +85,7 @@ const FILE_CONFIG: Record<
   other: {
     icon: <File size={18} color={C.textMuted} strokeWidth={1.8} />,
     color: C.textMuted,
-    background: 'rgba(148, 163, 184, 0.1)',
+    background: "rgba(148, 163, 184, 0.1)",
   },
 };
 
@@ -357,8 +357,7 @@ function UploadSheet({
                 <Text
                   style={[
                     styles.coursePillText,
-                    selectedCourseId === c.id &&
-                      styles.coursePillTextActive,
+                    selectedCourseId === c.id && styles.coursePillTextActive,
                   ]}
                 >
                   {c.code}
@@ -441,12 +440,8 @@ function UploadSheet({
             ) : (
               <View style={styles.filePickerEmpty}>
                 <Upload size={22} color={C.textMuted} strokeWidth={1.5} />
-                <Text style={styles.filePickerHint}>
-                  Tap to pick a file
-                </Text>
-                <Text style={styles.filePickerSub}>
-                  PDF, DOC, images, etc.
-                </Text>
+                <Text style={styles.filePickerHint}>Tap to pick a file</Text>
+                <Text style={styles.filePickerSub}>PDF, DOC, images, etc.</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -652,9 +647,7 @@ export default function LecturerResources() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
 
-
   header: {
-    paddingHorizontal: 20,
     paddingBottom: 12,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -680,7 +673,6 @@ const styles = StyleSheet.create({
   uploadFabText: { color: C.textPrimary, fontSize: 13, fontWeight: "700" },
 
   filterStrip: {
-    paddingHorizontal: 20,
     paddingBottom: 14,
     gap: 8,
     flexDirection: "row",

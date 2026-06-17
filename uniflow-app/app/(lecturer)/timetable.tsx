@@ -457,10 +457,8 @@ export default function LecturerTimetable() {
       </View>
 
       {/* ── Day Selector ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.dayStrip}
+      <View
+      style={styles.dayStrip}
       >
         {DAYS.map((day) => {
           const isSelected = selectedDay === day.key;
@@ -493,7 +491,7 @@ export default function LecturerTimetable() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* ── Slots ── */}
       <ScrollView
