@@ -25,26 +25,12 @@
   import { Theme } from "@/constants/Theme";
   import { CustomModal } from "@/components/CustomModal";
   import { ConfirmationModal } from "@/components/ConfirmationModal";
+  import { ProfileAvatar } from "@/components/ProfileAvatar";
+  import { AvatarConfirmModal } from "@/components/AvatarConfirmModal";
+  import { useAvatarPicker } from "@/hooks/useAvatarPicker";
 
   const C = Theme.colors;
   const R = Theme.radius;
-
-  // ─── Avatar ────────────────────────────────────────────────────────────────
-
-  function Avatar({ name }: { name: string }) {
-    const initials = name
-      .split(" ")
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase();
-
-    return (
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initials}</Text>
-      </View>
-    );
-  }
 
   // ─── Info Row ──────────────────────────────────────────────────────────────
 
@@ -295,6 +281,15 @@
     const [isSigningOut, setIsSigningOut] = useState(false);
     const [passwordModalVisible, setPasswordModalVisible] = useState(false);
     const [signOutModalVisible, setSignOutModalVisible] = useState(false);
+    const {
+      pickImage,
+      acceptPhoto,
+      cancelPhoto,
+      previewUri,
+      modalVisible,
+      isUploading,
+      error: avatarError,
+    } = useAvatarPicker();
 
     // ── Sign Out ──────────────────────────────────────────────────────────
 
@@ -324,7 +319,13 @@
       >
         {/* ── Hero ── */}
         <View style={styles.hero}>
-          <Avatar name={profile.full_name} />
+          <ProfileAvatar
+            name={profile.full_name}
+            avatarUrl={profile.avatar_url}
+            size="lg"
+            editable
+            onEditPress={pickImage}
+          />
           <Text style={styles.heroName}>{profile.full_name}</Text>
           <View style={styles.roleBadge}>
             <Text style={styles.roleText}>{roleDisplay}</Text>
@@ -437,6 +438,15 @@
           isLoading={isSigningOut}
           icon={LogOut}
         />
+
+        <AvatarConfirmModal
+          visible={modalVisible}
+          previewUri={previewUri}
+          isLoading={isUploading}
+          error={avatarError}
+          onCancel={cancelPhoto}
+          onAccept={acceptPhoto}
+        />
       </ScrollView>
     );
   }
@@ -458,21 +468,6 @@
       alignItems: 'center',
       paddingVertical: 8,
       gap: 8,
-    },
-    avatar: {
-      width: 80,
-      height: 80,
-      borderRadius: R.full,
-      backgroundColor: C.brand,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 4,
-    },
-    avatarText: {
-      color: C.textPrimary,
-      fontSize: 28,
-      fontWeight: '800',
-      letterSpacing: -0.5,
     },
     heroName: {
       color: C.textPrimary,
