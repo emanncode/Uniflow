@@ -5,30 +5,28 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
-  Alert,
-  Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Clock,
   MapPin,
-  User,
-  ThumbsUp,
+  CheckCircle,
   XCircle,
   AlertTriangle,
-  CheckCircle,
   PlayCircle,
   StopCircle,
   ChevronDown,
-  CalendarDays,
+  AlertCircle,
+  User,
+  ThumbsUp,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
-import { TimetableSkeleton } from "@/components/SkeletonLoader";
 import { CustomModal } from "@/components/CustomModal";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
+import { TimetableSkeleton, SkeletonBar } from "@/components/SkeletonLoader";
 import type {
   TimetableSlot,
   ClassUpdate,
@@ -42,13 +40,13 @@ const R = Theme.radius;
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
-const DAYS: { key: DayOfWeek; short: string; label: string }[] = [
-  { key: "monday", short: "Mon", label: "Monday" },
-  { key: "tuesday", short: "Tue", label: "Tuesday" },
-  { key: "wednesday", short: "Wed", label: "Wednesday" },
-  { key: "thursday", short: "Thu", label: "Thursday" },
-  { key: "friday", short: "Fri", label: "Friday" },
-  { key: "saturday", short: "Sat", label: "Saturday" },
+const DAYS: { key: DayOfWeek; label: string; short: string }[] = [
+  { key: "monday", label: "Monday", short: "Mon" },
+  { key: "tuesday", label: "Tuesday", short: "Tue" },
+  { key: "wednesday", label: "Wednesday", short: "Wed" },
+  { key: "thursday", label: "Thursday", short: "Thu" },
+  { key: "friday", label: "Friday", short: "Fri" },
+  { key: "saturday", label: "Saturday", short: "Sat" },
 ];
 
 const TODAY_KEY = new Date()
@@ -145,48 +143,6 @@ function StatusBadge({ status }: { status: ClassStatus }) {
   );
 }
 
-// ─── Day Pill ──────────────────────────────────────────────────────────────
-
-interface DayPillProps {
-  day: { key: DayOfWeek; short: string };
-  isSelected: boolean;
-  isToday: boolean;
-  count: number;
-  onPress: () => void;
-}
-
-function DayPill({ day, isSelected, isToday, count, onPress }: DayPillProps) {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.dayPill,
-        isSelected && styles.dayPillActive,
-        isToday && !isSelected && styles.dayPillToday,
-      ]}
-      onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <Text style={[styles.dayShort, isSelected && styles.dayShortActive]}>
-        {day.short}
-      </Text>
-      {count > 0 ? (
-        <View style={[styles.dayCount, isSelected && styles.dayCountActive]}>
-          <Text
-            style={[
-              styles.dayCountText,
-              isSelected && styles.dayCountTextActive,
-            ]}
-          >
-            {count}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.dayCountEmpty} />
-      )}
-    </TouchableOpacity>
-  );
-}
-
 // ─── Slot Card ─────────────────────────────────────────────────────────────
 
 interface SlotCardProps {
@@ -212,6 +168,7 @@ function SlotCard({
       <View style={[styles.slotAccent, { backgroundColor: accentColor }]} />
 
       <View style={styles.slotBody}>
+        {/* Top row */}
         <View style={styles.slotTop}>
           <Text style={styles.slotCode}>{slot.courses?.code ?? "—"}</Text>
           {status && <StatusBadge status={status} />}
@@ -228,6 +185,7 @@ function SlotCard({
           </View>
         ) : null}
 
+        {/* Meta */}
         <View style={styles.slotMeta}>
           <View style={styles.metaItem}>
             <Clock size={12} color={C.textMuted} strokeWidth={1.8} />
@@ -243,12 +201,14 @@ function SlotCard({
           </View>
         </View>
 
+        {/* Update message */}
         {update?.message ? (
           <Text style={styles.updateMsg} numberOfLines={2}>
             {update.message}
           </Text>
         ) : null}
 
+        {/* Actions row — only for today's slots */}
         {isToday && (
           <View style={styles.actionsRow}>
             {update ? (
@@ -271,7 +231,7 @@ function SlotCard({
               activeOpacity={0.75}
             >
               <Text style={styles.reportBtnText}>Report status</Text>
-              <ChevronDown size={12} color={C.textMuted} strokeWidth={2} />
+              <ChevronDown size={13} color={C.brand} strokeWidth={2} />
             </TouchableOpacity>
           </View>
         )}
@@ -307,11 +267,11 @@ function StatusActionSheet({
       type="sheet"
     >
       <View style={styles.sheetHeader}>
-        <Text style={styles.sheetCode}>{slot.courses?.code}</Text>
+        <Text style={styles.sheetCourse}>{slot.courses?.code}</Text>
         <Text style={styles.sheetTitle} numberOfLines={1}>
           {slot.courses?.title}
         </Text>
-        <Text style={styles.sheetMeta}>
+        <Text style={styles.sheetVenue}>
           {formatTime(slot.start_time)} · {slot.venue}
         </Text>
       </View>
@@ -324,20 +284,19 @@ function StatusActionSheet({
 
       <View style={styles.sheetDivider} />
 
+      {/* Actions */}
       {isSubmitting ? (
         <View style={styles.sheetLoading}>
-          <ActivityIndicator color={C.brand} />
+          <SkeletonBar width={40} height={40} borderRadius={20} />
           <Text style={styles.sheetLoadingText}>Submitting...</Text>
         </View>
       ) : (
         STATUS_ACTIONS.map((action) => (
-          <Pressable
+          <TouchableOpacity
             key={action.status}
-            style={({ pressed }) => [
-              styles.actionRow,
-              pressed && { backgroundColor: C.bgHover },
-            ]}
+            style={styles.actionRow}
             onPress={() => onSelect(action.status)}
+            activeOpacity={0.7}
           >
             <View
               style={[
@@ -354,7 +313,7 @@ function StatusActionSheet({
               <Text style={styles.actionLabel}>{action.label}</Text>
               <Text style={styles.actionDesc}>{action.description}</Text>
             </View>
-          </Pressable>
+          </TouchableOpacity>
         ))
       )}
     </CustomModal>
@@ -372,14 +331,19 @@ export default function StudentTimetable() {
   const [updates, setUpdates] = useState<Record<string, ClassUpdate>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Action sheet state
   const [activeSlot, setActiveSlot] = useState<TimetableSlot | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ── Fetch ─────────────────────────────────────────────────────────────
+
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
+      // 1. Get student enrollments
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("course_id")
@@ -393,6 +357,7 @@ export default function StudentTimetable() {
 
       const courseIds = enrollments.map((e) => e.course_id);
 
+      // 2. Fetch timetable slots for enrolled courses
       const { data: slots } = await supabase
         .from("timetable")
         .select(
@@ -405,6 +370,7 @@ export default function StudentTimetable() {
 
       if (slots) setAllSlots(slots);
 
+      // 3. Fetch today's updates
       const todayDate = new Date().toISOString().split("T")[0];
       const { data: todayUpdates } = await supabase
         .from("class_updates")
@@ -434,8 +400,11 @@ export default function StudentTimetable() {
     setIsRefreshing(false);
   }, [fetchData]);
 
+  // ── Realtime ──────────────────────────────────────────────────────────
+
   useEffect(() => {
     if (!profile) return;
+
     const channel = supabase
       .channel("student-timetable-updates")
       .on(
@@ -453,10 +422,13 @@ export default function StudentTimetable() {
         },
       )
       .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
   }, [profile]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────
 
   const handleUpvote = useCallback(async (update: ClassUpdate) => {
     const newCount = (update.upvotes ?? 0) + 1;
@@ -464,13 +436,14 @@ export default function StudentTimetable() {
       ...prev,
       [update.timetable_id]: { ...update, upvotes: newCount },
     }));
+
     await supabase
       .from("class_updates")
       .update({ upvotes: newCount })
       .eq("id", update.id);
   }, []);
 
-  const handleReport = useCallback((slot: TimetableSlot) => {
+  const handleReportStatus = useCallback((slot: TimetableSlot) => {
     setActiveSlot(slot);
     setSheetVisible(true);
   }, []);
@@ -479,21 +452,25 @@ export default function StudentTimetable() {
     async (status: ClassStatus) => {
       if (!activeSlot || !profile) return;
       setIsSubmitting(true);
+
       try {
         const todayDate = new Date().toISOString().split("T")[0];
         const existing = updates[activeSlot.id];
 
         if (existing) {
+          // Update existing record
           const { error } = await supabase
             .from("class_updates")
             .update({ status, reported_by: profile.id })
             .eq("id", existing.id);
+
           if (error) throw error;
           setUpdates((prev) => ({
             ...prev,
             [activeSlot.id]: { ...existing, status },
           }));
         } else {
+          // Insert new record
           const { data, error } = await supabase
             .from("class_updates")
             .insert({
@@ -509,13 +486,17 @@ export default function StudentTimetable() {
             })
             .select()
             .single();
+
           if (error) throw error;
-          if (data) setUpdates((prev) => ({ ...prev, [activeSlot.id]: data }));
+          if (data) {
+            setUpdates((prev) => ({ ...prev, [activeSlot.id]: data }));
+          }
         }
+
         setSheetVisible(false);
         setActiveSlot(null);
-      } catch {
-        Alert.alert("Error", "Could not submit report. Please try again.");
+      } catch (_) {
+        setError("Could not submit report. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
@@ -523,36 +504,66 @@ export default function StudentTimetable() {
     [activeSlot, profile, updates],
   );
 
+  // ── Derived ───────────────────────────────────────────────────────────
+
   const slotsForDay = allSlots.filter((s) => s.day_of_week === selectedDay);
+
+  // ── Loading ───────────────────────────────────────────────────────────
 
   if (isLoading) return <TimetableSkeleton />;
 
+  // ── Render ────────────────────────────────────────────────────────────
+
   return (
     <View style={styles.root}>
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+      {/* ── Header ── */}
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <Text style={styles.headerTitle}>Timetable</Text>
         <Text style={styles.headerSub}>
           {allSlots.length} class{allSlots.length !== 1 ? "es" : ""} enrolled
         </Text>
       </View>
 
+      {/* ── Day Selector ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.dayStrip}
       >
-        {DAYS.map((day) => (
-          <DayPill
-            key={day.key}
-            day={day}
-            isSelected={selectedDay === day.key}
-            isToday={day.key === TODAY_KEY}
-            count={allSlots.filter((s) => s.day_of_week === day.key).length}
-            onPress={() => setSelectedDay(day.key)}
-          />
-        ))}
+        {DAYS.map((day) => {
+          const isSelected = selectedDay === day.key;
+          const isToday = day.key === TODAY_KEY;
+          const count = allSlots.filter(
+            (s) => s.day_of_week === day.key,
+          ).length;
+
+          return (
+            <TouchableOpacity
+              key={day.key}
+              style={[
+                styles.dayPill,
+                isSelected && styles.dayPillActive,
+                isToday && !isSelected && styles.dayPillToday,
+              ]}
+              onPress={() => setSelectedDay(day.key)}
+              activeOpacity={0.75}
+            >
+              <Text
+                style={[styles.dayShort, isSelected && styles.dayShortActive]}
+              >
+                {day.short}
+              </Text>
+              {count > 0 && (
+                <View
+                  style={[styles.dayDot, isSelected && styles.dayDotActive]}
+                />
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
+      {/* ── Slots ── */}
       <ScrollView
         contentContainerStyle={[
           styles.slotList,
@@ -567,6 +578,7 @@ export default function StudentTimetable() {
           />
         }
       >
+        {/* Day label */}
         <View style={styles.dayLabelRow}>
           <Text style={styles.dayLabel}>
             {DAYS.find((d) => d.key === selectedDay)?.label}
@@ -580,7 +592,6 @@ export default function StudentTimetable() {
 
         {slotsForDay.length === 0 ? (
           <View style={styles.emptyCard}>
-            <CalendarDays size={28} color={C.textMuted} strokeWidth={1.5} />
             <Text style={styles.emptyTitle}>No classes this day</Text>
             <Text style={styles.emptySubtitle}>Nothing enrolled</Text>
           </View>
@@ -591,13 +602,23 @@ export default function StudentTimetable() {
               slot={slot}
               update={updates[slot.id]}
               isToday={selectedDay === TODAY_KEY}
-              onReport={handleReport}
+              onReport={handleReportStatus}
               onUpvote={handleUpvote}
             />
           ))
         )}
       </ScrollView>
 
+      {/* ── Status Action Sheet ── */}
+      <ConfirmationModal
+        visible={!!error}
+        onClose={() => setError(null)}
+        onConfirm={() => setError(null)}
+        title="Error"
+        message={error || ""}
+        confirmText="OK"
+        icon={AlertCircle}
+      />
       <StatusActionSheet
         slot={activeSlot}
         visible={sheetVisible}
@@ -617,113 +638,187 @@ export default function StudentTimetable() {
 // ─── Styles ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bgDeep },
+  root: {
+    flex: 1,
+    backgroundColor: C.bgDeep,
+  },
+  centered: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-  header: { paddingHorizontal: 20, paddingBottom: 14, gap: 2 },
+  // Header
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 2,
+  },
   headerTitle: {
     color: C.textPrimary,
     fontSize: 26,
     fontWeight: "800",
     letterSpacing: -0.6,
   },
-  headerSub: { color: C.textMuted, fontSize: 13 },
+  headerSub: {
+    color: C.textMuted,
+    fontSize: 13,
+  },
 
+  // Day Strip
   dayStrip: {
     paddingHorizontal: 20,
-    paddingBottom: 14,
-    gap: 8,
+    paddingBottom: 16,
     flexDirection: "row",
+    gap: 8,
+    flex: 1,
   },
   dayPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: R.full,
-    backgroundColor: C.bgSecondary,
+    minWidth: 56,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: C.bgCard,
     borderWidth: 1,
     borderColor: C.borderPrimary,
     alignItems: "center",
-    gap: 4,
-    minWidth: 52,
-  },
-  dayPillActive: { backgroundColor: C.brand, borderColor: C.brand },
-  dayPillToday: { borderColor: C.borderBrand },
-  dayShort: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
-  dayShortActive: { color: C.textPrimary },
-  dayCount: {
-    backgroundColor: C.brandMuted,
-    borderRadius: 8,
-    minWidth: 18,
-    height: 18,
-    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 5,
+    paddingHorizontal: 14,
   },
-  dayCountActive: { backgroundColor: "rgba(255,255,255,0.25)" },
-  dayCountText: { color: C.brand, fontSize: 10, fontWeight: "700" },
-  dayCountTextActive: { color: C.textPrimary },
-  dayCountEmpty: { height: 18 },
+  dayPillActive: {
+    backgroundColor: C.brand,
+    borderColor: C.brand,
+  },
+  dayPillToday: {
+    borderColor: C.borderBrand,
+  },
+  dayShort: {
+    color: C.textMuted,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  dayShortActive: {
+    color: C.textPrimary,
+  },
+  dayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: C.brand,
+  },
+  dayDotActive: {
+    backgroundColor: C.textPrimary,
+  },
 
-  slotList: { paddingHorizontal: 20, gap: 10 },
+  // Slot List
+  slotList: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    gap: 10,
+    flexGrow: 0,
+  },
   dayLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    marginBottom: 2,
   },
-  dayLabel: { color: C.textSecondary, fontSize: 14, fontWeight: "600" },
+  dayLabel: {
+    color: C.textSecondary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
   todayTag: {
     backgroundColor: C.brandMuted,
     borderRadius: R.full,
     paddingHorizontal: 10,
     paddingVertical: 3,
   },
-  todayTagText: { color: C.brand, fontSize: 11, fontWeight: "700" },
+  todayTagText: {
+    color: C.brand,
+    fontSize: 11,
+    fontWeight: "700",
+  },
 
+  // Empty
   emptyCard: {
-    backgroundColor: C.bgSecondary,
+    backgroundColor: C.bgCard,
     borderRadius: R.md,
     borderWidth: 1,
     borderColor: C.borderPrimary,
     padding: 32,
     alignItems: "center",
-    gap: 8,
-    marginTop: 8,
+    gap: 6,
+    marginTop: 0,
   },
-  emptyTitle: { color: C.textSecondary, fontSize: 15, fontWeight: "600" },
-  emptySubtitle: { color: C.textMuted, fontSize: 13 },
+  emptyTitle: {
+    color: C.textSecondary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  emptySubtitle: {
+    color: C.textMuted,
+    fontSize: 13,
+  },
 
+  // Slot Card
   slotCard: {
     flexDirection: "row",
-    backgroundColor: C.bgSecondary,
+    backgroundColor: C.bgCard,
     borderRadius: R.md,
     borderWidth: 1,
-    borderColor: C.borderSecondary,
+    borderColor: C.borderPrimary,
     overflow: "hidden",
   },
   slotCardToday: {
     borderColor: C.borderBrand,
-    backgroundColor: "rgba(255, 92, 26, 0.03)",
   },
-  slotAccent: { width: 3, alignSelf: "stretch" },
-  slotBody: { flex: 1, padding: 14, gap: 4 },
-  slotTop: { flexDirection: "row", alignItems: "center", gap: 8 },
+  slotAccent: {
+    width: 3,
+    alignSelf: "stretch",
+  },
+  slotBody: {
+    flex: 1,
+    padding: 14,
+    gap: 4,
+  },
+  slotTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   slotCode: {
     color: C.brand,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "700",
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
   },
   slotTitle: {
     color: C.textPrimary,
     fontSize: 15,
     fontWeight: "600",
-    lineHeight: 20,
   },
-  lecturerRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  lecturerText: { color: C.textMuted, fontSize: 11 },
-  slotMeta: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 3 },
-  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { color: C.textMuted, fontSize: 12 },
+  lecturerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  lecturerText: {
+    color: C.textMuted,
+    fontSize: 11,
+  },
+  slotMeta: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 2,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    color: C.textMuted,
+    fontSize: 12,
+  },
   updateMsg: {
     color: C.textSecondary,
     fontSize: 12,
@@ -731,6 +826,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  // Actions row
   actionsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -749,32 +845,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
-  upvoteText: { color: C.brand, fontSize: 11, fontWeight: "600" },
+  upvoteText: {
+    color: C.brand,
+    fontSize: 11,
+    fontWeight: "600",
+  },
   reportBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: C.bgTertiary,
-    borderRadius: R.full,
+    alignSelf: "flex-start",
+    backgroundColor: C.brandSubtle,
     borderWidth: 1,
-    borderColor: C.borderPrimary,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderColor: C.borderBrand,
+    borderRadius: R.full,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  reportBtnText: { color: C.textMuted, fontSize: 11, fontWeight: "600" },
+  reportBtnText: {
+    color: C.brand,
+    fontSize: 12,
+    fontWeight: "600",
+  },
 
-  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: R.full },
-  badgeText: { fontSize: 11, fontWeight: "700" },
+  // Badge
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: R.full,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
 
-  sheetHeader: { paddingBottom: 12, gap: 2 },
-  sheetCode: {
+  // Action Sheet
+  sheetHeader: {
+    paddingBottom: 12,
+    gap: 2,
+  },
+  sheetCourse: {
     color: C.brand,
     fontSize: 12,
     fontWeight: "700",
     letterSpacing: 0.5,
   },
-  sheetTitle: { color: C.textPrimary, fontSize: 17, fontWeight: "700" },
-  sheetMeta: { color: C.textMuted, fontSize: 13, marginTop: 2 },
+  sheetTitle: {
+    color: C.textPrimary,
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  sheetVenue: {
+    color: C.textMuted,
+    fontSize: 13,
+    marginTop: 2,
+  },
   sheetNote: {
     backgroundColor: C.brandSubtle,
     borderRadius: R.sm,
@@ -784,21 +909,29 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 8,
   },
-  sheetNoteText: { color: C.brand, fontSize: 12 },
+  sheetNoteText: {
+    color: C.brand,
+    fontSize: 12,
+  },
   sheetDivider: {
     height: 1,
     backgroundColor: C.borderPrimary,
-    marginBottom: 8,
+    marginVertical: 12,
   },
-  sheetLoading: { padding: 32, alignItems: "center", gap: 12 },
-  sheetLoadingText: { color: C.textSecondary, fontSize: 14 },
+  sheetLoading: {
+    padding: 32,
+    alignItems: "center",
+    gap: 12,
+  },
+  sheetLoadingText: {
+    color: C.textSecondary,
+    fontSize: 14,
+  },
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 13,
+    paddingVertical: 12,
     gap: 14,
-    borderRadius: R.sm,
-    paddingHorizontal: 4,
   },
   actionIconWrap: {
     width: 40,
@@ -807,7 +940,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  actionText: { flex: 1, gap: 2 },
-  actionLabel: { color: C.textPrimary, fontSize: 15, fontWeight: "600" },
-  actionDesc: { color: C.textMuted, fontSize: 12 },
+  actionText: {
+    flex: 1,
+    gap: 2,
+  },
+  actionLabel: {
+    color: C.textPrimary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  actionDesc: {
+    color: C.textMuted,
+    fontSize: 12,
+  },
 });
