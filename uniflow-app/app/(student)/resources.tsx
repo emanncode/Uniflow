@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
-  header: { paddingHorizontal: 20, paddingBottom: 12, gap: 2 },
+  header: { paddingBottom: 12, gap: 2 },
   headerTitle: {
     color: C.textPrimary,
     fontSize: 26,
@@ -415,7 +415,6 @@ const styles = StyleSheet.create({
   headerSub: { color: C.textMuted, fontSize: 13 },
 
   filterStrip: {
-    paddingHorizontal: 20,
     paddingBottom: 10,
     gap: 8,
     flexDirection: 'row',

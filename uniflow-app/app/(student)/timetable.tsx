@@ -525,10 +525,11 @@ export default function StudentTimetable() {
       </View>
 
       {/* ── Day Selector ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.dayStrip}
+      <View
+        style={styles.dayStrip}
+        // horizontal
+        // showsHorizontalScrollIndicator={false}
+        // contentContainerStyle={styles.dayStrip}
       >
         {DAYS.map((day) => {
           const isSelected = selectedDay === day.key;
@@ -561,7 +562,7 @@ export default function StudentTimetable() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* ── Slots ── */}
       <ScrollView
@@ -670,7 +671,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     flexDirection: "row",
     gap: 8,
-    flex: 1,
   },
   dayPill: {
     minWidth: 56,

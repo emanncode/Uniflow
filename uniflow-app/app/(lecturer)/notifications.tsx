@@ -371,12 +371,12 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   rowTitleUnread: { color: C.textPrimary, fontWeight: '700' },
-  rowTime: { color: C.textMuted, fontSize: 11, flexShrink: 0, marginTop: 2 },
+  rowTime: { color: C.textMuted, fontSize: 11, flexShrink: 0, marginTop: 0 },
   rowMessage: { color: C.textMuted, fontSize: 13, lineHeight: 18 },
-  typeLabel: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  typeLabel: { fontSize: 11, fontWeight: '600', marginTop: 0 },
 
   emptyCard: {
-    margin: 20,
+    margin: 0,
     backgroundColor: C.bgSecondary,
     borderRadius: R.md,
     borderWidth: 1,
