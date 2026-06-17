@@ -22,8 +22,6 @@ interface ProfileAvatarProps {
   editable?: boolean;
   previewable?: boolean;
   onEditPress?: () => void;
-  /** Used when the avatar has no image to preview (e.g. navigate to profile). */
-  onPress?: () => void;
 }
 
 export function ProfileAvatar({
@@ -33,21 +31,11 @@ export function ProfileAvatar({
   editable = false,
   previewable = true,
   onEditPress,
-  onPress,
 }: ProfileAvatarProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const dims = SIZES[size];
   const initials = getInitials(name);
   const canPreview = previewable && !!avatarUrl;
-  const isPressable = canPreview || !!onPress;
-
-  const handleAvatarPress = () => {
-    if (canPreview) {
-      setLightboxOpen(true);
-    } else {
-      onPress?.();
-    }
-  };
 
   const avatarContent = avatarUrl ? (
     <Image
@@ -74,9 +62,9 @@ export function ProfileAvatar({
           { width: dims.container, height: dims.container },
         ]}
       >
-        {isPressable ? (
+        {canPreview ? (
           <Pressable
-            onPress={handleAvatarPress}
+            onPress={() => setLightboxOpen(true)}
             style={({ pressed }) => [
               styles.avatar,
               {

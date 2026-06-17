@@ -317,21 +317,22 @@ export default function StudentDashboard() {
     >
       {/* ── Header ── */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerLeft}
-          onPress={() => router.push('/(student)/profile')}
-          activeOpacity={0.8}
-        >
+        <View style={styles.headerLeft}>
           <Text style={styles.greeting}>{getGreeting()}</Text>
           <Text style={styles.name}>{firstName}</Text>
           <Text style={styles.date}>{TODAY_LABEL}</Text>
-        </TouchableOpacity>
-        <ProfileAvatar
-          name={firstName}
-          avatarUrl={profile?.avatar_url}
-          size="sm"
+        </View>
+        <TouchableOpacity
           onPress={() => router.push('/(student)/profile')}
-        />
+          activeOpacity={0.8}
+        >
+          <ProfileAvatar
+            name={firstName}
+            avatarUrl={profile?.avatar_url}
+            size="sm"
+            previewable={false}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* ── Stats ── */}
