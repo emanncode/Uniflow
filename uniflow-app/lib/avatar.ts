@@ -1,11 +1,9 @@
 import * as FileSystem from "expo-file-system/legacy";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 import { supabase } from "@/lib/supabase";
 
 export const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 export const AVATAR_BUCKET = "avatars";
-
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 
 export function getInitials(name: string): string {
   return name

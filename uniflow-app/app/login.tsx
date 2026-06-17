@@ -20,7 +20,7 @@ import UniflowLogo from "@/components/UniflowLogo";
 import GridBackground from "@/components/GridBackground";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
-import { WEB_APP_URL } from "@/lib/config";
+import { webAppUrl } from "@/lib/config";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -87,7 +87,7 @@ export default function LoginScreen() {
 
     setIsGenerating(true);
     try {
-      const res = await fetch(`${WEB_APP_URL}/api/public/generate-temp-password`, {
+      const res = await fetch(webAppUrl("/api/public/generate-temp-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: genEmail.toLowerCase().trim() })

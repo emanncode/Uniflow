@@ -1,15 +1,7 @@
 import { createClient, type SupportedStorage } from '@supabase/supabase-js'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Platform } from 'react-native'
-
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase env vars. Check EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file.'
-  )
-}
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/config'
 
 // Custom storage adapter to handle environments where window is not defined (e.g. build time/Node)
 const customStorage = {
@@ -33,7 +25,7 @@ const customStorage = {
   },
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: customStorage as SupportedStorage,
     autoRefreshToken: true,
