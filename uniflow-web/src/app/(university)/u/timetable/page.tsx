@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -49,6 +49,34 @@ interface Department {
   name: string;
   short_name: string;
   faculty: string;
+}
+
+interface TimetableRow {
+  id: string;
+  venue: string;
+  day: string;
+  start_time: string;
+  end_time: string;
+  course_id: string;
+  department_id: string | null;
+  courses: { name: string; code: string } | null;
+  profiles: { full_name: string } | null;
+  departments: { name: string } | null;
+}
+
+function mapTimetableRow(t: TimetableRow): TimetableSlot {
+  return {
+    id: t.id,
+    course_name: t.courses?.name ?? "—",
+    course_code: t.courses?.code ?? "—",
+    lecturer_name: t.profiles?.full_name ?? "—",
+    venue: t.venue,
+    day: t.day,
+    start_time: t.start_time,
+    end_time: t.end_time,
+    department_id: t.department_id,
+    department_name: t.departments?.name ?? "—",
+  };
 }
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const HOURS = [
@@ -309,7 +337,6 @@ export default function TimetablePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [activeDept, setActiveDept] = useState<Department | null>(null);
   const [activeDay, setActiveDay] = useState("Monday");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -321,33 +348,7 @@ export default function TimetablePage() {
   const [importCorrected, setImportCorrected] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
-  const [conflictCheck, setConflictCheck] = useState<string | null>(null);
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Timetable is department-scoped — accessed from the Departments page
-  useEffect(() => {
-    if (departments.length === 0) return;
-
-    const deptParam = searchParams.get("department");
-    if (!deptParam) {
-      setLoading(false);
-      router.replace("/u/faculties");
-      return;
-    }
-
-    const dept = departments.find(
-      (d) => d.id === deptParam || d.short_name === deptParam,
-    );
-    if (!dept) {
-      setLoading(false);
-      router.replace("/u/faculties");
-      return;
-    }
-
-    setActiveDept(dept);
-  }, [searchParams, departments, router]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [newCourseId, setNewCourseId] = useState("");
   const [newLecturerId, setNewLecturerId] = useState("");
@@ -355,6 +356,133 @@ export default function TimetablePage() {
   const [newDay, setNewDay] = useState("Monday");
   const [newStart, setNewStart] = useState("08:00");
   const [newEnd, setNewEnd] = useState("10:00");
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const deptParam = searchParams.get("department");
+
+  const activeDept = useMemo(() => {
+    if (!deptParam || departments.length === 0) return null;
+    return (
+      departments.find(
+        (d) => d.id === deptParam || d.short_name === deptParam,
+      ) ?? null
+    );
+  }, [deptParam, departments]);
+
+  const conflictCheck = useMemo(() => {
+    if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) {
+      return null;
+    }
+    const clash = slots.find((s) => {
+      if (s.day !== newDay) return false;
+      const overlaps = newStart < s.end_time && newEnd > s.start_time;
+      if (!overlaps) return false;
+      return (
+        s.venue === newVenue ||
+        s.lecturer_name ===
+          lecturers.find((l) => l.id === newLecturerId)?.full_name
+      );
+    });
+    return clash
+      ? `⚠️ Conflict with "${clash.course_name}" at ${clash.start_time}–${clash.end_time} ${clash.venue === newVenue ? `(same venue: ${newVenue})` : "(same lecturer)"}`
+      : null;
+  }, [newVenue, newDay, newStart, newEnd, newLecturerId, slots, lecturers]);
+
+  useEffect(() => {
+    if (departments.length === 0) return;
+    if (!deptParam || !activeDept) {
+      router.replace("/u/faculties");
+    }
+  }, [departments, deptParam, activeDept, router]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchPageData() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session || cancelled) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("university_id")
+        .eq("id", session.user.id)
+        .single();
+      if (!profile || cancelled) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      if (!cancelled) setUniId(profile.university_id);
+
+      const { data: deptRes } = await supabase
+        .from("departments")
+        .select("id, name, short_name, faculty")
+        .eq("university_id", profile.university_id)
+        .order("name");
+
+      if (cancelled) return;
+      setDepartments(deptRes ?? []);
+
+      const departmentId =
+        deptRes?.find(
+          (d) => d.id === deptParam || d.short_name === deptParam,
+        )?.id ?? null;
+
+      if (!departmentId) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      const [ttRes, courseRes, lecRes] = await Promise.all([
+        supabase
+          .from("timetable")
+          .select(
+            `id, venue, day, start_time, end_time, course_id, department_id, courses(name, code), profiles(full_name), departments(name)`,
+          )
+          .eq("university_id", profile.university_id)
+          .eq("department_id", departmentId)
+          .order("day")
+          .order("start_time"),
+        supabase
+          .from("courses")
+          .select("id, name, code")
+          .eq("university_id", profile.university_id)
+          .order("name"),
+        supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .eq("university_id", profile.university_id)
+          .eq("role", "lecturer")
+          .order("full_name"),
+      ]);
+
+      if (cancelled) return;
+
+      const rawSlots = (ttRes.data ?? []).map((t) =>
+        mapTimetableRow(t as unknown as TimetableRow),
+      );
+      setSlots(detectConflicts(rawSlots));
+      setCourses(courseRes.data ?? []);
+      setLecturers(lecRes.data ?? []);
+      setLoading(false);
+    }
+
+    void fetchPageData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [deptParam, refreshKey]);
+
+  function loadData() {
+    setRefreshKey((k) => k + 1);
+  }
 
   const CSV_TEMPLATE = `course_code,lecturer_email,venue,day,start_time,end_time\nCSC301,lecturer@email.com,LT1,Monday,08:00,10:00\nMTH201,john@email.com,Hall A,Tuesday,10:00,12:00`;
 
@@ -469,139 +597,10 @@ export default function TimetablePage() {
     setImportErrors(errors);
     setImportSuccess(successCount);
     setImportCorrected(correctedCount);
-    if (successCount > 0) await loadData();
+    if (successCount > 0) loadData();
     setImporting(false);
     e.target.value = "";
   }
-
-  const loadTimetableData = useCallback(async (departmentId: string) => {
-    setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("university_id")
-      .eq("id", session.user.id)
-      .single();
-    if (!profile) return;
-
-    const [ttRes, courseRes, lecRes] = await Promise.all([
-      supabase
-        .from("timetable")
-        .select(
-          `id, venue, day, start_time, end_time, course_id, department_id, courses(name, code), profiles(full_name), departments(name)`,
-        )
-        .eq("university_id", profile.university_id)
-        .eq("department_id", departmentId)
-        .order("day")
-        .order("start_time"),
-      supabase
-        .from("courses")
-        .select("id, name, code")
-        .eq("university_id", profile.university_id)
-        .order("name"),
-      supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .eq("university_id", profile.university_id)
-        .eq("role", "lecturer")
-        .order("full_name"),
-    ]);
-
-    const rawSlots: TimetableSlot[] = (ttRes.data ?? []).map((t: any) => ({
-      id: t.id,
-      course_name: t.courses?.name ?? "—",
-      course_code: t.courses?.code ?? "—",
-      lecturer_name: t.profiles?.full_name ?? "—",
-      venue: t.venue,
-      day: t.day,
-      start_time: t.start_time,
-      end_time: t.end_time,
-      department_id: t.department_id,
-      department_name: t.departments?.name ?? "—",
-    }));
-
-    setSlots(detectConflicts(rawSlots));
-    setCourses(courseRes.data ?? []);
-    setLecturers(lecRes.data ?? []);
-    setLoading(false);
-  }, [uniId]);
-
-  const loadDepartments = useCallback(async () => {
-    setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
-      setLoading(false);
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("university_id")
-      .eq("id", session.user.id)
-      .single();
-    if (!profile) {
-      setLoading(false);
-      return;
-    }
-    setUniId(profile.university_id);
-
-    const { data: deptRes } = await supabase
-      .from("departments")
-      .select("id, name, short_name, faculty")
-      .eq("university_id", profile.university_id)
-      .order("name");
-
-    setDepartments(deptRes ?? []);
-    if (!searchParams.get("department")) {
-      setLoading(false);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    loadDepartments();
-  }, [loadDepartments]);
-
-  useEffect(() => {
-    if (!activeDept) return;
-    loadTimetableData(activeDept.id);
-  }, [activeDept, loadTimetableData]); // uniId is used here
-
-  const loadData = useCallback(async () => {
-    if (!activeDept) return;
-    await loadTimetableData(activeDept.id);
-  }, [activeDept, loadTimetableData]);
-
-  const checkConflictLive = useCallback(() => {
-    if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) {
-      setConflictCheck(null);
-      return;
-    }
-    const clash = slots.find((s) => {
-      if (s.day !== newDay) return false;
-      const overlaps = newStart < s.end_time && newEnd > s.start_time;
-      if (!overlaps) return false;
-      return (
-        s.venue === newVenue ||
-        s.lecturer_name ===
-          lecturers.find((l) => l.id === newLecturerId)?.full_name
-      );
-    });
-    setConflictCheck(
-      clash
-        ? `⚠️ Conflict with "${clash.course_name}" at ${clash.start_time}–${clash.end_time} ${clash.venue === newVenue ? `(same venue: ${newVenue})` : "(same lecturer)"}`
-        : null,
-    );
-  }, [newVenue, newDay, newStart, newEnd, newLecturerId, slots, lecturers]);
-
-  useEffect(() => {
-    checkConflictLive();
-  }, [checkConflictLive]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -630,9 +629,9 @@ export default function TimetablePage() {
       setNewLecturerId("");
       setNewVenue("");
       setShowModal(false);
-      await loadData();
-    } catch (err: any) {
-      setError(err.message);
+      loadData();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save slot");
     } finally {
       setSaving(false);
     }
@@ -641,7 +640,7 @@ export default function TimetablePage() {
   async function handleDelete(id: string) {
     if (!confirm("Remove this timetable slot?")) return;
     await supabase.from("timetable").delete().eq("id", id);
-    await loadData();
+    loadData();
   }
 
   const filtered = slots.filter((s) => {
@@ -1056,7 +1055,6 @@ export default function TimetablePage() {
           onClose={() => {
             setShowModal(false);
             setError("");
-            setConflictCheck(null);
           }}
         >
           <form
@@ -1301,7 +1299,6 @@ export default function TimetablePage() {
                 onClick={() => {
                   setShowModal(false);
                   setError("");
-                  setConflictCheck(null);
                 }}
                 className="btn-secondary"
                 style={{ flex: 1 }}
