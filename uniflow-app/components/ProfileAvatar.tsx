@@ -1,8 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, Text, TouchableOpacity, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Pencil } from "lucide-react-native";
 import { Theme } from "@/constants/Theme";
 import { getInitials } from "@/lib/avatar";
+import { AvatarLightbox } from "@/components/AvatarLightbox";
 
 const C = Theme.colors;
 
@@ -18,7 +20,10 @@ interface ProfileAvatarProps {
   avatarUrl?: string | null;
   size?: AvatarSize;
   editable?: boolean;
+  previewable?: boolean;
   onEditPress?: () => void;
+  /** Used when the avatar has no image to preview (e.g. navigate to profile). */
+  onPress?: () => void;
 }
 
 export function ProfileAvatar({
@@ -26,70 +31,110 @@ export function ProfileAvatar({
   avatarUrl,
   size = "lg",
   editable = false,
+  previewable = true,
   onEditPress,
+  onPress,
 }: ProfileAvatarProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const dims = SIZES[size];
   const initials = getInitials(name);
+  const canPreview = previewable && !!avatarUrl;
+  const isPressable = canPreview || !!onPress;
+
+  const handleAvatarPress = () => {
+    if (canPreview) {
+      setLightboxOpen(true);
+    } else {
+      onPress?.();
+    }
+  };
+
+  const avatarContent = avatarUrl ? (
+    <Image
+      source={{ uri: avatarUrl }}
+      style={[
+        styles.image,
+        {
+          width: dims.container,
+          height: dims.container,
+          borderRadius: dims.container / 2,
+        },
+      ]}
+      contentFit="cover"
+    />
+  ) : (
+    <Text style={[styles.initials, { fontSize: dims.text }]}>{initials}</Text>
+  );
 
   return (
-    <View
-      style={[
-        styles.wrapper,
-        { width: dims.container, height: dims.container },
-      ]}
-    >
+    <>
       <View
         style={[
-          styles.avatar,
-          {
-            width: dims.container,
-            height: dims.container,
-            borderRadius: dims.container / 2,
-          },
+          styles.wrapper,
+          { width: dims.container, height: dims.container },
         ]}
       >
-        {avatarUrl ? (
-          <Image
-            source={{ uri: avatarUrl }}
+        {isPressable ? (
+          <Pressable
+            onPress={handleAvatarPress}
+            style={({ pressed }) => [
+              styles.avatar,
+              {
+                width: dims.container,
+                height: dims.container,
+                borderRadius: dims.container / 2,
+                opacity: pressed ? 0.9 : 1,
+              },
+            ]}
+          >
+            {avatarContent}
+          </Pressable>
+        ) : (
+          <View
             style={[
-              styles.image,
+              styles.avatar,
               {
                 width: dims.container,
                 height: dims.container,
                 borderRadius: dims.container / 2,
               },
             ]}
-            contentFit="cover"
-          />
-        ) : (
-          <Text style={[styles.initials, { fontSize: dims.text }]}>
-            {initials}
-          </Text>
+          >
+            {avatarContent}
+          </View>
         )}
+
+        {editable && onEditPress ? (
+          <TouchableOpacity
+            style={[
+              styles.editBtn,
+              {
+                width: dims.pencil,
+                height: dims.pencil,
+                borderRadius: dims.pencil / 2,
+              },
+            ]}
+            onPress={onEditPress}
+            activeOpacity={0.85}
+            hitSlop={6}
+          >
+            <Pencil
+              size={dims.pencilIcon}
+              color={C.textPrimary}
+              strokeWidth={2.2}
+            />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
-      {editable && onEditPress ? (
-        <TouchableOpacity
-          style={[
-            styles.editBtn,
-            {
-              width: dims.pencil,
-              height: dims.pencil,
-              borderRadius: dims.pencil / 2,
-            },
-          ]}
-          onPress={onEditPress}
-          activeOpacity={0.85}
-          hitSlop={6}
-        >
-          <Pencil
-            size={dims.pencilIcon}
-            color={C.textPrimary}
-            strokeWidth={2.2}
-          />
-        </TouchableOpacity>
+      {canPreview && avatarUrl ? (
+        <AvatarLightbox
+          visible={lightboxOpen}
+          imageUri={avatarUrl}
+          onClose={() => setLightboxOpen(false)}
+        />
       ) : null}
-    </View>
+    </>
   );
 }
 
@@ -127,5 +172,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 2,
     elevation: 3,
+    zIndex: 2,
   },
 });

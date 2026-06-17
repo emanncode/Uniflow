@@ -283,21 +283,21 @@ export default function LecturerDashboard() {
     >
       {/* ── Header ── */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.name}>{firstName}</Text>
-          <Text style={styles.date}>{TODAY_LABEL}</Text>
-        </View>
         <TouchableOpacity
+          style={styles.headerLeft}
           onPress={() => router.push('/(lecturer)/profile')}
           activeOpacity={0.8}
         >
-          <ProfileAvatar
-            name={firstName}
-            avatarUrl={profile?.avatar_url}
-            size="sm"
-          />
+          <Text style={styles.greeting}>{getGreeting()}</Text>
+          <Text style={styles.name}>{firstName}</Text>
+          <Text style={styles.date}>{TODAY_LABEL}</Text>
         </TouchableOpacity>
+        <ProfileAvatar
+          name={firstName}
+          avatarUrl={profile?.avatar_url}
+          size="sm"
+          onPress={() => router.push('/(lecturer)/profile')}
+        />
       </View>
 
       {/* ── Stats ── */}
