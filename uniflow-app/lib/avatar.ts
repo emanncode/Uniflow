@@ -52,7 +52,7 @@ function formatUploadError(error: {
   const msg = `${error.message ?? ""} ${error.error ?? ""}`.toLowerCase();
 
   if (msg.includes("bucket not found")) {
-    return "Avatar storage is not configured. Create the 'avatars' bucket in Supabase.";
+    return "Avatar storage bucket missing. In Supabase go to Storage → New bucket → name it 'avatars' → enable Public, then run uniflow-app/supabase/avatars_storage.sql in the SQL Editor.";
   }
   if (
     msg.includes("row-level security") ||
