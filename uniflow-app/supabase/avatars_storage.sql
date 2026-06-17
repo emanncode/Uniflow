@@ -1,9 +1,14 @@
 -- Run this in Supabase Dashboard → SQL Editor
--- Creates the avatars bucket and policies for profile photo uploads
+-- Safe to re-run: drops existing policies first, then recreates them
 
 insert into storage.buckets (id, name, public)
 values ('avatars', 'avatars', true)
 on conflict (id) do update set public = true;
+
+drop policy if exists "Avatar images are publicly accessible" on storage.objects;
+drop policy if exists "Users can upload their own avatar" on storage.objects;
+drop policy if exists "Users can update their own avatar" on storage.objects;
+drop policy if exists "Users can replace their own avatar" on storage.objects;
 
 create policy "Avatar images are publicly accessible"
 on storage.objects for select
