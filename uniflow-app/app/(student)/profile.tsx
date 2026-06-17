@@ -366,7 +366,11 @@ return (
               <InfoRow
                 icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Faculty"
-                value={profile.department.faculty}
+                value={
+                  profile.faculty
+                    ? `${profile.faculty.name} (${profile.faculty.short_name})`
+                    : profile.department.faculty
+                }
               />
             </>
           )}

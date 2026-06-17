@@ -61,15 +61,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return { error: "Could not load your profile. Please contact support." };
     }
 
-    // Enrich lecturer profile with full faculty name (department.faculty holds short_name)
-    if (profile.role === 'lecturer' && (profile as any).department?.faculty) {
+    // Enrich profile with full faculty (department.faculty holds short_name)
+    if ((profile as Profile).department?.faculty) {
       const { data: facultyData } = await supabase
         .from('faculties')
         .select('id, name, short_name')
-        .eq('short_name', (profile as any).department.faculty)
-        .single();
+        .eq('short_name', (profile as Profile).department!.faculty!)
+        .eq('university_id', profile.university_id)
+        .maybeSingle();
       if (facultyData) {
-        (profile as any).faculty = facultyData;
+        (profile as Profile).faculty = facultyData;
       }
     }
 
@@ -133,15 +134,16 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return;
     }
 
-    // Enrich lecturer profile with full faculty name (department.faceulty holds short_name)
-    if (profile.role === 'lecturer' && (profile as any).department?.faculty) {
+    // Enrich profile with full faculty (department.faculty holds short_name)
+    if ((profile as Profile).department?.faculty) {
       const { data: facultyData } = await supabase
         .from('faculties')
         .select('id, name, short_name')
-        .eq('short_name', (profile as any).department.faculty)
-        .single();
+        .eq('short_name', (profile as Profile).department!.faculty!)
+        .eq('university_id', profile.university_id)
+        .maybeSingle();
       if (facultyData) {
-        (profile as any).faculty = facultyData;
+        (profile as Profile).faculty = facultyData;
       }
     }
 
