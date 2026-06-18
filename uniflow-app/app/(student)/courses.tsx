@@ -23,6 +23,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { CoursesSkeleton } from "@/components/SkeletonLoader";
+import { ScreenPageHeader } from "@/components/ScreenPageHeader";
 import type { Course, TimetableSlot } from "@/types";
 
 const C = Theme.colors;
@@ -291,12 +292,12 @@ export default function StudentCourses() {
   const renderHeader = () => (
     <>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.headerTitle}>My Courses</Text>
-        <Text style={styles.headerSub}>
-          {courses.length} course{courses.length !== 1 ? "s" : ""} enrolled
-        </Text>
-      </View>
+      <ScreenPageHeader
+        title="My Courses"
+        subtitle={`${courses.length} course${courses.length !== 1 ? "s" : ""} enrolled`}
+        role="student"
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
+      />
 
       {/* Summary strip */}
       {courses.length > 0 && (
@@ -373,14 +374,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
   centered: { alignItems: "center", justifyContent: "center" },
 
-  header: { paddingBottom: 16, gap: 2 },
-  headerTitle: {
-    color: C.textPrimary,
-    fontSize: 26,
-    fontWeight: "800",
-    letterSpacing: -0.6,
-  },
-  headerSub: { color: C.textMuted, fontSize: 13 },
+  header: { paddingBottom: 16 },
 
   summaryStrip: {
     flexDirection: "row",

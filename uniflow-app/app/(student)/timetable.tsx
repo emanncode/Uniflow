@@ -27,6 +27,7 @@ import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { TimetableSkeleton, SkeletonBar } from "@/components/SkeletonLoader";
+import { ScreenPageHeader } from "@/components/ScreenPageHeader";
 import type {
   TimetableSlot,
   ClassUpdate,
@@ -517,12 +518,12 @@ export default function StudentTimetable() {
   return (
     <View style={styles.root}>
       {/* ── Header ── */}
-      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-        <Text style={styles.headerTitle}>Timetable</Text>
-        <Text style={styles.headerSub}>
-          {allSlots.length} class{allSlots.length !== 1 ? "es" : ""} enrolled
-        </Text>
-      </View>
+      <ScreenPageHeader
+        title="Timetable"
+        subtitle={`${allSlots.length} class${allSlots.length !== 1 ? "es" : ""} enrolled`}
+        role="student"
+        style={[styles.header, { paddingTop: insets.top + 20 }]}
+      />
 
       {/* ── Day Selector ── */}
       <View
@@ -652,17 +653,6 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingBottom: 16,
-    gap: 2,
-  },
-  headerTitle: {
-    color: C.textPrimary,
-    fontSize: 26,
-    fontWeight: "800",
-    letterSpacing: -0.6,
-  },
-  headerSub: {
-    color: C.textMuted,
-    fontSize: 13,
   },
 
   // Day Strip

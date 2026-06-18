@@ -8,8 +8,10 @@ import {
   RefreshControl,
   Pressable,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
+  ArrowLeft,
   BellOff,
   Zap,
   BookOpen,
@@ -139,6 +141,7 @@ interface NotificationsScreenProps {
 }
 
 export function NotificationsScreen({ role }: NotificationsScreenProps) {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
 
@@ -227,6 +230,14 @@ export function NotificationsScreen({ role }: NotificationsScreenProps) {
   return (
     <View style={styles.root}>
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backBtn}
+          activeOpacity={0.75}
+          hitSlop={8}
+        >
+          <ArrowLeft size={22} color={C.textPrimary} strokeWidth={2.2} />
+        </TouchableOpacity>
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>Notifications</Text>
           {unreadCount > 0 && (
@@ -305,8 +316,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 10,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: C.bgCard,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+  },
+  headerLeft: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
   headerTitle: {
     color: C.textPrimary,
     fontSize: 26,

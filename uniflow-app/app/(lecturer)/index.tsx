@@ -22,7 +22,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import { DashboardSkeleton } from '@/components/SkeletonLoader'
-import { ProfileAvatar } from '@/components/ProfileAvatar'
+import { ScreenHeaderActions } from '@/components/ScreenHeaderActions'
 import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
 import { CLASS_STATUS_COLORS, DAY_ORDER } from '@/types'
 
@@ -287,17 +287,7 @@ export default function LecturerDashboard() {
           <Text style={styles.name}>{firstName}</Text>
           <Text style={styles.date}>{TODAY_LABEL}</Text>
         </View>
-        <TouchableOpacity
-          onPress={() => router.push('/(lecturer)/profile')}
-          activeOpacity={0.8}
-        >
-          <ProfileAvatar
-            name={firstName}
-            avatarUrl={profile?.avatar_url}
-            size="sm"
-            previewable={false}
-          />
-        </TouchableOpacity>
+        <ScreenHeaderActions role="lecturer" />
       </View>
 
       {/* ── Stats ── */}

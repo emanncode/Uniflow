@@ -31,8 +31,6 @@ export function TabBarIcon({
       <Text
         style={[styles.tabLabel, focused && styles.tabLabelActive]}
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.65}
       >
         {label}
       </Text>
@@ -44,15 +42,15 @@ const styles = StyleSheet.create({
   tabItem: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 3,
+    gap: 4,
     width: "100%",
     maxWidth: "100%",
   },
   iconPill: {
     position: "relative",
-    width: 44,
-    height: 28,
-    borderRadius: 14,
+    width: 50,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "transparent",
@@ -61,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 92, 26, 0.12)",
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "500",
     color: C.textMuted,
     letterSpacing: 0.1,

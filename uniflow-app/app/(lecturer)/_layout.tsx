@@ -1,18 +1,16 @@
-import { Tabs } from 'expo-router'
-import { StyleSheet, Platform } from 'react-native'
+import { Tabs } from "expo-router";
+import { StyleSheet, Platform } from "react-native";
 import {
   LayoutDashboard,
   CalendarDays,
   BookOpen,
   FolderOpen,
-  Bell,
-} from 'lucide-react-native'
-import { Theme } from '@/constants/Theme'
-import { TabBarIcon } from '@/components/TabBarIcon'
+} from "lucide-react-native";
+import { Theme } from "@/constants/Theme";
+import { TabBarIcon } from "@/components/TabBarIcon";
 
-const C = Theme.colors
-
-// ─── Lecturer Tab Layout ───────────────────────────────────────────────────
+const C = Theme.colors;
+const TAB_ICON_SIZE = 24;
 
 export default function LecturerLayout() {
   return (
@@ -28,10 +26,16 @@ export default function LecturerLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ focused, color }) => (
             <TabBarIcon
-              icon={<LayoutDashboard size={20} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
+              icon={
+                <LayoutDashboard
+                  size={TAB_ICON_SIZE}
+                  color={color}
+                  strokeWidth={focused ? 2.2 : 1.8}
+                />
+              }
               label="Home"
               focused={focused}
             />
@@ -41,10 +45,16 @@ export default function LecturerLayout() {
       <Tabs.Screen
         name="timetable"
         options={{
-          title: 'Timetable',
+          title: "Timetable",
           tabBarIcon: ({ focused, color }) => (
             <TabBarIcon
-              icon={<CalendarDays size={20} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
+              icon={
+                <CalendarDays
+                  size={TAB_ICON_SIZE}
+                  color={color}
+                  strokeWidth={focused ? 2.2 : 1.8}
+                />
+              }
               label="Schedule"
               focused={focused}
             />
@@ -54,10 +64,16 @@ export default function LecturerLayout() {
       <Tabs.Screen
         name="courses"
         options={{
-          title: 'Courses',
+          title: "Courses",
           tabBarIcon: ({ focused, color }) => (
             <TabBarIcon
-              icon={<BookOpen size={20} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
+              icon={
+                <BookOpen
+                  size={TAB_ICON_SIZE}
+                  color={color}
+                  strokeWidth={focused ? 2.2 : 1.8}
+                />
+              }
               label="Courses"
               focused={focused}
             />
@@ -67,10 +83,16 @@ export default function LecturerLayout() {
       <Tabs.Screen
         name="resources"
         options={{
-          title: 'Resources',
+          title: "Resources",
           tabBarIcon: ({ focused, color }) => (
             <TabBarIcon
-              icon={<FolderOpen size={20} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
+              icon={
+                <FolderOpen
+                  size={TAB_ICON_SIZE}
+                  color={color}
+                  strokeWidth={focused ? 2.2 : 1.8}
+                />
+              }
               label="Resources"
               focused={focused}
             />
@@ -80,18 +102,10 @@ export default function LecturerLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: 'Alerts',
-          tabBarIcon: ({ focused, color }) => (
-            <TabBarIcon
-              icon={<Bell size={20} color={color} strokeWidth={focused ? 2.2 : 1.8} />}
-              label="Alerts"
-              focused={focused}
-            />
-          ),
+          href: null,
+          tabBarStyle: { display: "none" },
         }}
       />
-
-      {/* Profile — stack-style screen: no tab bar, back button on screen */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -100,21 +114,18 @@ export default function LecturerLayout() {
         }}
       />
     </Tabs>
-  )
+  );
 }
-
-// ─── Styles ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: C.bgSecondary,
     borderTopWidth: 1,
     borderTopColor: C.borderPrimary,
-    height: Platform.OS === 'ios' ? 84 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-    paddingTop: 6,
+    height: Platform.OS === "ios" ? 88 : 68,
+    paddingBottom: Platform.OS === "ios" ? 24 : 10,
+    paddingTop: 8,
     elevation: 0,
     shadowOpacity: 0,
   },
-
-})
+});

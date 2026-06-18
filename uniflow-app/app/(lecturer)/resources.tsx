@@ -27,6 +27,7 @@ import {
 import * as DocumentPicker from "expo-document-picker";
 import { supabase } from "@/lib/supabase";
 import { ResourcesSkeleton } from "@/components/SkeletonLoader";
+import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
@@ -554,20 +555,23 @@ export default function LecturerResources() {
     <>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <View>
-          <Text style={styles.headerTitle}>Resources</Text>
-          <Text style={styles.headerSub}>
-            {resources.length} file{resources.length !== 1 ? "s" : ""} uploaded
-          </Text>
+        <View style={styles.headerTop}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Resources</Text>
+            <Text style={styles.headerSub}>
+              {resources.length} file{resources.length !== 1 ? "s" : ""} uploaded
+            </Text>
+            <TouchableOpacity
+              style={styles.uploadFab}
+              onPress={() => setUploadVisible(true)}
+              activeOpacity={0.85}
+            >
+              <Plus size={18} color={C.textPrimary} strokeWidth={2.5} />
+              <Text style={styles.uploadFabText}>Upload</Text>
+            </TouchableOpacity>
+          </View>
+          <ScreenHeaderActions role="lecturer" />
         </View>
-        <TouchableOpacity
-          style={styles.uploadFab}
-          onPress={() => setUploadVisible(true)}
-          activeOpacity={0.85}
-        >
-          <Plus size={18} color={C.textPrimary} strokeWidth={2.5} />
-          <Text style={styles.uploadFabText}>Upload</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Course filter */}
@@ -649,9 +653,16 @@ const styles = StyleSheet.create({
 
   header: {
     paddingBottom: 12,
+  },
+  headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    gap: 12,
+  },
+  headerLeft: {
+    flex: 1,
+    gap: 2,
   },
   headerTitle: {
     color: C.textPrimary,
@@ -664,11 +675,13 @@ const styles = StyleSheet.create({
   uploadFab: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
     gap: 6,
     backgroundColor: C.brand,
     borderRadius: R.full,
     paddingHorizontal: 16,
     paddingVertical: 10,
+    marginTop: 10,
   },
   uploadFabText: { color: C.textPrimary, fontSize: 13, fontWeight: "700" },
 

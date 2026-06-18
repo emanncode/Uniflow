@@ -5,14 +5,12 @@ import {
   CalendarDays,
   BookOpen,
   FolderDown,
-  Bell,
 } from "lucide-react-native";
 import { Theme } from "@/constants/Theme";
 import { TabBarIcon } from "@/components/TabBarIcon";
 
 const C = Theme.colors;
-
-// ─── Student Tab Layout ────────────────────────────────────────────────────
+const TAB_ICON_SIZE = 24;
 
 export default function StudentLayout() {
   return (
@@ -33,7 +31,7 @@ export default function StudentLayout() {
             <TabBarIcon
               icon={
                 <LayoutDashboard
-                  size={20}
+                  size={TAB_ICON_SIZE}
                   color={color}
                   strokeWidth={focused ? 2.2 : 1.8}
                 />
@@ -52,7 +50,7 @@ export default function StudentLayout() {
             <TabBarIcon
               icon={
                 <CalendarDays
-                  size={20}
+                  size={TAB_ICON_SIZE}
                   color={color}
                   strokeWidth={focused ? 2.2 : 1.8}
                 />
@@ -71,7 +69,7 @@ export default function StudentLayout() {
             <TabBarIcon
               icon={
                 <BookOpen
-                  size={20}
+                  size={TAB_ICON_SIZE}
                   color={color}
                   strokeWidth={focused ? 2.2 : 1.8}
                 />
@@ -90,7 +88,7 @@ export default function StudentLayout() {
             <TabBarIcon
               icon={
                 <FolderDown
-                  size={20}
+                  size={TAB_ICON_SIZE}
                   color={color}
                   strokeWidth={focused ? 2.2 : 1.8}
                 />
@@ -104,24 +102,10 @@ export default function StudentLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          title: "Alerts",
-          tabBarIcon: ({ focused, color }) => (
-            <TabBarIcon
-              icon={
-                <Bell
-                  size={20}
-                  color={color}
-                  strokeWidth={focused ? 2.2 : 1.8}
-                />
-              }
-              label="Alerts"
-              focused={focused}
-            />
-          ),
+          href: null,
+          tabBarStyle: { display: "none" },
         }}
       />
-
-      {/* Profile — stack-style screen: no tab bar, back button on screen */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -133,16 +117,14 @@ export default function StudentLayout() {
   );
 }
 
-// ─── Styles ────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: C.bgSecondary,
     borderTopWidth: 1,
     borderTopColor: C.borderPrimary,
-    height: Platform.OS === "ios" ? 84 : 64,
-    paddingBottom: Platform.OS === "ios" ? 24 : 8,
-    paddingTop: 6,
+    height: Platform.OS === "ios" ? 88 : 68,
+    paddingBottom: Platform.OS === "ios" ? 24 : 10,
+    paddingTop: 8,
     elevation: 0,
     shadowOpacity: 0,
   },

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { ResourcesSkeleton } from '@/components/SkeletonLoader'
+import { ScreenPageHeader } from '@/components/ScreenPageHeader'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import type { Resource, FileType, ResourceType } from '@/types'
@@ -289,12 +290,12 @@ export default function StudentResources() {
   const renderHeader = () => (
     <>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.headerTitle}>Resources</Text>
-        <Text style={styles.headerSub}>
-          {resources.length} file{resources.length !== 1 ? 's' : ''} available
-        </Text>
-      </View>
+      <ScreenPageHeader
+        title="Resources"
+        subtitle={`${resources.length} file${resources.length !== 1 ? 's' : ''} available`}
+        role="student"
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
+      />
 
       {/* Course filter chips */}
       <ScrollView
@@ -404,14 +405,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
   centered: { alignItems: 'center', justifyContent: 'center' },
 
-  header: { paddingBottom: 12, gap: 2 },
-  headerTitle: {
-    color: C.textPrimary,
-    fontSize: 26,
-    fontWeight: '800',
-    letterSpacing: -0.6,
-  },
-  headerSub: { color: C.textMuted, fontSize: 13 },
+  header: { paddingBottom: 12 },
 
   filterStrip: {
     paddingBottom: 10,

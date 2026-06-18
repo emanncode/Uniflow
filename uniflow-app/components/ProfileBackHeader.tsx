@@ -15,9 +15,9 @@ const VISIBLE_TAB_BAR = {
   backgroundColor: C.bgSecondary,
   borderTopWidth: 1,
   borderTopColor: C.borderPrimary,
-  height: Platform.OS === "ios" ? 84 : 64,
-  paddingBottom: Platform.OS === "ios" ? 24 : 8,
-  paddingTop: 6,
+  height: Platform.OS === "ios" ? 88 : 68,
+  paddingBottom: Platform.OS === "ios" ? 24 : 10,
+  paddingTop: 8,
   elevation: 0,
   shadowOpacity: 0,
 };
