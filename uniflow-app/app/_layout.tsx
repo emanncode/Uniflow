@@ -1,8 +1,9 @@
 import "react-native-reanimated";
-import { useEffect } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import { View, StyleSheet } from "react-native";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as ExpoSplash from "expo-splash-screen";
 import {
   useAuthStore,
   useIsHydrated,
@@ -10,7 +11,10 @@ import {
   useIsLecturer,
 } from "@/store/useAuthStore";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { SplashEntrance } from "@/components/SplashEntrance";
 import { Theme } from "@/constants/Theme";
+
+ExpoSplash.preventAutoHideAsync().catch(() => {});
 
 const C = Theme.colors;
 
@@ -45,34 +49,32 @@ function AuthGuard() {
   return null;
 }
 
-// ─── Splash ────────────────────────────────────────────────────────────────
-
-function SplashScreen() {
-  return (
-    <View style={styles.splash}>
-      <ActivityIndicator size="large" color={C.brand} />
-    </View>
-  );
-}
-
 // ─── Root Layout ───────────────────────────────────────────────────────────
 
 export default function RootLayout() {
   const hydrateSession = useAuthStore((s) => s.hydrateSession);
   const isHydrated = useIsHydrated();
+  const [splashDone, setSplashDone] = useState(false);
 
-  // Register push token once profile is available
+  const handleSplashFinish = useCallback(() => {
+    setSplashDone(true);
+  }, []);
+
   usePushNotifications();
 
   useEffect(() => {
     hydrateSession();
   }, [hydrateSession]);
 
+  const showSplash = !splashDone || !isHydrated;
+  const showApp = splashDone && isHydrated;
+
   return (
     <View style={styles.root}>
       <StatusBar style="light" backgroundColor={C.bgDeep} />
       <AuthGuard />
-      {!isHydrated ? <SplashScreen /> : <Slot />}
+      {showApp ? <Slot /> : null}
+      {showSplash ? <SplashEntrance onFinish={handleSplashFinish} /> : null}
     </View>
   );
 }
@@ -81,10 +83,4 @@ export default function RootLayout() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
-  splash: {
-    flex: 1,
-    backgroundColor: C.bgDeep,
-    alignItems: "center",
-    justifyContent: "center",
-  },
 });

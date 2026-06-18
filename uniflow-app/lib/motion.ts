@@ -5,6 +5,9 @@ export const MOTION = {
   stagger: 45,
   maxStagger: 180,
   pressScale: 0.97,
+  splash: {
+    total: 980,
+  },
 } as const;
 
 export function staggerDelay(index: number): number {
