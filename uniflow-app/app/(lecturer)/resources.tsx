@@ -336,8 +336,10 @@ function UploadSheet({
       onClose={handleClose}
       title="Upload Resource"
       type="sheet"
+      sheetScroll
     >
       <ScrollView
+        style={styles.sheetScroll}
         contentContainerStyle={styles.sheetScrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -822,6 +824,7 @@ const styles = StyleSheet.create({
   },
   fileTypeText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
 
+  sheetScroll: { flex: 1 },
   sheetScrollContent: { paddingBottom: 24, gap: 16 },
 
   noCoursesBanner: {

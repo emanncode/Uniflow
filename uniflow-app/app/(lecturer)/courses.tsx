@@ -133,10 +133,12 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
       onClose={onClose}
       title={course.code}
       type="sheet"
+      sheetScroll
     >
       <ScrollView
+        style={styles.sheetScroll}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={styles.sheetBody}
       >
         <Text style={styles.sheetTitle}>{course.title}</Text>
         
@@ -557,6 +559,11 @@ const styles = StyleSheet.create({
     backgroundColor: C.borderPrimary,
   },
 
+  sheetScroll: { flex: 1 },
+  sheetBody: {
+    paddingBottom: 32,
+    gap: 20,
+  },
   sheetTitle: {
     color: C.textPrimary,
     fontSize: 22,

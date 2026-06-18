@@ -14,6 +14,9 @@ import { X } from "lucide-react-native";
 import { Theme } from "@/constants/Theme";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.9;
+const SHEET_SCROLL_HEIGHT = SCREEN_HEIGHT * 0.85;
+
 const C = Theme.colors;
 const R = Theme.radius;
 
@@ -23,6 +26,8 @@ interface CustomModalProps {
   title?: string;
   children: React.ReactNode;
   type?: "sheet" | "alert";
+  /** Tall sheet with scrollable body — use for long forms/lists only */
+  sheetScroll?: boolean;
 }
 
 export function CustomModal({
@@ -31,9 +36,10 @@ export function CustomModal({
   title,
   children,
   type = "sheet",
+  sheetScroll = false,
 }: CustomModalProps) {
   const isSheet = type === "sheet";
-  
+
   return (
     <Modal
       visible={visible}
@@ -42,20 +48,21 @@ export function CustomModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        style={styles.root}
+        style={[styles.root, isSheet ? styles.rootSheet : styles.rootAlert]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <Pressable 
-          style={styles.overlay} 
-          onPress={onClose} 
-        />
-        
-        <View style={[
-          styles.container,
-          isSheet ? styles.sheetContainer : styles.alertContainer
-        ]}>
+        <Pressable style={styles.overlay} onPress={onClose} />
+
+        <View
+          style={[
+            styles.container,
+            isSheet && styles.sheetContainer,
+            isSheet && sheetScroll && styles.sheetContainerScroll,
+            !isSheet && styles.alertContainer,
+          ]}
+        >
           {isSheet && <View style={styles.sheetHandle} />}
-          
+
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <TouchableOpacity
@@ -67,7 +74,12 @@ export function CustomModal({
             </TouchableOpacity>
           </View>
 
-          <View style={[styles.body, isSheet && styles.sheetBody]}>
+          <View
+            style={[
+              styles.body,
+              isSheet && sheetScroll && styles.sheetBodyScroll,
+            ]}
+          >
             {children}
           </View>
         </View>
@@ -80,6 +92,12 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  rootSheet: {
+    justifyContent: "flex-end",
+  },
+  rootAlert: {
+    justifyContent: "center",
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0, 0, 0, 0.75)",
@@ -91,19 +109,23 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   sheetContainer: {
-    marginTop: "auto",
-    maxHeight: SCREEN_HEIGHT * 0.9,
+    width: "100%",
+    maxHeight: SHEET_MAX_HEIGHT,
     borderTopLeftRadius: R.xl,
     borderTopRightRadius: R.xl,
     paddingBottom: Platform.OS === "ios" ? 40 : 24,
+  },
+  sheetContainerScroll: {
+    height: SHEET_SCROLL_HEIGHT,
+    maxHeight: SHEET_MAX_HEIGHT,
   },
   alertContainer: {
     marginHorizontal: 24,
     marginVertical: "auto",
     borderRadius: R.lg,
-    alignSelf: 'center',
+    alignSelf: "center",
     width: SCREEN_HEIGHT > 800 ? 340 : 320,
-    maxWidth: '90%',
+    maxWidth: "90%",
   },
   sheetHandle: {
     width: 36,
@@ -139,7 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 8,
   },
-  sheetBody: {
+  sheetBodyScroll: {
     flex: 1,
     minHeight: 0,
   },
