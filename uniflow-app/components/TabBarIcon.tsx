@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 92, 26, 0.12)",
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "500",
     color: C.textMuted,
     letterSpacing: 0,
