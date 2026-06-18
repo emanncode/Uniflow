@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-  Pressable,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -24,6 +23,8 @@ import { Theme } from '@/constants/Theme'
 import { DashboardSkeleton } from '@/components/SkeletonLoader'
 import { ScreenHeaderActions } from '@/components/ScreenHeaderActions'
 import { DashboardStatCard } from '@/components/DashboardStatCard'
+import { FadeSlideIn } from '@/components/FadeSlideIn'
+import { ScalePressable } from '@/components/ScalePressable'
 import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
 import { CLASS_STATUS_COLORS, DAY_ORDER } from '@/types'
 
@@ -83,12 +84,8 @@ function ClassCard({ slot, update, isToday, onPress }: ClassCardProps) {
   const accentColor = status ? CLASS_STATUS_COLORS[status].color : C.brand
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.classCard,
-        isToday && styles.classCardToday,
-        pressed && styles.classCardPressed,
-      ]}
+    <ScalePressable
+      style={[styles.classCard, isToday && styles.classCardToday]}
       onPress={onPress}
     >
       {/* Left accent */}
@@ -127,7 +124,7 @@ function ClassCard({ slot, update, isToday, onPress }: ClassCardProps) {
       </View>
 
       <ChevronRight size={15} color={C.textMuted} strokeWidth={1.8} style={{ marginRight: 14 }} />
-    </Pressable>
+    </ScalePressable>
   )
 }
 
@@ -265,70 +262,73 @@ export default function LecturerDashboard() {
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={C.brand} />
       }
     >
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>{getGreeting()}</Text>
-          <Text style={styles.name}>{firstName}</Text>
-          <Text style={styles.date}>{TODAY_LABEL}</Text>
+      <FadeSlideIn index={0}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
+            <Text style={styles.name}>{firstName}</Text>
+            <Text style={styles.date}>{TODAY_LABEL}</Text>
+          </View>
+          <ScreenHeaderActions role="lecturer" />
         </View>
-        <ScreenHeaderActions role="lecturer" />
-      </View>
+      </FadeSlideIn>
 
-      {/* ── Stats ── */}
       <View style={styles.statsRow}>
         <DashboardStatCard
+          index={1}
           label="Today"
           value={todaySlots.length}
           icon={<CalendarDays size={15} color={C.brand} strokeWidth={1.8} />}
         />
         <DashboardStatCard
+          index={2}
           label="Courses"
           value={totalCourses}
           icon={<BookOpen size={15} color={C.brand} strokeWidth={1.8} />}
         />
         <DashboardStatCard
+          index={3}
           label="Updates"
           value={alertCount}
           icon={<Zap size={15} color={C.brand} strokeWidth={1.8} />}
         />
       </View>
 
-      {/* ── Today's Classes ── */}
-      <View style={styles.section}>
+      <FadeSlideIn index={5} style={styles.section}>
         <SectionHeader
           title="Today's Classes"
           onSeeAll={() => router.push('/(lecturer)/timetable')}
         />
         {todaySlots.length === 0
           ? <EmptyDay />
-          : todaySlots.map((slot) => (
-            <ClassCard
-              key={slot.id}
-              slot={slot}
-              update={todayUpdates[slot.id]}
-              isToday
-              onPress={() => router.push('/(lecturer)/timetable')}
-            />
+          : todaySlots.map((slot, index) => (
+            <FadeSlideIn key={slot.id} index={index + 6}>
+              <ClassCard
+                slot={slot}
+                update={todayUpdates[slot.id]}
+                isToday
+                onPress={() => router.push('/(lecturer)/timetable')}
+              />
+            </FadeSlideIn>
           ))
         }
-      </View>
+      </FadeSlideIn>
 
-      {/* ── Upcoming ── */}
       {upcomingSlots.length > 0 && (
-        <View style={styles.section}>
+        <FadeSlideIn index={8} style={styles.section}>
           <SectionHeader
             title="Upcoming"
             onSeeAll={() => router.push('/(lecturer)/timetable')}
           />
-          {upcomingSlots.map((slot) => (
-            <ClassCard
-              key={slot.id}
-              slot={slot}
-              onPress={() => router.push('/(lecturer)/timetable')}
-            />
+          {upcomingSlots.map((slot, index) => (
+            <FadeSlideIn key={slot.id} index={index + 9}>
+              <ClassCard
+                slot={slot}
+                onPress={() => router.push('/(lecturer)/timetable')}
+              />
+            </FadeSlideIn>
           ))}
-        </View>
+        </FadeSlideIn>
       )}
     </ScrollView>
   )

@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
 import { Theme } from "@/constants/Theme";
 import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
 
 const C = Theme.colors;
 
@@ -20,13 +21,15 @@ export function ScreenPageHeader({
   style,
 }: ScreenPageHeaderProps) {
   return (
-    <View style={[styles.header, style]}>
-      <View style={styles.headerLeft}>
-        <Text style={styles.headerTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.headerSub}>{subtitle}</Text> : null}
+    <FadeSlideIn index={0} style={style}>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.headerTitle}>{title}</Text>
+          {subtitle ? <Text style={styles.headerSub}>{subtitle}</Text> : null}
+        </View>
+        <ScreenHeaderActions role={role} />
       </View>
-      <ScreenHeaderActions role={role} />
-    </View>
+    </FadeSlideIn>
   );
 }
 

@@ -4,7 +4,7 @@ import {
   Text,
   ScrollView,
   FlatList,
-  TouchableOpacity,
+
   StyleSheet,
   RefreshControl,
   Linking,
@@ -24,6 +24,8 @@ import {
 import { supabase } from '@/lib/supabase'
 import { ResourcesSkeleton } from '@/components/SkeletonLoader'
 import { ScreenPageHeader } from '@/components/ScreenPageHeader'
+import { FadeSlideIn } from '@/components/FadeSlideIn'
+import { ScalePressable } from '@/components/ScalePressable'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import type { Resource, FileType, ResourceType } from '@/types'
@@ -154,14 +156,13 @@ function ResourceCard({ resource, onDownload }: ResourceCardProps) {
             </Text>
           </View>
 
-          <TouchableOpacity
+          <ScalePressable
             style={styles.downloadBtn}
             onPress={() => onDownload(resource)}
-            activeOpacity={0.8}
           >
             <Download size={13} color={C.textPrimary} strokeWidth={2} />
             <Text style={styles.downloadBtnText}>Download</Text>
-          </TouchableOpacity>
+          </ScalePressable>
         </View>
       </View>
     </View>
@@ -297,57 +298,63 @@ export default function StudentResources() {
         style={[styles.header, { paddingTop: insets.top + 16 }]}
       />
 
-      {/* Course filter chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterStrip}
-      >
-        {courseOptions.map((opt) => (
-          <TouchableOpacity
-            key={opt.key}
-            style={[
-              styles.filterChip,
-              courseFilter === opt.key && styles.filterChipActive,
-            ]}
-            onPress={() => setCourseFilter(opt.key)}
-            activeOpacity={0.75}
+      <FadeSlideIn index={1}>
+        <View style={styles.filterSection}>
+          <Text style={styles.filterLabel}>Filter by course</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterStrip}
           >
-            <Text style={[
-              styles.filterChipText,
-              courseFilter === opt.key && styles.filterChipTextActive,
-            ]}>
-              {opt.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            {courseOptions.map((opt) => (
+              <ScalePressable
+                key={opt.key}
+                style={[
+                  styles.filterChip,
+                  courseFilter === opt.key && styles.filterChipActive,
+                ]}
+                onPress={() => setCourseFilter(opt.key)}
+              >
+                <Text style={[
+                  styles.filterChipText,
+                  courseFilter === opt.key && styles.filterChipTextActive,
+                ]}>
+                  {opt.label}
+                </Text>
+              </ScalePressable>
+            ))}
+          </ScrollView>
+        </View>
+      </FadeSlideIn>
 
-      {/* Type filter chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterStrip}
-      >
-        {RESOURCE_TYPE_FILTERS.map((opt) => (
-          <TouchableOpacity
-            key={opt.key}
-            style={[
-              styles.typeChip,
-              typeFilter === opt.key && styles.typeChipActive,
-            ]}
-            onPress={() => setTypeFilter(opt.key)}
-            activeOpacity={0.75}
+      <FadeSlideIn index={2}>
+        <View style={styles.filterSection}>
+          <Text style={styles.filterLabel}>Filter by type</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterStrip}
           >
-            <Text style={[
-              styles.typeChipText,
-              typeFilter === opt.key && styles.typeChipTextActive,
-            ]}>
-              {opt.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            {RESOURCE_TYPE_FILTERS.map((opt) => (
+              <ScalePressable
+                key={opt.key}
+                style={[
+                  styles.filterChip,
+                  typeFilter === opt.key && styles.filterChipActive,
+                ]}
+                onPress={() => setTypeFilter(opt.key)}
+              >
+                <Text style={[
+                  styles.filterChipText,
+                  typeFilter === opt.key && styles.filterChipTextActive,
+                ]}>
+                  {opt.label}
+                </Text>
+              </ScalePressable>
+            ))}
+          </ScrollView>
+        </View>
+      </FadeSlideIn>
     </>
   );
 
@@ -407,32 +414,23 @@ const styles = StyleSheet.create({
 
   header: { paddingBottom: 12 },
 
+  filterSection: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  filterLabel: {
+    color: C.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
   filterStrip: {
     paddingBottom: 10,
     gap: 8,
     flexDirection: 'row',
   },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: R.full,
-    backgroundColor: C.bgCard,
-    borderWidth: 1,
-    borderColor: C.borderPrimary,
-  },
-  filterChipActive: {
-    backgroundColor: C.brand,
-    borderColor: C.brand,
-  },
-  filterChipText: {
-    color: C.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  filterChipTextActive: {
-    color: C.textPrimary,
-  },
-  typeChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: R.full,
@@ -440,16 +438,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderPrimary,
   },
-  typeChipActive: {
+  filterChipActive: {
     backgroundColor: C.brandSubtle,
     borderColor: C.borderBrand,
   },
-  typeChipText: {
+  filterChipText: {
     color: C.textMuted,
     fontSize: 12,
     fontWeight: '500',
   },
-  typeChipTextActive: {
+  filterChipTextActive: {
     color: C.brand,
     fontWeight: '700',
   },

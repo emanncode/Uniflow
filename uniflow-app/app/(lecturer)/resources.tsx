@@ -28,6 +28,8 @@ import * as DocumentPicker from "expo-document-picker";
 import { supabase } from "@/lib/supabase";
 import { ResourcesSkeleton } from "@/components/SkeletonLoader";
 import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
+import { ScalePressable } from "@/components/ScalePressable";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
@@ -554,6 +556,7 @@ export default function LecturerResources() {
   const renderHeader = () => (
     <>
       {/* Header */}
+      <FadeSlideIn index={0}>
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
@@ -565,16 +568,18 @@ export default function LecturerResources() {
           <ScreenHeaderActions role="lecturer" />
         </View>
 
-        <TouchableOpacity
+        <ScalePressable
           style={styles.headerUploadBtn}
           onPress={() => setUploadVisible(true)}
-          activeOpacity={0.85}
+          scaleTo={0.98}
         >
           <Plus size={20} color={C.textPrimary} strokeWidth={2.5} />
           <Text style={styles.headerUploadBtnText}>Upload file</Text>
-        </TouchableOpacity>
+        </ScalePressable>
       </View>
+      </FadeSlideIn>
 
+      <FadeSlideIn index={1}>
       <View style={styles.filterSection}>
         <Text style={styles.filterLabel}>Filter by course</Text>
         <FlatList
@@ -584,14 +589,13 @@ export default function LecturerResources() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterStrip}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                selectedCourseId === item.id && styles.filterChipActive,
-              ]}
-              onPress={() => setSelectedCourseId(item.id)}
-              activeOpacity={0.75}
-            >
+          <ScalePressable
+            style={[
+              styles.filterChip,
+              selectedCourseId === item.id && styles.filterChipActive,
+            ]}
+            onPress={() => setSelectedCourseId(item.id)}
+          >
               <Text
                 style={[
                   styles.filterChipText,
@@ -600,10 +604,11 @@ export default function LecturerResources() {
               >
                 {item.code}
               </Text>
-            </TouchableOpacity>
+            </ScalePressable>
           )}
         />
       </View>
+      </FadeSlideIn>
     </>
   );
 

@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { Theme } from "@/constants/Theme";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -8,25 +9,30 @@ interface DashboardStatCardProps {
   label: string;
   value: number;
   icon: React.ReactNode;
+  index?: number;
 }
 
 export function DashboardStatCard({
   label,
   value,
   icon,
+  index = 0,
 }: DashboardStatCardProps) {
   return (
-    <View style={styles.statCard}>
-      <View style={styles.statTop}>
-        <View style={styles.statIconWrap}>{icon}</View>
-        <Text style={styles.statLabel}>{label}</Text>
+    <FadeSlideIn index={index} style={styles.wrap}>
+      <View style={styles.statCard}>
+        <View style={styles.statTop}>
+          <View style={styles.statIconWrap}>{icon}</View>
+          <Text style={styles.statLabel}>{label}</Text>
+        </View>
+        <Text style={styles.statValue}>{value}</Text>
       </View>
-      <Text style={styles.statValue}>{value}</Text>
-    </View>
+    </FadeSlideIn>
   );
 }
 
 const styles = StyleSheet.create({
+  wrap: { flex: 1 },
   statCard: {
     flex: 1,
     backgroundColor: C.bgSecondary,

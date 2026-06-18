@@ -1,4 +1,5 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
+import { ScalePressable } from "@/components/ScalePressable";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUnreadNotificationCount } from "@/hooks/useUnreadNotificationCount";
@@ -31,17 +32,14 @@ export function ScreenHeaderActions({ role }: ScreenHeaderActionsProps) {
         unreadCount={unreadCount}
         onPress={() => router.push(notificationsRoute)}
       />
-      <TouchableOpacity
-        onPress={() => router.push(profileRoute)}
-        activeOpacity={0.8}
-      >
+      <ScalePressable onPress={() => router.push(profileRoute)}>
         <ProfileAvatar
           name={displayName}
           avatarUrl={profile?.avatar_url}
           size="sm"
           previewable={false}
         />
-      </TouchableOpacity>
+      </ScalePressable>
     </View>
   );
 }

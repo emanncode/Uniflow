@@ -1,5 +1,12 @@
+import { useEffect } from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { Theme } from "@/constants/Theme";
+import { MOTION } from "@/lib/motion";
 
 const C = Theme.colors;
 
@@ -21,10 +28,27 @@ export function TabBarIcon({
 }: TabBarIconProps) {
   const { width: screenWidth } = useWindowDimensions();
   const tabWidth = screenWidth / VISIBLE_TAB_COUNT;
+  const pillScale = useSharedValue(1);
+
+  useEffect(() => {
+    pillScale.value = withTiming(focused ? 1.08 : 1, {
+      duration: MOTION.normal,
+    });
+  }, [focused, pillScale]);
+
+  const pillAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pillScale.value }],
+  }));
 
   return (
     <View style={[styles.tabItem, { width: tabWidth }]}>
-      <View style={[styles.iconPill, focused && styles.iconPillActive]}>
+      <Animated.View
+        style={[
+          styles.iconPill,
+          focused && styles.iconPillActive,
+          pillAnimatedStyle,
+        ]}
+      >
         {icon}
         {badgeCount && badgeCount > 0 ? (
           <View style={styles.badge}>
@@ -33,7 +57,7 @@ export function TabBarIcon({
             </Text>
           </View>
         ) : null}
-      </View>
+      </Animated.View>
       <Text
         style={[
           styles.tabLabel,

@@ -21,6 +21,8 @@ import GridBackground from "@/components/GridBackground";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { webAppUrl } from "@/lib/config";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
+import { ScalePressable } from "@/components/ScalePressable";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -127,15 +129,16 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Brand ── */}
-          <View style={styles.brandSection}>
-            <UniflowLogo size={48} />
-            <Text style={styles.brandTagline}>
-              University intelligence, in your pocket
-            </Text>
-          </View>
+          <FadeSlideIn index={0}>
+            <View style={styles.brandSection}>
+              <UniflowLogo size={48} />
+              <Text style={styles.brandTagline}>
+                University intelligence, in your pocket
+              </Text>
+            </View>
+          </FadeSlideIn>
 
-          {/* ── Form Card ── */}
+          <FadeSlideIn index={1}>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Welcome back</Text>
             <Text style={styles.cardSubtitle}>Sign in to your account</Text>
@@ -218,18 +221,18 @@ export default function LoginScreen() {
             </View>
 
             {/* Submit */}
-            <TouchableOpacity
+            <ScalePressable
               style={[styles.button, isLoading ? styles.buttonDisabled : null]}
               onPress={handleLogin}
-              activeOpacity={0.85}
               disabled={isLoading}
+              scaleTo={0.98}
             >
               {isLoading ? (
                 <ActivityIndicator size="small" color={Theme.colors.textPrimary} />
               ) : (
                 <Text style={styles.buttonText}>Sign in</Text>
               )}
-            </TouchableOpacity>
+            </ScalePressable>
 
             {/* Help text */}
             <Text style={styles.helpText}>
@@ -242,11 +245,13 @@ export default function LoginScreen() {
               </Text>
             </Text>
           </View>
+          </FadeSlideIn>
 
-          {/* ── Footer ── */}
-          <Text style={styles.footer}>
-            Uniflow · Built for Nigerian universities
-          </Text>
+          <FadeSlideIn index={2}>
+            <Text style={styles.footer}>
+              Uniflow · Built for Nigerian universities
+            </Text>
+          </FadeSlideIn>
         </ScrollView>
       </KeyboardAvoidingView>
 

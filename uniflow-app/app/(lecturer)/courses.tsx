@@ -4,7 +4,7 @@ import {
   Text,
   FlatList,
   ScrollView,
-  TouchableOpacity,
+
   StyleSheet,
   RefreshControl,
 } from "react-native";
@@ -24,6 +24,7 @@ import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { CoursesSkeleton } from "@/components/SkeletonLoader";
 import { ScreenPageHeader } from "@/components/ScreenPageHeader";
+import { ScalePressable } from "@/components/ScalePressable";
 import type { Course, TimetableSlot } from "@/types";
 
 const C = Theme.colors;
@@ -68,10 +69,9 @@ interface CourseCardProps {
 
 function CourseCard({ course, onPress }: CourseCardProps) {
   return (
-    <TouchableOpacity
+    <ScalePressable
       style={styles.card}
       onPress={() => onPress(course)}
-      activeOpacity={0.75}
     >
       {/* Top row — code + level */}
       <View style={styles.cardTop}>
@@ -112,7 +112,7 @@ function CourseCard({ course, onPress }: CourseCardProps) {
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </ScalePressable>
   );
 }
 

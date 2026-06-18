@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,6 +21,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Theme } from "@/constants/Theme";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
+import { ScalePressable } from "@/components/ScalePressable";
 import { NotificationsSkeleton } from "@/components/SkeletonLoader";
 import type { Notification, NotificationType } from "@/types";
 
@@ -94,19 +95,18 @@ const TYPE_CONFIG: Record<
 function NotifRow({
   notif,
   onPress,
+  index,
 }: {
   notif: Notification;
   onPress: (n: Notification) => void;
+  index: number;
 }) {
   const config = TYPE_CONFIG[notif.type];
 
   return (
-    <Pressable
-      style={({ pressed }) => [
-        styles.row,
-        !notif.is_read && styles.rowUnread,
-        pressed && { opacity: 0.75 },
-      ]}
+    <FadeSlideIn index={index}>
+    <ScalePressable
+      style={[styles.row, !notif.is_read && styles.rowUnread]}
       onPress={() => onPress(notif)}
     >
       {!notif.is_read && <View style={styles.unreadDot} />}
@@ -132,7 +132,8 @@ function NotifRow({
           {config.label}
         </Text>
       </View>
-    </Pressable>
+    </ScalePressable>
+    </FadeSlideIn>
   );
 }
 
@@ -229,6 +230,7 @@ export function NotificationsScreen({ role }: NotificationsScreenProps) {
 
   return (
     <View style={styles.root}>
+      <FadeSlideIn index={0}>
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -258,6 +260,7 @@ export function NotificationsScreen({ role }: NotificationsScreenProps) {
           </TouchableOpacity>
         )}
       </View>
+      </FadeSlideIn>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -285,8 +288,8 @@ export function NotificationsScreen({ role }: NotificationsScreenProps) {
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Today</Text>
                 </View>
-                {todayNotifs.map((n) => (
-                  <NotifRow key={n.id} notif={n} onPress={handlePress} />
+                {todayNotifs.map((n, index) => (
+                  <NotifRow key={n.id} notif={n} onPress={handlePress} index={index} />
                 ))}
               </>
             )}
@@ -295,8 +298,13 @@ export function NotificationsScreen({ role }: NotificationsScreenProps) {
                 <View style={styles.sectionHeader}>
                   <Text style={styles.sectionTitle}>Earlier</Text>
                 </View>
-                {earlierNotifs.map((n) => (
-                  <NotifRow key={n.id} notif={n} onPress={handlePress} />
+                {earlierNotifs.map((n, index) => (
+                  <NotifRow
+                    key={n.id}
+                    notif={n}
+                    onPress={handlePress}
+                    index={todayNotifs.length + index}
+                  />
                 ))}
               </>
             )}

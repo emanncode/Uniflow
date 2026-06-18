@@ -1,3 +1,4 @@
+import "react-native-reanimated";
 import { useEffect } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Slot, useRouter, useSegments } from "expo-router";

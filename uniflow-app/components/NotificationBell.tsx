@@ -1,6 +1,16 @@
-import { TouchableOpacity, View, StyleSheet } from "react-native";
+import { useEffect } from "react";
+import { StyleSheet } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { Bell } from "lucide-react-native";
 import { Theme } from "@/constants/Theme";
+import { ScalePressable } from "@/components/ScalePressable";
+import { MOTION } from "@/lib/motion";
 
 const C = Theme.colors;
 
@@ -10,16 +20,34 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ unreadCount, onPress }: NotificationBellProps) {
+  const dotScale = useSharedValue(1);
+
+  useEffect(() => {
+    if (unreadCount > 0) {
+      dotScale.value = withRepeat(
+        withSequence(
+          withTiming(1.25, { duration: 700 }),
+          withTiming(1, { duration: 700 }),
+        ),
+        -1,
+      );
+      return;
+    }
+
+    dotScale.value = withTiming(1, { duration: MOTION.fast });
+  }, [unreadCount, dotScale]);
+
+  const dotAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: dotScale.value }],
+  }));
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.button}
-      activeOpacity={0.75}
-      hitSlop={6}
-    >
+    <ScalePressable onPress={onPress} style={styles.button} hitSlop={6}>
       <Bell size={22} color={C.textPrimary} strokeWidth={1.9} />
-      {unreadCount > 0 ? <View style={styles.dot} /> : null}
-    </TouchableOpacity>
+      {unreadCount > 0 ? (
+        <Animated.View style={[styles.dot, dotAnimatedStyle]} />
+      ) : null}
+    </ScalePressable>
   );
 }
 
