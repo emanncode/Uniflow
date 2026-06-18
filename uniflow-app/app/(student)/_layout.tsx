@@ -18,6 +18,7 @@ export default function StudentLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
         tabBarShowLabel: false,
         tabBarActiveTintColor: C.brand,
         tabBarInactiveTintColor: C.textMuted,
@@ -118,6 +119,9 @@ export default function StudentLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabBarItem: {
+    paddingHorizontal: 0,
+  },
   tabBar: {
     backgroundColor: C.bgSecondary,
     borderTopWidth: 1,

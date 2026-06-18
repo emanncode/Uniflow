@@ -1,7 +1,10 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { Theme } from "@/constants/Theme";
 
 const C = Theme.colors;
+
+/** Visible bottom tabs (excludes hidden routes like profile/notifications). */
+export const VISIBLE_TAB_COUNT = 4;
 
 interface TabBarIconProps {
   icon: React.ReactNode;
@@ -16,8 +19,11 @@ export function TabBarIcon({
   focused,
   badgeCount,
 }: TabBarIconProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  const tabWidth = screenWidth / VISIBLE_TAB_COUNT;
+
   return (
-    <View style={styles.tabItem}>
+    <View style={[styles.tabItem, { width: tabWidth }]}>
       <View style={[styles.iconPill, focused && styles.iconPillActive]}>
         {icon}
         {badgeCount && badgeCount > 0 ? (
@@ -29,8 +35,14 @@ export function TabBarIcon({
         ) : null}
       </View>
       <Text
-        style={[styles.tabLabel, focused && styles.tabLabelActive]}
+        style={[
+          styles.tabLabel,
+          focused && styles.tabLabelActive,
+          { maxWidth: tabWidth - 4 },
+        ]}
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
       >
         {label}
       </Text>
@@ -43,8 +55,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    width: "100%",
-    maxWidth: "100%",
   },
   iconPill: {
     position: "relative",
@@ -62,10 +72,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "500",
     color: C.textMuted,
-    letterSpacing: 0.1,
-    width: "100%",
+    letterSpacing: 0,
     textAlign: "center",
-    paddingHorizontal: 2,
   },
   tabLabelActive: {
     color: C.brand,
