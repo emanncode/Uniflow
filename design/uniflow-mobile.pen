@@ -1,0 +1,943 @@
+{
+  "version": "2.13",
+  "name": "Uniflow Mobile",
+  "children": [
+    {
+      "type": "frame",
+      "id": "loginScreen",
+      "x": 0,
+      "y": 0,
+      "name": "Login",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#0a0a0b",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": [56, 24, 32, 24],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "loginBrand",
+          "name": "Brand",
+          "layout": "vertical",
+          "gap": 12,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "loginLogoMark",
+              "name": "Logo Mark",
+              "width": 48,
+              "height": 48,
+              "cornerRadius": 14,
+              "fill": "#ff5c1a",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "loginLogoLetter",
+                  "fill": "#ffffff",
+                  "content": "U",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "loginBrandName",
+              "fill": "#ffffff",
+              "content": "Uniflow",
+              "fontFamily": "Inter",
+              "fontSize": 28,
+              "fontWeight": "700",
+              "letterSpacing": -0.5
+            },
+            {
+              "type": "text",
+              "id": "loginTagline",
+              "fill": "#666666",
+              "content": "University intelligence, in your pocket",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "textAlign": "center"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "loginCard",
+          "name": "Sign In Card",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "cornerRadius": 20,
+          "fill": "#0f1011",
+          "stroke": "#ffffff0d",
+          "strokeWidth": 1,
+          "children": [
+            {
+              "type": "frame",
+              "id": "loginCardHeader",
+              "name": "Card Header",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "loginTitle",
+                  "fill": "#ffffff",
+                  "content": "Welcome back",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "loginSubtitle",
+                  "fill": "#a1a1a1",
+                  "content": "Sign in to your account",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "400"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "emailField",
+              "name": "Email Field",
+              "layout": "vertical",
+              "gap": 8,
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "emailLabel",
+                  "fill": "#a1a1a1",
+                  "content": "Email address",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "frame",
+                  "id": "emailInput",
+                  "name": "Email Input",
+                  "width": "fill_container",
+                  "height": 48,
+                  "cornerRadius": 14,
+                  "fill": "#161719",
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
+                  "padding": [0, 16],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "emailPlaceholder",
+                      "fill": "#666666",
+                      "content": "you@university.edu",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "400"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "passwordField",
+              "name": "Password Field",
+              "layout": "vertical",
+              "gap": 8,
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "passwordLabelRow",
+                  "name": "Password Label Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "passwordLabel",
+                      "fill": "#a1a1a1",
+                      "content": "Password",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "forgotLink",
+                      "fill": "#ff5c1a",
+                      "content": "Forgot?",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "passwordInput",
+                  "name": "Password Input",
+                  "width": "fill_container",
+                  "height": 48,
+                  "cornerRadius": 14,
+                  "fill": "#161719",
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
+                  "padding": [0, 16],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "passwordPlaceholder",
+                      "fill": "#666666",
+                      "content": "Enter your password",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "400"
+                    },
+                    {
+                      "type": "text",
+                      "id": "showPassword",
+                      "fill": "#ff5c1a",
+                      "content": "Show",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "signInButton",
+              "name": "Sign In Button",
+              "width": "fill_container",
+              "height": 52,
+              "cornerRadius": 14,
+              "fill": "#ff5c1a",
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "signInLabel",
+                  "fill": "#ffffff",
+                  "content": "Sign in",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "tempPasswordHelp",
+              "fill": "#666666",
+              "content": "Need a temporary password? Click here",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "400",
+              "textAlign": "center",
+              "textGrowth": "fixed-width",
+              "width": "fill_container"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "loginFooter",
+          "fill": "#666666",
+          "content": "Uniflow · Built for Nigerian universities",
+          "fontFamily": "Inter",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "textAlign": "center"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "studentHome",
+      "x": 430,
+      "y": 0,
+      "name": "Student Home",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#0a0a0b",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [56, 20, 100, 20],
+      "children": [
+        {
+          "type": "frame",
+          "id": "homeHeader",
+          "name": "Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "homeHeaderLeft",
+              "name": "Greeting",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "greeting",
+                  "fill": "#a1a1a1",
+                  "content": "Good morning",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "500"
+                },
+                {
+                  "type": "text",
+                  "id": "studentName",
+                  "fill": "#ffffff",
+                  "content": "Adaobi",
+                  "fontFamily": "Inter",
+                  "fontSize": 26,
+                  "fontWeight": "700",
+                  "letterSpacing": -0.5
+                },
+                {
+                  "type": "text",
+                  "id": "todayDate",
+                  "fill": "#666666",
+                  "content": "Thursday, June 18",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "400"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "headerActions",
+              "name": "Header Actions",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "notifBtn",
+                  "name": "Notifications",
+                  "width": 40,
+                  "height": 40,
+                  "cornerRadius": 12,
+                  "fill": "#0f1011",
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "notifIcon",
+                      "fill": "#ff5c1a",
+                      "content": "🔔",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "400"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "avatarBtn",
+                  "name": "Avatar",
+                  "width": 40,
+                  "height": 40,
+                  "cornerRadius": 20,
+                  "fill": "#ff5c1a1a",
+                  "stroke": "#ff5c1a40",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "avatarInitial",
+                      "fill": "#ff5c1a",
+                      "content": "A",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "statsRow",
+          "name": "Stats",
+          "width": "fill_container",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "statToday",
+              "name": "Today Stat",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 14,
+              "cornerRadius": 14,
+              "fill": "#12131599",
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "statTodayTop",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "statTodayIcon",
+                      "fill": "#ff5c1a",
+                      "content": "📅",
+                      "fontSize": 14
+                    },
+                    {
+                      "type": "text",
+                      "id": "statTodayLabel",
+                      "fill": "#a1a1a1",
+                      "content": "Today",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "statTodayValue",
+                  "fill": "#ffffff",
+                  "content": "3",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "statCourses",
+              "name": "Courses Stat",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 14,
+              "cornerRadius": 14,
+              "fill": "#12131599",
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "statCoursesTop",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "statCoursesIcon",
+                      "fill": "#ff5c1a",
+                      "content": "📚",
+                      "fontSize": 14
+                    },
+                    {
+                      "type": "text",
+                      "id": "statCoursesLabel",
+                      "fill": "#a1a1a1",
+                      "content": "Courses",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "statCoursesValue",
+                  "fill": "#ffffff",
+                  "content": "6",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "statAlerts",
+              "name": "Alerts Stat",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 14,
+              "cornerRadius": 14,
+              "fill": "#12131599",
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "statAlertsTop",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "statAlertsIcon",
+                      "fill": "#ff5c1a",
+                      "content": "⚡",
+                      "fontSize": 14
+                    },
+                    {
+                      "type": "text",
+                      "id": "statAlertsLabel",
+                      "fill": "#a1a1a1",
+                      "content": "Alerts",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "statAlertsValue",
+                  "fill": "#ffffff",
+                  "content": "2",
+                  "fontFamily": "Inter",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "alertBanner",
+          "name": "Alert Banner",
+          "width": "fill_container",
+          "gap": 8,
+          "padding": [12, 14],
+          "cornerRadius": 12,
+          "fill": "#ff5c1a1a",
+          "stroke": "#ff5c1a40",
+          "strokeWidth": 1,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "alertIcon",
+              "fill": "#ff5c1a",
+              "content": "⚡",
+              "fontSize": 13
+            },
+            {
+              "type": "text",
+              "id": "alertText",
+              "fill": "#ff5c1a",
+              "content": "2 class updates today",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "todaySection",
+          "name": "Today's Classes",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "sectionHeader",
+              "name": "Section Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sectionTitle",
+                  "fill": "#ffffff",
+                  "content": "Today's Classes",
+                  "fontFamily": "Inter",
+                  "fontSize": 17,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "seeAll",
+                  "fill": "#ff5c1a",
+                  "content": "See all",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "classCard1",
+              "name": "Class Card",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": 16,
+              "cornerRadius": 14,
+              "fill": "#12131599",
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "classAccent1",
+                  "name": "Accent",
+                  "width": 4,
+                  "height": "fill_container",
+                  "cornerRadius": 2,
+                  "fill": "#ff5c1a"
+                },
+                {
+                  "type": "frame",
+                  "id": "classBody1",
+                  "name": "Class Body",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "classTop1",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "courseCode1",
+                          "fill": "#ffffff",
+                          "content": "CSC 301",
+                          "fontFamily": "Inter",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "statusBadge1",
+                          "padding": [4, 10],
+                          "cornerRadius": 8,
+                          "fill": "#f59e0b14",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "statusText1",
+                              "fill": "#f59e0b",
+                              "content": "Delayed",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "courseTitle1",
+                      "fill": "#a1a1a1",
+                      "content": "Data Structures & Algorithms",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "400"
+                    },
+                    {
+                      "type": "text",
+                      "id": "classMeta1",
+                      "fill": "#666666",
+                      "content": "9:00 AM · LT 2 · Dr. Okafor",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "400"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "classCard2",
+              "name": "Class Card 2",
+              "width": "fill_container",
+              "gap": 12,
+              "padding": 16,
+              "cornerRadius": 14,
+              "fill": "#12131599",
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "classAccent2",
+                  "name": "Accent",
+                  "width": 4,
+                  "height": "fill_container",
+                  "cornerRadius": 2,
+                  "fill": "#22c55e"
+                },
+                {
+                  "type": "frame",
+                  "id": "classBody2",
+                  "name": "Class Body",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "width": "fill_container",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "courseCode2",
+                      "fill": "#ffffff",
+                      "content": "MTH 201",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "courseTitle2",
+                      "fill": "#a1a1a1",
+                      "content": "Linear Algebra II",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "400"
+                    },
+                    {
+                      "type": "text",
+                      "id": "classMeta2",
+                      "fill": "#666666",
+                      "content": "11:00 AM · Room 14 · Prof. Adeyemi",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "400"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tabBar",
+          "name": "Tab Bar",
+          "width": "fill_container",
+          "height": 72,
+          "cornerRadius": 20,
+          "fill": "#0f1011",
+          "stroke": "#ffffff0d",
+          "strokeWidth": 1,
+          "padding": [8, 12],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "tabHome",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tabHomeIcon",
+                  "fill": "#ff5c1a",
+                  "content": "⌂",
+                  "fontSize": 18
+                },
+                {
+                  "type": "text",
+                  "id": "tabHomeLabel",
+                  "fill": "#ff5c1a",
+                  "content": "Home",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tabSchedule",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tabScheduleIcon",
+                  "fill": "#666666",
+                  "content": "📅",
+                  "fontSize": 18
+                },
+                {
+                  "type": "text",
+                  "id": "tabScheduleLabel",
+                  "fill": "#666666",
+                  "content": "Schedule",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tabCourses",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tabCoursesIcon",
+                  "fill": "#666666",
+                  "content": "📚",
+                  "fontSize": 18
+                },
+                {
+                  "type": "text",
+                  "id": "tabCoursesLabel",
+                  "fill": "#666666",
+                  "content": "Courses",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tabResources",
+              "layout": "vertical",
+              "gap": 4,
+              "alignItems": "center",
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tabResourcesIcon",
+                  "fill": "#666666",
+                  "content": "📁",
+                  "fontSize": 18
+                },
+                {
+                  "type": "text",
+                  "id": "tabResourcesLabel",
+                  "fill": "#666666",
+                  "content": "Resources",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "--bg-primary": {
+      "type": "color",
+      "value": "#0a0a0b"
+    },
+    "--bg-secondary": {
+      "type": "color",
+      "value": "#0f1011"
+    },
+    "--bg-tertiary": {
+      "type": "color",
+      "value": "#161719"
+    },
+    "--bg-card": {
+      "type": "color",
+      "value": "#12131599"
+    },
+    "--text-primary": {
+      "type": "color",
+      "value": "#ffffff"
+    },
+    "--text-secondary": {
+      "type": "color",
+      "value": "#a1a1a1"
+    },
+    "--text-muted": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "--brand": {
+      "type": "color",
+      "value": "#ff5c1a"
+    },
+    "--brand-muted": {
+      "type": "color",
+      "value": "#ff5c1a1a"
+    },
+    "--border-primary": {
+      "type": "color",
+      "value": "#ffffff0d"
+    },
+    "--success": {
+      "type": "color",
+      "value": "#22c55e"
+    },
+    "--warning": {
+      "type": "color",
+      "value": "#f59e0b"
+    },
+    "--radius-md": {
+      "type": "number",
+      "value": 14
+    },
+    "--radius-lg": {
+      "type": "number",
+      "value": 20
+    }
+  }
+}

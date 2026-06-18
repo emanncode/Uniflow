@@ -1,0 +1,13 @@
+# Project-scoped MCP servers for Uniflow.
+# Grok loads this automatically when you work in this repo.
+# Run `scripts/setup-grok-pencil.sh` once to also add Pencil to your user config.
+
+[mcp_servers.pencil]
+command = "${HOME}/.pencil/mcp/visual_studio_code/out/mcp-server-linux-x64"
+args = [
+    "--app",
+    "visual_studio_code",
+    "--agent",
+    "grokCLI",
+]
+enabled = true
