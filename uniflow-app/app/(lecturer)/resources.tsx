@@ -349,7 +349,7 @@ function UploadSheet({
           <View style={styles.noCoursesBanner}>
             <Text style={styles.noCoursesTitle}>No courses assigned</Text>
             <Text style={styles.noCoursesText}>
-              Contact your HOD to get courses assigned before uploading resources.
+              Contact your university admin to get courses assigned before uploading resources.
             </Text>
           </View>
         ) : null}

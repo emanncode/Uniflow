@@ -21,7 +21,7 @@ export async function getSession() {
 
 /**
  * Checks if the current user has permission to manage a specific university.
- * Returns true if the user is a uniflow_admin OR a university_admin/dean/hod for that university.
+ * Returns true if the user is a uniflow_admin OR a university_admin for that university.
  */
 export async function canManageUniversity(universityId: string) {
   const session = await getSession();
@@ -32,8 +32,8 @@ export async function canManageUniversity(universityId: string) {
   // Uniflow admins can manage everything
   if (profile.role === "uniflow_admin") return true;
 
-  // Check if they belong to this university and have an admin-like role
-  const allowedRoles: UserRole[] = ["university_admin", "dean", "hod"];
+  // Only university admins can manage their portal
+  const allowedRoles: UserRole[] = ["university_admin"];
   if (profile.university_id === universityId && allowedRoles.includes(profile.role as UserRole)) {
     return true;
   }

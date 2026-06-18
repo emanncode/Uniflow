@@ -15,8 +15,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-type Role = 'university_admin' | 'dean' | 'hod' | 'lecturer'
-
 interface Stats {
   faculties: number
   departments: number
@@ -158,7 +156,6 @@ function formatTime(iso: string) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function UniversityOverviewPage() {
-  const [role, setRole] = useState<Role | null>(null)
   const [stats, setStats] = useState<Stats>({ faculties: 0, departments: 0, lecturers: 0, students: 0, timetableSlots: 0 })
   const [activity, setActivity] = useState<RecentActivity[]>([])
   const [uniName, setUniName] = useState('')
@@ -176,7 +173,6 @@ export default function UniversityOverviewPage() {
         .single()
 
       if (!profile) return
-      setRole(profile.role as Role)
 
       // Load university name
       const { data: uni } = await supabase
@@ -257,12 +253,7 @@ export default function UniversityOverviewPage() {
     { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', href: '/u/faculties', sub: 'scheduled classes' },
   ]
 
-  // Role-filtered stat cards (Faculties is always the entry point for sub-entities)
-  const visibleCards = role === 'hod'
-    ? STAT_CARDS.filter(c => ['Faculties', 'Lecturers', 'Timetable Slots'].includes(c.label))
-    : role === 'dean'
-      ? STAT_CARDS.filter(c => ['Faculties', 'Departments', 'Lecturers'].includes(c.label))
-      : STAT_CARDS
+  const visibleCards = STAT_CARDS
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px' }}>
@@ -339,25 +330,9 @@ export default function UniversityOverviewPage() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {role === 'university_admin' && (
-              <>
-                <QuickAction href="/u/faculties" icon={BookOpen} label="Add New Faculty" colorKey="blue" />
-                <QuickAction href="/u/departments" icon={Building2} label="Add Department" colorKey="purple" />
-                <QuickAction href="/u/lecturers" icon={Users} label="Onboard Lecturers" colorKey="yellow" />
-              </>
-            )}
-            {role === 'dean' && (
-              <>
-                <QuickAction href="/u/departments" icon={Building2} label="Create Department" colorKey="purple" />
-                <QuickAction href="/u/lecturers" icon={Users} label="View Lecturers" colorKey="yellow" />
-              </>
-            )}
-            {role === 'hod' && (
-              <>
-                <QuickAction href="/u/lecturers" icon={Users} label="Upload Lecturers" colorKey="yellow" />
-                <QuickAction href="/u/faculties" icon={CalendarDays} label="Set Timetable" colorKey="green" />
-              </>
-            )}
+            <QuickAction href="/u/faculties" icon={BookOpen} label="Add New Faculty" colorKey="blue" />
+            <QuickAction href="/u/departments" icon={Building2} label="Add Department" colorKey="purple" />
+            <QuickAction href="/u/lecturers" icon={Users} label="Onboard Lecturers" colorKey="yellow" />
           </div>
 
           {/* Portal status */}

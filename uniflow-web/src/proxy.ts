@@ -130,7 +130,7 @@ export async function proxy(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    const allowedRoles = ["university_admin", "dean", "hod"];
+    const allowedRoles = ["university_admin"];
     if (!profile || !allowedRoles.includes(profile.role)) {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";

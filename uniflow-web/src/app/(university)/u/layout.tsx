@@ -19,35 +19,16 @@ export const dynamic = "force-dynamic";
 
 // ─── Role-based nav config ───────────────────────────────────────────────────
 
-type Role = "university_admin" | "dean" | "hod";
+type Role = "university_admin";
 
-const NAV_ITEMS: Record<
-  Role,
-  { label: string; href: string; icon: React.ElementType }[]
-> = {
-  university_admin: [
-    { label: "Overview", href: "/u", icon: LayoutDashboard },
-    { label: "Faculties", href: "/u/faculties", icon: BookOpen },
-    { label: "Notifications", href: "/u/notifications", icon: Bell },
-    { label: "Settings", href: "/u/settings", icon: Settings },
-  ],
-  dean: [
-    { label: "Overview", href: "/u", icon: LayoutDashboard },
-    { label: "Faculties", href: "/u/faculties", icon: BookOpen },
-    { label: "Settings", href: "/u/settings", icon: Settings },
-  ],
-  hod: [
-    { label: "Overview", href: "/u", icon: LayoutDashboard },
-    { label: "Faculties", href: "/u/faculties", icon: BookOpen },
-    { label: "Settings", href: "/u/settings", icon: Settings },
-  ],
-};
+const NAV_ITEMS: { label: string; href: string; icon: React.ElementType }[] = [
+  { label: "Overview", href: "/u", icon: LayoutDashboard },
+  { label: "Faculties", href: "/u/faculties", icon: BookOpen },
+  { label: "Notifications", href: "/u/notifications", icon: Bell },
+  { label: "Settings", href: "/u/settings", icon: Settings },
+];
 
-const ROLE_LABELS: Record<Role, string> = {
-  university_admin: "University Admin",
-  dean: "Dean",
-  hod: "Head of Department",
-};
+const ROLE_LABEL = "University Admin";
 
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
@@ -66,7 +47,7 @@ const SidebarContent = ({
   setSidebarOpen,
   onSignOut,
 }: SidebarProps) => {
-  const navItems = NAV_ITEMS[user.role] ?? [];
+  const navItems = NAV_ITEMS;
 
   return (
     <aside
@@ -194,7 +175,7 @@ const SidebarContent = ({
               letterSpacing: "0.06em",
             }}
           >
-            {ROLE_LABELS[user.role]}
+            {ROLE_LABEL}
           </div>
           <div
             style={{
@@ -280,7 +261,7 @@ export default function UniversityPortalLayout({
         if (
           profileError ||
           !profile ||
-          !["university_admin", "dean", "hod"].includes(profile.role)
+          profile.role !== "university_admin"
         ) {
           if (pathname !== "/u/login") {
             await supabase.auth.signOut();

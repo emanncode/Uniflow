@@ -69,10 +69,9 @@ export default function UniversityLoginPage() {
         .eq('id', data.user.id)
         .single()
 
-      const portalRoles = ['university_admin', 'dean', 'hod', 'lecturer']
-      if (!profile || !portalRoles.includes(profile.role)) {
+      if (!profile || profile.role !== 'university_admin') {
         await supabase.auth.signOut()
-        throw new Error('Your account does not have access to this portal.')
+        throw new Error('Only university admin accounts can access this portal.')
       }
 
       // OTP logic disabled temporarily. DO NOT UNCOMMENT YET.

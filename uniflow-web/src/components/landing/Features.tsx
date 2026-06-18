@@ -22,13 +22,13 @@ const features = [
   {
     icon: Shield,
     title: 'Role-based access control',
-    desc: 'Six roles, each with exactly the right permissions. Admins manage. Lecturers teach. Students learn.',
+    desc: 'Six roles, each with exactly the right permissions. University Admin manages the portal. Lecturers teach. Students learn.',
     brand: false,
   },
   {
     icon: MapPin,
     title: 'Venue & time change requests',
-    desc: 'Lecturers request changes formally through the app. Admins approve. Everything is tracked and recorded.',
+    desc: 'Lecturers request changes formally through the app. University Admin approves. Everything is tracked and recorded.',
     brand: false,
   },
   {
@@ -46,7 +46,7 @@ const features = [
   {
     icon: Clock,
     title: 'Smart timetable management',
-    desc: 'HODs build and submit timetables. Admins approve. Changes flow down to every student automatically.',
+    desc: 'University Admin builds and publishes timetables. Changes flow down to every student automatically.',
     brand: false,
   },
   {

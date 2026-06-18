@@ -354,7 +354,7 @@ export default function LecturerCourses() {
       <BookOpen size={32} color={C.textMuted} strokeWidth={1.5} />
       <Text style={styles.emptyTitle}>No courses assigned</Text>
       <Text style={styles.emptySubtitle}>
-        Contact your HOD to get courses assigned
+        Contact your university admin to get courses assigned
       </Text>
     </View>
   );

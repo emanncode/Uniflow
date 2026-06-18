@@ -328,7 +328,7 @@ export default function StudentCourses() {
       <BookOpen size={32} color={C.textMuted} strokeWidth={1.5} />
       <Text style={styles.emptyTitle}>No courses yet</Text>
       <Text style={styles.emptySubtitle}>
-        Your HOD or admin will enroll you in courses
+        Your university admin will enroll you in courses
       </Text>
     </View>
   );
