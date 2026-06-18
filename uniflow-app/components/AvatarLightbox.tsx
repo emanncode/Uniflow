@@ -6,6 +6,7 @@ import {
   Dimensions,
 } from "react-native";
 import Animated, {
+  Easing,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -21,6 +22,10 @@ const C = Theme.colors;
 const R = Theme.radius;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PREVIEW_SIZE = Math.min(SCREEN_WIDTH - 48, 360);
+const SLIDE_OFFSET = -120;
+
+const enterEasing = Easing.out(Easing.cubic);
+const exitEasing = Easing.in(Easing.cubic);
 
 const AnimatedPressable = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -40,6 +45,7 @@ export function AvatarLightbox({
 
   const backdropOpacity = useSharedValue(0);
   const imageScale = useSharedValue(0.82);
+  const imageTranslateY = useSharedValue(SLIDE_OFFSET);
   const closeOpacity = useSharedValue(0);
 
   const finishClose = useCallback(() => {
@@ -48,38 +54,68 @@ export function AvatarLightbox({
   }, [onClose]);
 
   const animateIn = useCallback(() => {
-    backdropOpacity.value = withTiming(1, { duration: MOTION.normal });
-    imageScale.value = withTiming(1, { duration: MOTION.slow });
-    closeOpacity.value = withTiming(1, { duration: MOTION.normal });
-  }, [backdropOpacity, closeOpacity, imageScale]);
+    backdropOpacity.value = withTiming(1, {
+      duration: MOTION.normal,
+      easing: enterEasing,
+    });
+    imageScale.value = withTiming(1, {
+      duration: MOTION.slow,
+      easing: enterEasing,
+    });
+    imageTranslateY.value = withTiming(0, {
+      duration: MOTION.slow,
+      easing: enterEasing,
+    });
+    closeOpacity.value = withTiming(1, {
+      duration: MOTION.normal,
+      easing: enterEasing,
+    });
+  }, [backdropOpacity, closeOpacity, imageScale, imageTranslateY]);
 
   const animateOut = useCallback(() => {
-    backdropOpacity.value = withTiming(0, { duration: MOTION.fast });
-    imageScale.value = withTiming(0.82, { duration: MOTION.fast });
-    closeOpacity.value = withTiming(0, { duration: MOTION.fast }, (finished) => {
+    backdropOpacity.value = withTiming(0, {
+      duration: MOTION.fast,
+      easing: exitEasing,
+    });
+    imageScale.value = withTiming(0.82, {
+      duration: MOTION.fast,
+      easing: exitEasing,
+    });
+    imageTranslateY.value = withTiming(SLIDE_OFFSET, {
+      duration: MOTION.fast,
+      easing: exitEasing,
+    });
+    closeOpacity.value = withTiming(0, {
+      duration: MOTION.fast,
+      easing: exitEasing,
+    }, (finished) => {
       if (finished) runOnJS(finishClose)();
     });
-  }, [backdropOpacity, closeOpacity, finishClose, imageScale]);
+  }, [backdropOpacity, closeOpacity, finishClose, imageScale, imageTranslateY]);
 
   useEffect(() => {
     if (visible) {
       setMounted(true);
       backdropOpacity.value = 0;
       imageScale.value = 0.82;
+      imageTranslateY.value = SLIDE_OFFSET;
       closeOpacity.value = 0;
       requestAnimationFrame(() => animateIn());
       return;
     }
 
     if (mounted) animateOut();
-  }, [visible, mounted, animateIn, animateOut, backdropOpacity, closeOpacity, imageScale]);
+  }, [visible, mounted, animateIn, animateOut, backdropOpacity, closeOpacity, imageScale, imageTranslateY]);
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
 
   const imageStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: imageScale.value }],
+    transform: [
+      { translateY: imageTranslateY.value },
+      { scale: imageScale.value },
+    ],
     opacity: backdropOpacity.value,
   }));
 
