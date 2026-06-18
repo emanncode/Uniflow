@@ -1,20 +1,28 @@
+import { useCallback, useEffect, useState } from "react";
 import {
   Modal,
-  View,
   StyleSheet,
-  Pressable,
   TouchableOpacity,
   Dimensions,
 } from "react-native";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { Theme } from "@/constants/Theme";
+import { MOTION } from "@/lib/motion";
 
 const C = Theme.colors;
 const R = Theme.radius;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PREVIEW_SIZE = Math.min(SCREEN_WIDTH - 48, 360);
+
+const AnimatedPressable = Animated.createAnimatedComponent(TouchableOpacity);
 
 interface AvatarLightboxProps {
   visible: boolean;
@@ -28,49 +36,103 @@ export function AvatarLightbox({
   onClose,
 }: AvatarLightboxProps) {
   const insets = useSafeAreaInsets();
+  const [mounted, setMounted] = useState(visible);
+
+  const backdropOpacity = useSharedValue(0);
+  const imageScale = useSharedValue(0.82);
+  const closeOpacity = useSharedValue(0);
+
+  const finishClose = useCallback(() => {
+    setMounted(false);
+    onClose();
+  }, [onClose]);
+
+  const animateIn = useCallback(() => {
+    backdropOpacity.value = withTiming(1, { duration: MOTION.normal });
+    imageScale.value = withTiming(1, { duration: MOTION.slow });
+    closeOpacity.value = withTiming(1, { duration: MOTION.normal });
+  }, [backdropOpacity, closeOpacity, imageScale]);
+
+  const animateOut = useCallback(() => {
+    backdropOpacity.value = withTiming(0, { duration: MOTION.fast });
+    imageScale.value = withTiming(0.82, { duration: MOTION.fast });
+    closeOpacity.value = withTiming(0, { duration: MOTION.fast }, (finished) => {
+      if (finished) runOnJS(finishClose)();
+    });
+  }, [backdropOpacity, closeOpacity, finishClose, imageScale]);
+
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+      backdropOpacity.value = 0;
+      imageScale.value = 0.82;
+      closeOpacity.value = 0;
+      requestAnimationFrame(() => animateIn());
+      return;
+    }
+
+    if (mounted) animateOut();
+  }, [visible, mounted, animateIn, animateOut, backdropOpacity, closeOpacity, imageScale]);
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+
+  const imageStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: imageScale.value }],
+    opacity: backdropOpacity.value,
+  }));
+
+  const closeStyle = useAnimatedStyle(() => ({
+    opacity: closeOpacity.value,
+    transform: [{ scale: 0.9 + closeOpacity.value * 0.1 }],
+  }));
+
+  if (!mounted) return null;
 
   return (
     <Modal
-      visible={visible}
+      visible={mounted}
       transparent
-      animationType="fade"
-      onRequestClose={onClose}
+      animationType="none"
+      onRequestClose={animateOut}
+      statusBarTranslucent
     >
-      <View style={styles.root}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
+      <AnimatedPressable
+        style={[styles.backdrop, backdropStyle]}
+        activeOpacity={1}
+        onPress={animateOut}
+      />
 
-        <View style={styles.content} pointerEvents="box-none">
-          <Image
-            source={{ uri: imageUri }}
-            style={styles.image}
-            contentFit="cover"
-          />
-        </View>
+      <Animated.View style={[styles.content, imageStyle]} pointerEvents="box-none">
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.image}
+          contentFit="cover"
+        />
+      </Animated.View>
 
-        <TouchableOpacity
-          onPress={onClose}
-          hitSlop={12}
-          style={[styles.closeBtn, { top: insets.top + 12 }]}
-          activeOpacity={0.85}
-        >
-          <X size={22} color={C.textPrimary} strokeWidth={2.5} />
-        </TouchableOpacity>
-      </View>
+      <AnimatedPressable
+        onPress={animateOut}
+        hitSlop={12}
+        style={[styles.closeBtn, { top: insets.top + 12 }, closeStyle]}
+        activeOpacity={0.85}
+      >
+        <X size={22} color={C.textPrimary} strokeWidth={2.5} />
+      </AnimatedPressable>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0, 0, 0, 0.88)",
   },
   content: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1,
   },
   image: {
