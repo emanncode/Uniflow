@@ -15,7 +15,7 @@ import { Theme } from "@/constants/Theme";
 import { MOTION } from "@/lib/motion";
 
 const C = Theme.colors;
-const LOGO_SIZE = 40;
+const LOGO_SIZE = 72;
 
 interface SplashEntranceProps {
   onFinish: () => void;
@@ -47,42 +47,35 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
     ),
   }));
 
-  const logoStyle = useAnimatedStyle(() => {
+  const lockupStyle = useAnimatedStyle(() => {
     const scale = interpolate(
       progress.value,
       [0, 0.18, 0.38, 0.72, 1],
-      [0.65, 1.2, 1.2, 1, 1],
+      [0.72, 1.08, 1.08, 1, 1],
     );
     const opacity = interpolate(progress.value, [0, 0.1, 1], [0, 1, 1]);
-    const glow = interpolate(
-      progress.value,
-      [0, 0.2, 0.38, 0.72, 1],
-      [0, 0.9, 0.75, 0.35, 0.2],
-    );
 
     return {
       opacity,
       transform: [{ scale }],
-      shadowOpacity: glow,
     };
   });
 
-  const wordmarkStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 0.52, 0.78, 1], [0, 0, 0.85, 1]),
-    transform: [
-      {
-        translateX: interpolate(progress.value, [0.52, 0.78, 1], [14, 6, 0]),
-      },
-    ],
+  const logoStyle = useAnimatedStyle(() => ({
+    shadowOpacity: interpolate(
+      progress.value,
+      [0, 0.2, 0.38, 0.72, 1],
+      [0, 1, 0.85, 0.5, 0.35],
+    ),
   }));
 
-  const lockupStyle = useAnimatedStyle(() => ({
+  const wordmarkStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 0.48, 0.72, 1], [0, 0, 0.9, 1]),
     transform: [
       {
-        translateX: interpolate(progress.value, [0, 0.38, 0.78, 1], [0, 0, -34, -34]),
+        translateY: interpolate(progress.value, [0.48, 0.72, 1], [10, 4, 0]),
       },
     ],
-    gap: interpolate(progress.value, [0, 0.52, 0.78], [0, 0, 10]),
   }));
 
   return (
@@ -110,20 +103,22 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   lockup: {
-    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 18,
   },
   logoGlow: {
     shadowColor: C.brand,
     shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 18,
-    elevation: 8,
+    shadowRadius: 28,
+    elevation: 12,
   },
   wordmark: {
-    fontSize: 28,
+    fontSize: 40,
     fontWeight: "800",
-    letterSpacing: -1,
+    letterSpacing: -1.2,
     color: C.textPrimary,
+    textAlign: "center",
   },
   wordmarkAccent: {
     color: C.brand,
