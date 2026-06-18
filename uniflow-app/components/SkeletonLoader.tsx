@@ -75,9 +75,11 @@ export function DashboardSkeleton() {
       <View style={styles.statsRow}>
         {[1, 2, 3].map((i) => (
           <View key={i} style={styles.statCard}>
-            <SkeletonBar width={36} height={36} borderRadius={10} />
-            <SkeletonBar width={32} height={24} borderRadius={4} />
-            <SkeletonBar width={48} height={10} borderRadius={4} />
+            <View style={styles.statTop}>
+              <SkeletonBar width={28} height={28} borderRadius={10} />
+              <SkeletonBar width={52} height={11} borderRadius={4} />
+            </View>
+            <SkeletonBar width={36} height={26} borderRadius={4} />
           </View>
         ))}
       </View>
@@ -274,10 +276,14 @@ const styles = StyleSheet.create({
     backgroundColor: C.bgCard,
     borderRadius: 14,
     padding: 14,
-    alignItems: 'center',
-    gap: 6,
+    gap: 10,
     borderWidth: 1,
     borderColor: C.borderPrimary,
+  },
+  statTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   section: {
     gap: 10,

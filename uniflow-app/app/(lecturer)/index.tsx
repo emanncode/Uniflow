@@ -23,6 +23,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { Theme } from '@/constants/Theme'
 import { DashboardSkeleton } from '@/components/SkeletonLoader'
 import { ScreenHeaderActions } from '@/components/ScreenHeaderActions'
+import { DashboardStatCard } from '@/components/DashboardStatCard'
 import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
 import { CLASS_STATUS_COLORS, DAY_ORDER } from '@/types'
 
@@ -64,22 +65,6 @@ function StatusBadge({ status }: { status: ClassStatus }) {
       <Text style={[styles.badgeText, { color }]}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Text>
-    </View>
-  )
-}
-
-// ─── Stat Card ─────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, icon }: {
-  label: string
-  value: number
-  icon: React.ReactNode
-}) {
-  return (
-    <View style={styles.statCard}>
-      <View style={styles.statIconWrap}>{icon}</View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
     </View>
   )
 }
@@ -292,20 +277,20 @@ export default function LecturerDashboard() {
 
       {/* ── Stats ── */}
       <View style={styles.statsRow}>
-        <StatCard
+        <DashboardStatCard
           label="Today"
           value={todaySlots.length}
-          icon={<CalendarDays size={17} color={C.brand} strokeWidth={1.8} />}
+          icon={<CalendarDays size={15} color={C.brand} strokeWidth={1.8} />}
         />
-        <StatCard
+        <DashboardStatCard
           label="Courses"
           value={totalCourses}
-          icon={<BookOpen size={17} color={C.brand} strokeWidth={1.8} />}
+          icon={<BookOpen size={15} color={C.brand} strokeWidth={1.8} />}
         />
-        <StatCard
+        <DashboardStatCard
           label="Updates"
           value={alertCount}
-          icon={<Zap size={17} color={C.brand} strokeWidth={1.8} />}
+          icon={<Zap size={15} color={C.brand} strokeWidth={1.8} />}
         />
       </View>
 
@@ -373,40 +358,6 @@ const styles = StyleSheet.create({
   date: { color: C.textMuted, fontSize: 12, marginTop: 2 },
   // Stats
   statsRow: { flexDirection: 'row', gap: 10 },
-  statCard: {
-    flex: 1,
-    backgroundColor: C.bgSecondary,
-    borderRadius: R.md,
-    borderWidth: 1,
-    borderColor: C.borderSecondary,
-    padding: 14,
-    alignItems: 'center',
-    gap: 5,
-  },
-  statIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: R.sm,
-    backgroundColor: C.brandSubtle,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 92, 26, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statValue: {
-    color: C.textPrimary,
-    fontSize: 24,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  statLabel: {
-    color: C.textMuted,
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-
   // Section
   section: { gap: 10 },
   sectionHeader: {
