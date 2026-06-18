@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
-} from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BookOpen,
   Award,
@@ -17,42 +17,42 @@ import {
   MapPin,
   User,
   Calendar,
-} from 'lucide-react-native'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/useAuthStore'
-import { Theme } from '@/constants/Theme'
-import { CustomModal } from '@/components/CustomModal'
-import { CoursesSkeleton } from '@/components/SkeletonLoader'
-import type { Course, TimetableSlot } from '@/types'
+} from "lucide-react-native";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Theme } from "@/constants/Theme";
+import { CustomModal } from "@/components/CustomModal";
+import { CoursesSkeleton } from "@/components/SkeletonLoader";
+import type { Course, TimetableSlot } from "@/types";
 
-const C = Theme.colors
-const R = Theme.radius
+const C = Theme.colors;
+const R = Theme.radius;
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 interface EnrolledCourse extends Course {
-  slots: TimetableSlot[]
-  lecturerName: string | null
+  slots: TimetableSlot[];
+  lecturerName: string | null;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 function formatTime(time: string): string {
-  const [h, m] = time.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
 function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 // ─── Course Card ───────────────────────────────────────────────────────────
 
 interface CourseCardProps {
-  course: EnrolledCourse
-  onPress: (course: EnrolledCourse) => void
+  course: EnrolledCourse;
+  onPress: (course: EnrolledCourse) => void;
 }
 
 function CourseCard({ course, onPress }: CourseCardProps) {
@@ -98,24 +98,24 @@ function CourseCard({ course, onPress }: CourseCardProps) {
         <View style={styles.statItem}>
           <Layers size={13} color={C.textMuted} strokeWidth={1.8} />
           <Text style={styles.statText}>
-            {course.slots.length} slot{course.slots.length !== 1 ? 's' : ''}
+            {course.slots.length} slot{course.slots.length !== 1 ? "s" : ""}
           </Text>
         </View>
       </View>
     </TouchableOpacity>
-  )
+  );
 }
 
 // ─── Course Detail Modal ───────────────────────────────────────────────────
 
 interface DetailModalProps {
-  course: EnrolledCourse | null
-  visible: boolean
-  onClose: () => void
+  course: EnrolledCourse | null;
+  visible: boolean;
+  onClose: () => void;
 }
 
 function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
-  if (!course) return null
+  if (!course) return null;
 
   return (
     <CustomModal
@@ -129,12 +129,14 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
         contentContainerStyle={styles.sheetBody}
       >
         <Text style={styles.sheetTitle}>{course.title}</Text>
-        
+
         {/* Info pills */}
         <View style={styles.infoPills}>
           <View style={styles.infoPill}>
             <Award size={14} color={C.brand} strokeWidth={1.8} />
-            <Text style={styles.infoPillText}>{course.credit_units} Credit Units</Text>
+            <Text style={styles.infoPillText}>
+              {course.credit_units} Credit Units
+            </Text>
           </View>
           <View style={styles.infoPill}>
             <Calendar size={14} color={C.brand} strokeWidth={1.8} />
@@ -159,7 +161,8 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
         {/* Schedule */}
         <View style={styles.slotsSection}>
           <Text style={styles.sectionLabel}>
-            Schedule ({course.slots.length} slot{course.slots.length !== 1 ? 's' : ''})
+            Schedule ({course.slots.length} slot
+            {course.slots.length !== 1 ? "s" : ""})
           </Text>
 
           {course.slots.length === 0 ? (
@@ -176,7 +179,8 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
                   <View style={styles.slotInfoRow}>
                     <Clock size={12} color={C.textMuted} strokeWidth={1.8} />
                     <Text style={styles.slotInfoText}>
-                      {formatTime(slot.start_time)} – {formatTime(slot.end_time)}
+                      {formatTime(slot.start_time)} –{" "}
+                      {formatTime(slot.end_time)}
                     </Text>
                   </View>
                   <View style={styles.slotInfoRow}>
@@ -190,95 +194,99 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
         </View>
       </ScrollView>
     </CustomModal>
-  )
+  );
 }
 
 // ─── Main Screen ───────────────────────────────────────────────────────────
 
 export default function StudentCourses() {
-  const insets = useSafeAreaInsets()
-  const profile = useAuthStore((s) => s.profile)
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
 
-  const [courses, setCourses] = useState<EnrolledCourse[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [selectedCourse, setSelectedCourse] = useState<EnrolledCourse | null>(null)
-  const [modalVisible, setModalVisible] = useState(false)
+  const [courses, setCourses] = useState<EnrolledCourse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<EnrolledCourse | null>(
+    null,
+  );
+  const [modalVisible, setModalVisible] = useState(false);
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
   const fetchData = useCallback(async () => {
-    if (!profile) return
+    if (!profile) return;
     try {
       // 1. Enrolled course IDs
       const { data: enrollments } = await supabase
-        .from('enrollments')
-        .select('course_id')
-        .eq('student_id', profile.id)
-        .eq('is_active', true)
+        .from("enrollments")
+        .select("course_id")
+        .eq("student_id", profile.id)
+        .eq("is_active", true);
 
       if (!enrollments || enrollments.length === 0) {
-        setCourses([])
-        return
+        setCourses([]);
+        return;
       }
 
-      const courseIds = enrollments.map((e) => e.course_id)
+      const courseIds = enrollments.map((e) => e.course_id);
 
       // 2. Course data
       const { data: courseData } = await supabase
-        .from('courses')
-        .select('*')
-        .in('id', courseIds)
-        .eq('is_active', true)
-        .order('code')
+        .from("courses")
+        .select("*")
+        .in("id", courseIds)
+        .eq("is_active", true)
+        .order("code");
 
-      if (!courseData) return
+      if (!courseData) return;
 
       // 3. Timetable slots with lecturer profile
       const { data: slots } = await supabase
-        .from('timetable')
-        .select('*, profiles(full_name)')
-        .in('course_id', courseIds)
-        .eq('is_active', true)
-        .order('day_of_week')
-        .order('start_time')
+        .from("timetable")
+        .select("*, profiles(full_name)")
+        .in("course_id", courseIds)
+        .eq("is_active", true)
+        .order("day_of_week")
+        .order("start_time");
 
       // 4. Build enriched courses
       const enriched: EnrolledCourse[] = courseData.map((course) => {
-        const courseSlots = (slots ?? []).filter((s) => s.course_id === course.id)
-        const lecturerName = courseSlots[0]?.profiles?.full_name ?? null
-        return { ...course, slots: courseSlots, lecturerName }
-      })
+        const courseSlots = (slots ?? []).filter(
+          (s) => s.course_id === course.id,
+        );
+        const lecturerName = courseSlots[0]?.profiles?.full_name ?? null;
+        return { ...course, slots: courseSlots, lecturerName };
+      });
 
-      setCourses(enriched)
+      setCourses(enriched);
     } catch (e) {
-      console.error('Student courses fetch error:', e)
+      console.error("Student courses fetch error:", e);
     }
-  }, [profile])
+  }, [profile]);
 
   useEffect(() => {
-    fetchData().finally(() => setIsLoading(false))
-  }, [fetchData])
+    fetchData().finally(() => setIsLoading(false));
+  }, [fetchData]);
 
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true)
-    await fetchData()
-    setIsRefreshing(false)
-  }, [fetchData])
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  }, [fetchData]);
 
   const handleCoursePress = useCallback((course: EnrolledCourse) => {
-    setSelectedCourse(course)
-    setModalVisible(true)
-  }, [])
+    setSelectedCourse(course);
+    setModalVisible(true);
+  }, []);
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  if (isLoading) return <CoursesSkeleton />
+  if (isLoading) return <CoursesSkeleton />;
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  const totalUnits = courses.reduce((sum, c) => sum + c.credit_units, 0)
-  const totalSlots = courses.reduce((sum, c) => sum + c.slots.length, 0)
+  const totalUnits = courses.reduce((sum, c) => sum + c.credit_units, 0);
+  const totalSlots = courses.reduce((sum, c) => sum + c.slots.length, 0);
 
   const renderHeader = () => (
     <>
@@ -286,7 +294,7 @@ export default function StudentCourses() {
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <Text style={styles.headerTitle}>My Courses</Text>
         <Text style={styles.headerSub}>
-          {courses.length} course{courses.length !== 1 ? 's' : ''} enrolled
+          {courses.length} course{courses.length !== 1 ? "s" : ""} enrolled
         </Text>
       </View>
 
@@ -351,31 +359,31 @@ export default function StudentCourses() {
         course={selectedCourse}
         visible={modalVisible}
         onClose={() => {
-          setModalVisible(false)
-          setSelectedCourse(null)
+          setModalVisible(false);
+          setSelectedCourse(null);
         }}
       />
     </View>
-  )
+  );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bgDeep },
-  centered: { alignItems: 'center', justifyContent: 'center' },
+  centered: { alignItems: "center", justifyContent: "center" },
 
-  header: { paddingHorizontal: 20, paddingBottom: 16, gap: 2 },
+  header: { paddingBottom: 16, gap: 2 },
   headerTitle: {
     color: C.textPrimary,
     fontSize: 26,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.6,
   },
   headerSub: { color: C.textMuted, fontSize: 13 },
 
   summaryStrip: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginHorizontal: 20,
     marginBottom: 16,
     backgroundColor: C.bgCard,
@@ -384,18 +392,18 @@ const styles = StyleSheet.create({
     borderColor: C.borderPrimary,
     paddingVertical: 14,
   },
-  summaryItem: { flex: 1, alignItems: 'center', gap: 2 },
+  summaryItem: { flex: 1, alignItems: "center", gap: 2 },
   summaryValue: {
     color: C.textPrimary,
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.4,
   },
   summaryLabel: {
     color: C.textMuted,
     fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   summaryDivider: {
@@ -412,20 +420,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderPrimary,
     padding: 40,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 8,
     marginTop: 8,
   },
   emptyTitle: {
     color: C.textSecondary,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 4,
   },
   emptySubtitle: {
     color: C.textMuted,
     fontSize: 13,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   card: {
@@ -437,10 +445,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   codeTag: {
     backgroundColor: C.brandMuted,
@@ -450,7 +458,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderBrand,
   },
-  codeText: { color: C.brand, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  codeText: {
+    color: C.brand,
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
   levelTag: {
     backgroundColor: C.bgTertiary,
     borderRadius: R.full,
@@ -459,7 +472,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderPrimary,
   },
-  levelText: { color: C.textSecondary, fontSize: 12, fontWeight: '600' },
+  levelText: { color: C.textSecondary, fontSize: 12, fontWeight: "600" },
   semTag: {
     backgroundColor: C.bgTertiary,
     borderRadius: R.full,
@@ -468,35 +481,40 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderPrimary,
   },
-  semText: { color: C.textMuted, fontSize: 12, fontWeight: '500' },
+  semText: { color: C.textMuted, fontSize: 12, fontWeight: "500" },
   cardTitle: {
     color: C.textPrimary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: -0.2,
     lineHeight: 22,
   },
-  lecturerRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  lecturerRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   lecturerText: { color: C.textMuted, fontSize: 12 },
-  cardStats: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  statItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  cardStats: { flexDirection: "row", alignItems: "center", gap: 10 },
+  statItem: { flexDirection: "row", alignItems: "center", gap: 5 },
   statText: { color: C.textMuted, fontSize: 12 },
   statDivider: { width: 1, height: 12, backgroundColor: C.borderPrimary },
 
-  sheetBody: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 20 },
+  sheetBody: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 32,
+    gap: 20,
+  },
 
   sheetTitle: {
     color: C.textPrimary,
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.4,
     marginBottom: 8,
   },
 
-  infoPills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  infoPills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   infoPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     backgroundColor: C.brandSubtle,
     borderRadius: R.full,
@@ -505,14 +523,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.borderBrand,
   },
-  infoPillText: { color: C.brand, fontSize: 12, fontWeight: '600' },
+  infoPillText: { color: C.brand, fontSize: 12, fontWeight: "600" },
 
   descSection: { gap: 6 },
   sectionLabel: {
     color: C.textMuted,
     fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 4,
   },
@@ -521,8 +539,8 @@ const styles = StyleSheet.create({
   slotsSection: { gap: 8 },
   noSlots: { color: C.textMuted, fontSize: 13 },
   slotRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     backgroundColor: C.bgTertiary,
     borderRadius: R.sm,
@@ -537,11 +555,11 @@ const styles = StyleSheet.create({
     backgroundColor: C.brandMuted,
     borderWidth: 1,
     borderColor: C.borderBrand,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  slotDayText: { color: C.brand, fontSize: 12, fontWeight: '700' },
+  slotDayText: { color: C.brand, fontSize: 12, fontWeight: "700" },
   slotInfo: { flex: 1, gap: 4 },
-  slotInfoRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  slotInfoRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   slotInfoText: { color: C.textSecondary, fontSize: 13 },
-})
+});
