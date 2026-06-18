@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { Text, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
+  Extrapolation,
   interpolate,
   interpolateColor,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSequence,
   withTiming,
 } from "react-native-reanimated";
@@ -17,8 +19,12 @@ import { MOTION } from "@/lib/motion";
 
 const C = Theme.colors;
 const LOGO_SIZE = 108;
-const LOCKUP_GAP = 16;
+const LOCKUP_GAP = 6;
 const WORDMARK_FONT = 58;
+const CLAMP = Extrapolation.CLAMP;
+
+const SMOOTH_IN = Easing.bezier(0.25, 0.1, 0.25, 1);
+const SMOOTH_REVEAL = Easing.bezier(0.37, 0, 0.18, 1);
 
 interface SplashEntranceProps {
   onFinish: () => void;
@@ -34,17 +40,17 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
     progress.value = withSequence(
       withTiming(0.5, {
         duration: MOTION.splash.hold,
-        easing: Easing.out(Easing.cubic),
+        easing: SMOOTH_IN,
       }),
-      withTiming(
-        1,
-        {
-          duration: MOTION.splash.reveal,
-          easing: Easing.inOut(Easing.cubic),
-        },
-        (finished) => {
+      withTiming(1, {
+        duration: MOTION.splash.reveal,
+        easing: SMOOTH_REVEAL,
+      }),
+      withDelay(
+        MOTION.splash.settle,
+        withTiming(1, { duration: 0 }, (finished) => {
           if (finished) runOnJS(onFinish)();
-        },
+        }),
       ),
     );
   }, [onFinish, progress]);
@@ -52,19 +58,20 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   const backdropStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
       progress.value,
-      [0, 0.5, 1],
-      [C.bgDeep, C.bgDeep, C.bgPrimary],
+      [0, 0.5, 0.92, 1],
+      [C.bgDeep, C.bgDeep, C.bgPrimary, C.bgPrimary],
     ),
   }));
 
   const lockupStyle = useAnimatedStyle(() => {
     const scale = interpolate(
       progress.value,
-      [0, 0.2, 0.5, 0.85, 1],
-      [0.72, 1.04, 1.04, 1, 1],
+      [0, 0.22, 0.5, 0.88, 1],
+      [0.72, 1.04, 1.04, 1.01, 1],
+      CLAMP,
     );
-    const opacity = interpolate(progress.value, [0, 0.12, 1], [0, 1, 1]);
-    const nudgeX = interpolate(progress.value, [0.5, 1], [0, 6]);
+    const opacity = interpolate(progress.value, [0, 0.14, 1], [0, 1, 1], CLAMP);
+    const nudgeX = interpolate(progress.value, [0.5, 1], [0, 6], CLAMP);
 
     return {
       opacity,
@@ -75,15 +82,16 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   const logoStyle = useAnimatedStyle(() => ({
     shadowOpacity: interpolate(
       progress.value,
-      [0, 0.2, 0.5, 1],
+      [0, 0.22, 0.5, 1],
       [0, 1, 0.9, 0.45],
+      CLAMP,
     ),
   }));
 
   const wordmarkClipStyle = useAnimatedStyle(() => ({
-    width: interpolate(progress.value, [0.5, 1], [0, wordmarkWidth.value]),
-    marginLeft: interpolate(progress.value, [0.5, 1], [0, LOCKUP_GAP]),
-    opacity: interpolate(progress.value, [0.5, 0.58, 1], [0, 1, 1]),
+    width: interpolate(progress.value, [0.5, 1], [0, wordmarkWidth.value], CLAMP),
+    marginLeft: interpolate(progress.value, [0.5, 1], [0, LOCKUP_GAP], CLAMP),
+    opacity: interpolate(progress.value, [0.5, 0.72, 0.92, 1], [0, 0.4, 0.92, 1], CLAMP),
   }));
 
   return (
@@ -140,6 +148,7 @@ const styles = StyleSheet.create({
   wordmarkClip: {
     overflow: "hidden",
     justifyContent: "center",
+    minWidth: 0,
   },
   wordmark: {
     fontSize: WORDMARK_FONT,

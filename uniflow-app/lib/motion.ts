@@ -6,9 +6,10 @@ export const MOTION = {
   maxStagger: 180,
   pressScale: 0.97,
   splash: {
-    hold: 500,
-    reveal: 520,
-    total: 1020,
+    hold: 600,
+    reveal: 1200,
+    settle: 520,
+    total: 2320,
   },
 } as const;
 
