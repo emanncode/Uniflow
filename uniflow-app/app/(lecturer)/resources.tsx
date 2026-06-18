@@ -327,6 +327,9 @@ function UploadSheet({
     "other",
   ];
 
+  const hasCourses = courses.length > 0;
+  const canSubmit = hasCourses && !isUploading;
+
   return (
     <CustomModal
       visible={visible}
@@ -335,11 +338,20 @@ function UploadSheet({
       type="sheet"
     >
       <ScrollView
-        style={styles.sheetScroll}
         contentContainerStyle={styles.sheetScrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
       >
+        {!hasCourses ? (
+          <View style={styles.noCoursesBanner}>
+            <Text style={styles.noCoursesTitle}>No courses assigned</Text>
+            <Text style={styles.noCoursesText}>
+              Contact your HOD to get courses assigned before uploading resources.
+            </Text>
+          </View>
+        ) : null}
+
         {/* Course selector */}
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>Course</Text>
@@ -347,6 +359,7 @@ function UploadSheet({
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.pillScroll}
+            nestedScrollEnabled
           >
             {courses.map((c) => (
               <TouchableOpacity
@@ -382,6 +395,7 @@ function UploadSheet({
                   resourceType === t && styles.typePillActive,
                 ]}
                 onPress={() => setResourceType(t)}
+                disabled={!hasCourses}
               >
                 <Text
                   style={[
@@ -405,7 +419,7 @@ function UploadSheet({
             placeholderTextColor={C.textMuted}
             value={title}
             onChangeText={setTitle}
-            editable={!isUploading}
+            editable={canSubmit}
           />
         </View>
 
@@ -420,7 +434,7 @@ function UploadSheet({
             onChangeText={setDescription}
             multiline
             numberOfLines={3}
-            editable={!isUploading}
+            editable={canSubmit}
           />
         </View>
 
@@ -431,7 +445,7 @@ function UploadSheet({
             style={styles.filePicker}
             onPress={handlePickFile}
             activeOpacity={0.75}
-            disabled={isUploading}
+            disabled={!canSubmit}
           >
             {file ? (
               <View style={styles.filePickerSelected}>
@@ -452,9 +466,12 @@ function UploadSheet({
 
         {/* Submit */}
         <TouchableOpacity
-          style={[styles.uploadBtn, isUploading && { opacity: 0.7 }]}
+          style={[
+            styles.uploadBtn,
+            (!canSubmit || isUploading) && styles.uploadBtnDisabled,
+          ]}
           onPress={handleUpload}
-          disabled={isUploading}
+          disabled={!canSubmit}
           activeOpacity={0.85}
         >
           {isUploading ? (
@@ -805,8 +822,26 @@ const styles = StyleSheet.create({
   },
   fileTypeText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
 
-  sheetScroll: { flex: 1 },
   sheetScrollContent: { paddingBottom: 24, gap: 16 },
+
+  noCoursesBanner: {
+    backgroundColor: C.brandMuted,
+    borderRadius: R.md,
+    borderWidth: 1,
+    borderColor: C.borderBrand,
+    padding: 14,
+    gap: 6,
+  },
+  noCoursesTitle: {
+    color: C.brand,
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  noCoursesText: {
+    color: C.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
+  },
 
   fieldGroup: { gap: 8 },
   fieldLabel: {
@@ -878,6 +913,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: "center",
     marginTop: 4,
+  },
+  uploadBtnDisabled: {
+    opacity: 0.45,
   },
   uploadBtnLoading: { flexDirection: "row", alignItems: "center", gap: 10 },
   uploadBtnText: { color: C.textPrimary, fontSize: 15, fontWeight: "700" },

@@ -67,7 +67,7 @@ export function CustomModal({
             </TouchableOpacity>
           </View>
 
-          <View style={styles.body}>
+          <View style={[styles.body, isSheet && styles.sheetBody]}>
             {children}
           </View>
         </View>
@@ -92,9 +92,10 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {
     marginTop: "auto",
+    maxHeight: SCREEN_HEIGHT * 0.9,
     borderTopLeftRadius: R.xl,
     borderTopRightRadius: R.xl,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingBottom: Platform.OS === "ios" ? 40 : 24,
   },
   alertContainer: {
     marginHorizontal: 24,
@@ -137,5 +138,9 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 24,
     paddingBottom: 8,
+  },
+  sheetBody: {
+    flex: 1,
+    minHeight: 0,
   },
 });
