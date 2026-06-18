@@ -57,14 +57,14 @@ def f(
     id_: str,
     name: str,
     *,
-    x: float = 0,
-    y: float = 0,
-    width: str | float = W,
-    height: str | float = H,
-    layout: str = "vertical",
-    gap: float = 12,
+    x: float | None = None,
+    y: float | None = None,
+    width: str | float | None = None,
+    height: str | float | None = None,
+    layout: str | None = "vertical",
+    gap: float | None = 12,
     padding: list[float] | None = None,
-    fill: str = C["bg"],
+    fill: str | None = None,
     stroke: str | None = None,
     radius: float | None = None,
     children: list[dict[str, Any]] | None = None,
@@ -75,16 +75,22 @@ def f(
     node: dict[str, Any] = {
         "type": "frame",
         "id": id_,
-        "x": x,
-        "y": y,
         "name": name,
         "clip": clip,
-        "width": width,
-        "height": height,
-        "fill": fill,
-        "layout": layout,
     }
-    if gap:
+    if x is not None:
+        node["x"] = x
+    if y is not None:
+        node["y"] = y
+    if width is not None:
+        node["width"] = width
+    if height is not None:
+        node["height"] = height
+    if fill is not None:
+        node["fill"] = fill
+    if layout is not None:
+        node["layout"] = layout
+    if gap is not None:
         node["gap"] = gap
     if padding is not None:
         node["padding"] = padding
@@ -131,7 +137,7 @@ def tab_bar(active: str, prefix: str) -> dict[str, Any]:
                 layout="vertical",
                 gap=4,
                 align="center",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t(
@@ -161,7 +167,7 @@ def header_actions(prefix: str) -> dict[str, Any]:
         layout="horizontal",
         gap=10,
         align="center",
-        fill="transparent",
+        fill=None,
         clip=False,
         children=[
             f(
@@ -202,7 +208,7 @@ def page_header(prefix: str, title: str, subtitle: str | None = None) -> dict[st
         width="fill_container",
         layout="vertical",
         gap=4,
-        fill="transparent",
+        fill=None,
         clip=False,
         children=kids,
     )
@@ -216,7 +222,7 @@ def back_header(prefix: str, title: str) -> dict[str, Any]:
         layout="horizontal",
         gap=12,
         align="center",
-        fill="transparent",
+        fill=None,
         clip=False,
         children=[
             f(
@@ -254,7 +260,7 @@ def stat_card(prefix: str, label: str, value: str, icon: str) -> dict[str, Any]:
                 layout="horizontal",
                 gap=6,
                 align="center",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t(f"{prefix}Stat{label}Icon", icon, fill=C["brand"], size=14),
@@ -297,7 +303,7 @@ def class_card(prefix: str, code: str, title: str, meta: str, badge: str | None 
                 width="fill_container",
                 layout="vertical",
                 gap=6,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -307,7 +313,7 @@ def class_card(prefix: str, code: str, title: str, meta: str, badge: str | None 
                         layout="horizontal",
                         justify="space_between",
                         align="center",
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=top,
                     ),
@@ -326,7 +332,7 @@ def filter_chips(prefix: str, labels: list[str], active: int = 0) -> dict[str, A
         width="fill_container",
         layout="horizontal",
         gap=8,
-        fill="transparent",
+        fill=None,
         clip=False,
         children=[
             f(
@@ -369,6 +375,9 @@ def screen_shell(
         name,
         x=x,
         y=y,
+        width=W,
+        height=H,
+        fill=C["bg"],
         layout="vertical",
         gap=16,
         padding=padding or [56, 20, 100, 20],
@@ -382,6 +391,9 @@ def login_screen() -> dict[str, Any]:
         "Login",
         x=0,
         y=0,
+        width=W,
+        height=H,
+        fill=C["bg"],
         layout="vertical",
         gap=24,
         padding=[56, 24, 32, 24],
@@ -390,10 +402,11 @@ def login_screen() -> dict[str, Any]:
             f(
                 "loginBrand",
                 "Brand",
+                width="fill_container",
                 layout="vertical",
                 gap=12,
                 align="center",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -427,7 +440,7 @@ def login_screen() -> dict[str, Any]:
                         "Header",
                         layout="vertical",
                         gap=6,
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("loginTitle", "Welcome back", size=22, weight="700"),
@@ -440,7 +453,7 @@ def login_screen() -> dict[str, Any]:
                         width="fill_container",
                         layout="vertical",
                         gap=8,
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("emailLabel", "Email address", fill=C["muted"], size=13, weight="500"),
@@ -464,7 +477,7 @@ def login_screen() -> dict[str, Any]:
                         width="fill_container",
                         layout="vertical",
                         gap=8,
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             f(
@@ -474,7 +487,7 @@ def login_screen() -> dict[str, Any]:
                                 layout="horizontal",
                                 justify="space_between",
                                 align="center",
-                                fill="transparent",
+                                fill=None,
                                 clip=False,
                                 children=[
                                     t("passwordLabel", "Password", fill=C["muted"], size=13, weight="500"),
@@ -538,7 +551,7 @@ def student_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="horizontal",
                 justify="space_between",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -546,7 +559,7 @@ def student_home() -> dict[str, Any]:
                         "Greeting",
                         layout="vertical",
                         gap=4,
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("stuGreeting", "Good morning", fill=C["muted"], size=14, weight="500"),
@@ -563,7 +576,7 @@ def student_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="horizontal",
                 gap=10,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     stat_card("stu", "Today", "3", "📅"),
@@ -593,7 +606,7 @@ def student_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="vertical",
                 gap=12,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -603,7 +616,7 @@ def student_home() -> dict[str, Any]:
                         layout="horizontal",
                         justify="space_between",
                         align="center",
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("stuTodayTitle", "Today's Classes", size=17, weight="700"),
@@ -633,7 +646,7 @@ def student_schedule() -> dict[str, Any]:
                 width="fill_container",
                 layout="horizontal",
                 gap=6,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -684,7 +697,7 @@ def student_courses() -> dict[str, Any]:
                 "Tags",
                 layout="horizontal",
                 gap=8,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f("stuCodeTag", "Code", padding=[4, 10], radius=8, fill=C["brandMuted"], children=[t("stuCodeText", "CSC 301", fill=C["brand"], size=12, weight="700")]),
@@ -699,7 +712,7 @@ def student_courses() -> dict[str, Any]:
                 "Stats",
                 layout="horizontal",
                 gap=12,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t("stuCourseUnits", "3 units", fill=C["muted"], size=12),
@@ -743,7 +756,7 @@ def student_resources() -> dict[str, Any]:
                 width="fill_container",
                 layout="vertical",
                 gap=4,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t("stuResTitle", "CSC 301 Past Questions 2024", size=14, weight="600"),
@@ -806,7 +819,7 @@ def notif_item(prefix: str, suffix: str, title: str, msg: str, when: str, icon: 
                 width="fill_container",
                 layout="vertical",
                 gap=4,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t(f"{prefix}Notif{suffix}Title", title, size=14, weight="600"),
@@ -824,6 +837,9 @@ def student_notifications() -> dict[str, Any]:
         "Student · Notifications",
         x=2150,
         y=0,
+        width=W,
+        height=H,
+        fill=C["bg"],
         layout="vertical",
         gap=16,
         padding=[56, 20, 32, 20],
@@ -836,7 +852,7 @@ def student_notifications() -> dict[str, Any]:
                 layout="horizontal",
                 justify="space_between",
                 align="center",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t("stuNotifCount", "3 unread", fill=C["brand"], size=13, weight="600"),
@@ -856,6 +872,9 @@ def student_profile() -> dict[str, Any]:
         "Student · Profile",
         x=2580,
         y=0,
+        width=W,
+        height=H,
+        fill=C["bg"],
         layout="vertical",
         gap=16,
         padding=[56, 20, 32, 20],
@@ -888,8 +907,8 @@ def student_profile() -> dict[str, Any]:
                 fill=C["card"],
                 stroke=C["border"],
                 children=[
-                    f("stuProfEmail", "Row", width="fill_container", padding=14, layout="horizontal", gap=12, align="center", fill="transparent", clip=False, children=[t("stuProfEmailIcon", "✉", fill=C["brand"]), f("stuProfEmailCol", "Col", layout="vertical", gap=2, fill="transparent", clip=False, children=[t("stuProfEmailLabel", "Email", fill=C["dim"], size=11), t("stuProfEmailVal", "adaobi@university.edu", size=14)])]),
-                    f("stuProfDept", "Row", width="fill_container", padding=14, layout="horizontal", gap=12, align="center", fill="transparent", clip=False, children=[t("stuProfDeptIcon", "🎓", fill=C["brand"]), f("stuProfDeptCol", "Col", layout="vertical", gap=2, fill="transparent", clip=False, children=[t("stuProfDeptLabel", "Department", fill=C["dim"], size=11), t("stuProfDeptVal", "Computer Science", size=14)])]),
+                    f("stuProfEmail", "Row", width="fill_container", padding=14, layout="horizontal", gap=12, align="center", fill=None, clip=False, children=[t("stuProfEmailIcon", "✉", fill=C["brand"]), f("stuProfEmailCol", "Col", layout="vertical", gap=2, fill=None, clip=False, children=[t("stuProfEmailLabel", "Email", fill=C["dim"], size=11), t("stuProfEmailVal", "adaobi@university.edu", size=14)])]),
+                    f("stuProfDept", "Row", width="fill_container", padding=14, layout="horizontal", gap=12, align="center", fill=None, clip=False, children=[t("stuProfDeptIcon", "🎓", fill=C["brand"]), f("stuProfDeptCol", "Col", layout="vertical", gap=2, fill=None, clip=False, children=[t("stuProfDeptLabel", "Department", fill=C["dim"], size=11), t("stuProfDeptVal", "Computer Science", size=14)])]),
                 ],
             ),
             f(
@@ -902,8 +921,8 @@ def student_profile() -> dict[str, Any]:
                 fill=C["card"],
                 stroke=C["border"],
                 children=[
-                    f("stuChangePass", "Row", width="fill_container", padding=14, layout="horizontal", justify="space_between", align="center", fill="transparent", clip=False, children=[t("stuChangePassText", "Change password", size=14), t("stuChangePassChev", "›", fill=C["dim"])]),
-                    f("stuLogout", "Row", width="fill_container", padding=14, layout="horizontal", justify="space_between", align="center", fill="transparent", clip=False, children=[t("stuLogoutText", "Sign out", fill=C["danger"], size=14, weight="600"), t("stuLogoutChev", "›", fill=C["dim"])]),
+                    f("stuChangePass", "Row", width="fill_container", padding=14, layout="horizontal", justify="space_between", align="center", fill=None, clip=False, children=[t("stuChangePassText", "Change password", size=14), t("stuChangePassChev", "›", fill=C["dim"])]),
+                    f("stuLogout", "Row", width="fill_container", padding=14, layout="horizontal", justify="space_between", align="center", fill=None, clip=False, children=[t("stuLogoutText", "Sign out", fill=C["danger"], size=14, weight="600"), t("stuLogoutChev", "›", fill=C["dim"])]),
                 ],
             ),
         ],
@@ -923,7 +942,7 @@ def lecturer_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="horizontal",
                 justify="space_between",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -931,7 +950,7 @@ def lecturer_home() -> dict[str, Any]:
                         "Greeting",
                         layout="vertical",
                         gap=4,
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("lecGreeting", "Good afternoon", fill=C["muted"], size=14, weight="500"),
@@ -948,7 +967,7 @@ def lecturer_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="horizontal",
                 gap=10,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     stat_card("lec", "Today", "2", "📅"),
@@ -962,7 +981,7 @@ def lecturer_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="vertical",
                 gap=12,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -972,7 +991,7 @@ def lecturer_home() -> dict[str, Any]:
                         layout="horizontal",
                         justify="space_between",
                         align="center",
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("lecTodayTitle", "Today's Classes", size=17, weight="700"),
@@ -989,7 +1008,7 @@ def lecturer_home() -> dict[str, Any]:
                 width="fill_container",
                 layout="vertical",
                 gap=12,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t("lecUpcomingTitle", "Upcoming", size=17, weight="700"),
@@ -1015,7 +1034,7 @@ def lecturer_schedule() -> dict[str, Any]:
                 width="fill_container",
                 layout="horizontal",
                 gap=6,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     f(
@@ -1039,7 +1058,7 @@ def lecturer_schedule() -> dict[str, Any]:
                 width="fill_container",
                 layout="vertical",
                 gap=8,
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t("lecStatusLabel", "Post class update", fill=C["muted"], size=12, weight="600"),
@@ -1110,7 +1129,7 @@ def lecturer_resources() -> dict[str, Any]:
                 layout="horizontal",
                 justify="space_between",
                 align="center",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     page_header("lecRes", "Resources", "Upload & manage files"),
@@ -1119,7 +1138,7 @@ def lecturer_resources() -> dict[str, Any]:
                         "Upload",
                         padding=[10, 16],
                         radius=14,
-                        fill="transparent",
+                        fill=None,
                         stroke=C["brand"],
                         children=[t("lecUploadText", "+ Upload", fill=C["brand"], size=13, weight="700")],
                     ),
@@ -1145,7 +1164,7 @@ def lecturer_resources() -> dict[str, Any]:
                         width="fill_container",
                         layout="vertical",
                         gap=4,
-                        fill="transparent",
+                        fill=None,
                         clip=False,
                         children=[
                             t("lecResTitle", "Week 4 Lecture Notes", size=14, weight="600"),
@@ -1165,6 +1184,9 @@ def lecturer_notifications() -> dict[str, Any]:
         "Lecturer · Notifications",
         x=1720,
         y=H + GAP,
+        width=W,
+        height=H,
+        fill=C["bg"],
         layout="vertical",
         gap=16,
         padding=[56, 20, 32, 20],
@@ -1177,7 +1199,7 @@ def lecturer_notifications() -> dict[str, Any]:
                 layout="horizontal",
                 justify="space_between",
                 align="center",
-                fill="transparent",
+                fill=None,
                 clip=False,
                 children=[
                     t("lecNotifCount", "1 unread", fill=C["brand"], size=13, weight="600"),
@@ -1216,21 +1238,6 @@ def lecturer_profile() -> dict[str, Any]:
     return prof
 
 
-def section_label(text: str, x: float, y: float) -> dict[str, Any]:
-    return f(
-        f"label{text.replace(' ', '')}",
-        text,
-        x=x,
-        y=y - 36,
-        width=600,
-        height=28,
-        layout="none",
-        fill="transparent",
-        clip=False,
-        children=[t(f"label{text.replace(' ', '')}Text", text, fill=C["brand"], size=18, weight="700")],
-    )
-
-
 def main() -> None:
     screens = [
         login_screen(),
@@ -1248,16 +1255,23 @@ def main() -> None:
         lecturer_profile(),
     ]
 
-    labels = [
-        section_label("Auth", 0, 0),
-        section_label("Student screens", 430, 0),
-        section_label("Lecturer screens", 0, H + GAP),
-    ]
+    canvas = f(
+        "uniflowCanvas",
+        "Uniflow Mobile — All Screens",
+        x=0,
+        y=0,
+        width=2970,
+        height=1728,
+        fill="#050505",
+        layout="none",
+        clip=False,
+        children=screens,
+    )
 
     doc = {
         "version": "2.13",
         "name": "Uniflow Mobile — All Screens",
-        "children": labels + screens,
+        "children": [canvas],
         "variables": {
             "--bg-primary": {"type": "color", "value": C["bg"]},
             "--bg-secondary": {"type": "color", "value": C["bg2"]},
