@@ -561,45 +561,49 @@ export default function LecturerResources() {
             <Text style={styles.headerSub}>
               {resources.length} file{resources.length !== 1 ? "s" : ""} uploaded
             </Text>
-            <TouchableOpacity
-              style={styles.uploadFab}
-              onPress={() => setUploadVisible(true)}
-              activeOpacity={0.85}
-            >
-              <Plus size={18} color={C.textPrimary} strokeWidth={2.5} />
-              <Text style={styles.uploadFabText}>Upload</Text>
-            </TouchableOpacity>
           </View>
           <ScreenHeaderActions role="lecturer" />
         </View>
+
+        <TouchableOpacity
+          style={styles.headerUploadBtn}
+          onPress={() => setUploadVisible(true)}
+          activeOpacity={0.85}
+        >
+          <Plus size={20} color={C.textPrimary} strokeWidth={2.5} />
+          <Text style={styles.headerUploadBtnText}>Upload file</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Course filter */}
-      <FlatList
-        horizontal
-        data={[{ id: "all", code: "All" }, ...courses]}
-        keyExtractor={(item) => item.id}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterStrip}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.filterPill,
-              selectedCourseId === item.id && styles.filterPillActive,
-            ]}
-            onPress={() => setSelectedCourseId(item.id)}
-          >
-            <Text
+      <View style={styles.filterSection}>
+        <Text style={styles.filterLabel}>Filter by course</Text>
+        <FlatList
+          horizontal
+          data={[{ id: "all", code: "All" }, ...courses]}
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterStrip}
+          renderItem={({ item }) => (
+            <TouchableOpacity
               style={[
-                styles.filterPillText,
-                selectedCourseId === item.id && styles.filterPillTextActive,
+                styles.filterChip,
+                selectedCourseId === item.id && styles.filterChipActive,
               ]}
+              onPress={() => setSelectedCourseId(item.id)}
+              activeOpacity={0.75}
             >
-              {item.code}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
+              <Text
+                style={[
+                  styles.filterChipText,
+                  selectedCourseId === item.id && styles.filterChipTextActive,
+                ]}
+              >
+                {item.code}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
     </>
   );
 
@@ -608,7 +612,7 @@ export default function LecturerResources() {
       <Upload size={32} color={C.textMuted} strokeWidth={1.5} />
       <Text style={styles.emptyTitle}>No resources yet</Text>
       <Text style={styles.emptySubtitle}>
-        Tap Upload to share notes, past questions, or materials
+        Tap Upload file to share notes, past questions, or materials
       </Text>
     </View>
   );
@@ -672,35 +676,67 @@ const styles = StyleSheet.create({
   },
   headerSub: { color: C.textMuted, fontSize: 13, marginTop: 2 },
 
-  uploadFab: {
+  headerUploadBtn: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
+    justifyContent: "center",
+    gap: 8,
+    alignSelf: "stretch",
+    marginTop: 14,
     backgroundColor: C.brand,
-    borderRadius: R.full,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginTop: 10,
+    borderRadius: R.md,
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+    elevation: 2,
+    shadowColor: C.brand,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
-  uploadFabText: { color: C.textPrimary, fontSize: 13, fontWeight: "700" },
+  headerUploadBtnText: {
+    color: C.textPrimary,
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
 
+  filterSection: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  filterLabel: {
+    color: C.textMuted,
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
   filterStrip: {
-    paddingBottom: 14,
+    paddingBottom: 10,
     gap: 8,
     flexDirection: "row",
   },
-  filterPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: R.full,
-    backgroundColor: C.bgCard,
+    backgroundColor: C.bgTertiary,
     borderWidth: 1,
     borderColor: C.borderPrimary,
   },
-  filterPillActive: { backgroundColor: C.brand, borderColor: C.brand },
-  filterPillText: { color: C.textMuted, fontSize: 13, fontWeight: "600" },
-  filterPillTextActive: { color: C.textPrimary },
+  filterChipActive: {
+    backgroundColor: C.brandSubtle,
+    borderColor: C.borderBrand,
+  },
+  filterChipText: {
+    color: C.textMuted,
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  filterChipTextActive: {
+    color: C.brand,
+    fontWeight: "700",
+  },
 
   list: { paddingHorizontal: 20, gap: 10 },
 
