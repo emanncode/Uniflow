@@ -3,6 +3,8 @@ export const ALL_COURSE_LEVELS = [100, 200, 300, 400, 500] as const;
 export type CourseLevel = (typeof ALL_COURSE_LEVELS)[number];
 export type MaxCourseLevel = 400 | 500;
 
+export type DepartmentMaxLevel = MaxCourseLevel | null;
+
 export function getCourseLevels(maxLevel: MaxCourseLevel): CourseLevel[] {
   return ALL_COURSE_LEVELS.filter((level) => level <= maxLevel);
 }

@@ -33,7 +33,8 @@ export async function GET(req: Request) {
         email, 
         role, 
         status, 
-        department_id, 
+        department_id,
+        level,
         created_at,
         departments (
           faculty
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
       // Fallback: If the join failed, try fetching without the join to see if data exists at all
       const { data: fallbackData, error: fallbackError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role, status, department_id, created_at')
+        .select('id, full_name, email, role, status, department_id, level, created_at')
         .eq('university_id', universityId)
         .order('created_at', { ascending: false })
       
@@ -81,7 +82,7 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const { id, full_name, email, department_id, status, role } = await req.json()
+    const { id, full_name, email, department_id, status, role, level } = await req.json()
     if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
 
     const supabase = createAdminClient()
@@ -110,6 +111,15 @@ export async function PATCH(req: Request) {
     if (department_id !== undefined) updates.department_id = department_id
     if (status !== undefined) updates.status = status
     if (role !== undefined) updates.role = role.toLowerCase()
+    if (level !== undefined) {
+      const parsedLevel =
+        level === null || level === '' ? null : parseInt(String(level), 10)
+      const validLevels = [100, 200, 300, 400, 500]
+      if (parsedLevel !== null && !validLevels.includes(parsedLevel)) {
+        return NextResponse.json({ error: 'Invalid level value' }, { status: 400 })
+      }
+      updates.level = parsedLevel
+    }
 
     if (email && email.toLowerCase() !== currentProfile.email?.toLowerCase()) {
       try {

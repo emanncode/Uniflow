@@ -6,7 +6,7 @@ import { canManageUniversity } from '@/lib/auth'
 
 export async function POST(req: Request) {
   try {
-    const { full_name, email, role, department_id, university_id } = await req.json()
+    const { full_name, email, role, department_id, university_id, level } = await req.json()
 
     // ── Security: Authorization Check ──────────────────────────────────────
     if (!university_id) {
@@ -36,6 +36,22 @@ export async function POST(req: Request) {
       console.log(`API Create Staff: Corrected email domain ${email} -> ${finalEmail}`)
     }
 
+    const parsedLevel =
+      level !== undefined && level !== null && level !== ''
+        ? parseInt(String(level), 10)
+        : null
+    const validLevels = [100, 200, 300, 400, 500]
+    if (normalizedRole === 'student') {
+      if (!parsedLevel || !validLevels.includes(parsedLevel)) {
+        return NextResponse.json(
+          { error: 'Student level is required (100, 200, 300, 400, or 500)' },
+          { status: 400 },
+        )
+      }
+    } else if (parsedLevel !== null && !validLevels.includes(parsedLevel)) {
+      return NextResponse.json({ error: 'Invalid level value' }, { status: 400 })
+    }
+
     console.log(`API Create Staff: Creating ${normalizedRole} ${finalEmail} for university ${university_id}`);
 
     const supabase = createAdminClient()
@@ -63,6 +79,7 @@ export async function POST(req: Request) {
       role: normalizedRole,
       university_id,
       department_id: department_id || null,
+      level: normalizedRole === 'student' ? parsedLevel : null,
       status: 'active',
     })
 

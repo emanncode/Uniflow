@@ -63,6 +63,7 @@ export interface Profile {
   email: string;
   phone: string | null;
   role: UserRole;
+  level: number | null;
   avatar_url: string | null;
   push_token: string | null;
   is_active: boolean;
@@ -98,6 +99,7 @@ export interface Department {
   faculty_name: string;
   name: string;
   short_name: string;
+  max_course_level: 400 | 500 | null;
   is_active: boolean;
   created_at: string;
 }
