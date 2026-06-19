@@ -2,10 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { User, Shield, Save, Eye, EyeOff, Loader2 } from "lucide-react";
+import { User, Shield, Save, Eye, EyeOff, Loader2, GraduationCap } from "lucide-react";
+import {
+  type MaxCourseLevel,
+  getStoredMaxLevel,
+  setStoredMaxLevel,
+} from "@/lib/course-levels";
 
 export default function UniversitySettingsPage() {
   const [profile, setProfile] = useState({ full_name: "", email: "" });
+  const [universityId, setUniversityId] = useState<string | null>(null);
+  const [maxCourseLevel, setMaxCourseLevel] = useState<MaxCourseLevel>(400);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
@@ -23,10 +30,14 @@ export default function UniversitySettingsPage() {
       if (!session) return;
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, email")
+        .select("full_name, email, university_id")
         .eq("id", session.user.id)
         .single();
-      if (data) setProfile({ full_name: data.full_name, email: data.email });
+      if (data) {
+        setProfile({ full_name: data.full_name, email: data.email });
+        setUniversityId(data.university_id);
+        setMaxCourseLevel(getStoredMaxLevel(data.university_id));
+      }
       setLoading(false);
     };
 
@@ -77,6 +88,18 @@ export default function UniversitySettingsPage() {
       setTimeout(() => setSuccess(""), 3000);
     }
     setSaving(false);
+  }
+
+  function handleMaxLevelChange(level: MaxCourseLevel) {
+    if (!universityId) return;
+    setMaxCourseLevel(level);
+    setStoredMaxLevel(universityId, level);
+    setSuccess(
+      level === 500
+        ? "500 level enabled for courses and timetable."
+        : "Course levels set to 100–400 only.",
+    );
+    setTimeout(() => setSuccess(""), 3000);
   }
 
   if (loading)
@@ -217,6 +240,94 @@ export default function UniversitySettingsPage() {
             )}
             Save changes
           </button>
+        </div>
+      </div>
+
+      {/* Academic */}
+      <div
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-primary)",
+          borderRadius: "var(--radius-lg)",
+          overflow: "hidden",
+          marginBottom: "16px",
+        }}
+      >
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid var(--border-primary)",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+          }}
+        >
+          <div
+            style={{
+              width: "32px",
+              height: "32px",
+              borderRadius: "var(--radius-sm)",
+              background: "var(--success-muted)",
+              border: "1px solid var(--success-muted)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <GraduationCap size={15} style={{ color: "var(--success)" }} />
+          </div>
+          <div>
+            <p
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                color: "var(--text-primary)",
+              }}
+            >
+              Course levels
+            </p>
+            <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+              Controls level tabs on Courses and Timetable pages
+            </p>
+          </div>
+        </div>
+        <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              cursor: "pointer",
+              fontSize: "13px",
+              color: "var(--text-secondary)",
+            }}
+          >
+            <input
+              type="radio"
+              name="maxCourseLevel"
+              checked={maxCourseLevel === 400}
+              onChange={() => handleMaxLevelChange(400)}
+            />
+            100 – 400 level (undergraduate)
+          </label>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              cursor: "pointer",
+              fontSize: "13px",
+              color: "var(--text-secondary)",
+            }}
+          >
+            <input
+              type="radio"
+              name="maxCourseLevel"
+              checked={maxCourseLevel === 500}
+              onChange={() => handleMaxLevelChange(500)}
+            />
+            100 – 500 level (include postgraduate)
+          </label>
         </div>
       </div>
 

@@ -34,7 +34,7 @@ const R = Theme.radius;
 
 interface EnrolledCourse extends Course {
   slots: TimetableSlot[];
-  lecturerName: string | null;
+  lecturerNames: string[];
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -82,10 +82,12 @@ function CourseCard({ course, onPress }: CourseCardProps) {
       </Text>
 
       {/* Lecturer */}
-      {course.lecturerName ? (
+      {course.lecturerNames.length > 0 ? (
         <View style={styles.lecturerRow}>
           <User size={12} color={C.textMuted} strokeWidth={1.8} />
-          <Text style={styles.lecturerText}>{course.lecturerName}</Text>
+          <Text style={styles.lecturerText}>
+            {course.lecturerNames.join(", ")}
+          </Text>
         </View>
       ) : null}
 
@@ -145,10 +147,12 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
             <Calendar size={14} color={C.brand} strokeWidth={1.8} />
             <Text style={styles.infoPillText}>Semester {course.semester}</Text>
           </View>
-          {course.lecturerName ? (
+          {course.lecturerNames.length > 0 ? (
             <View style={styles.infoPill}>
               <User size={14} color={C.brand} strokeWidth={1.8} />
-              <Text style={styles.infoPillText}>{course.lecturerName}</Text>
+              <Text style={styles.infoPillText}>
+                {course.lecturerNames.join(", ")}
+              </Text>
             </View>
           ) : null}
         </View>
@@ -252,13 +256,42 @@ export default function StudentCourses() {
         .order("day_of_week")
         .order("start_time");
 
-      // 4. Build enriched courses
+      // 4. Assigned lecturers per course
+      const { data: lecturerAssignments } = await supabase
+        .from("lecturer_courses")
+        .select("course_id, profiles(full_name)")
+        .in("course_id", courseIds)
+        .eq("is_active", true);
+
+      const lecturerMap: Record<string, string[]> = {};
+      for (const row of lecturerAssignments ?? []) {
+        const profile = row.profiles as
+          | { full_name: string }
+          | { full_name: string }[]
+          | null;
+        const name = Array.isArray(profile)
+          ? profile[0]?.full_name
+          : profile?.full_name;
+        if (!name) continue;
+        if (!lecturerMap[row.course_id]) lecturerMap[row.course_id] = [];
+        if (!lecturerMap[row.course_id].includes(name)) {
+          lecturerMap[row.course_id].push(name);
+        }
+      }
+
+      // 5. Build enriched courses
       const enriched: EnrolledCourse[] = courseData.map((course) => {
         const courseSlots = (slots ?? []).filter(
           (s) => s.course_id === course.id,
         );
-        const lecturerName = courseSlots[0]?.profiles?.full_name ?? null;
-        return { ...course, slots: courseSlots, lecturerName };
+        const slotLecturers = courseSlots
+          .map((s) => s.profiles?.full_name)
+          .filter((name): name is string => Boolean(name));
+        const assignedLecturers = lecturerMap[course.id] ?? [];
+        const lecturerNames = [
+          ...new Set([...assignedLecturers, ...slotLecturers]),
+        ];
+        return { ...course, slots: courseSlots, lecturerNames };
       });
 
       setCourses(enriched);

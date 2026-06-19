@@ -1,8 +1,23 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import {
+  DISPLAY_DAYS,
+  dbDayToDisplay,
+  displayDayToDb,
+  getCurrentAcademicSession,
+} from "@/lib/academic";
+import { upsertLecturerCourseAssignment } from "@/lib/lecturer-courses";
+import {
+  type CourseLevel,
+  type MaxCourseLevel,
+  getCourseLevels,
+  getStoredMaxLevel,
+} from "@/lib/course-levels";
+import LevelTabs from "@/components/ui/LevelTabs";
 import {
   CalendarDays,
   Plus,
@@ -24,6 +39,7 @@ interface TimetableSlot {
   id: string;
   course_name: string;
   course_code: string;
+  course_level: number;
   lecturer_name: string;
   venue: string;
   day: string;
@@ -36,8 +52,10 @@ interface TimetableSlot {
 
 interface Course {
   id: string;
-  name: string;
+  title: string;
   code: string;
+  level: number;
+  semester: 1 | 2;
 }
 interface Lecturer {
   id: string;
@@ -54,12 +72,13 @@ interface Department {
 interface TimetableRow {
   id: string;
   venue: string;
-  day: string;
+  day_of_week: string | null;
+  day: string | null;
   start_time: string;
   end_time: string;
   course_id: string;
   department_id: string | null;
-  courses: { name: string; code: string } | null;
+  courses: { title: string; code: string; level: number } | null;
   profiles: { full_name: string } | null;
   departments: { name: string } | null;
 }
@@ -67,18 +86,19 @@ interface TimetableRow {
 function mapTimetableRow(t: TimetableRow): TimetableSlot {
   return {
     id: t.id,
-    course_name: t.courses?.name ?? "—",
+    course_name: t.courses?.title ?? "—",
     course_code: t.courses?.code ?? "—",
+    course_level: t.courses?.level ?? 100,
     lecturer_name: t.profiles?.full_name ?? "—",
     venue: t.venue,
-    day: t.day,
+    day: dbDayToDisplay(t.day_of_week ?? t.day),
     start_time: t.start_time,
     end_time: t.end_time,
     department_id: t.department_id,
     department_name: t.departments?.name ?? "—",
   };
 }
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const DAYS = [...DISPLAY_DAYS];
 const HOURS = [
   "07:00",
   "08:00",
@@ -338,6 +358,8 @@ export default function TimetablePage() {
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [activeDay, setActiveDay] = useState("Monday");
+  const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
+  const [maxCourseLevel, setMaxCourseLevel] = useState<MaxCourseLevel>(400);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -347,8 +369,15 @@ export default function TimetablePage() {
   const [importSuccess, setImportSuccess] = useState(0);
   const [importCorrected, setImportCorrected] = useState(0);
   const [error, setError] = useState("");
+  const [fetchError, setFetchError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [courseAssignments, setCourseAssignments] = useState<
+    Record<string, string[]>
+  >({});
+  const [academicSession, setAcademicSession] = useState(
+    getCurrentAcademicSession(),
+  );
 
   const [newCourseId, setNewCourseId] = useState("");
   const [newLecturerId, setNewLecturerId] = useState("");
@@ -369,6 +398,61 @@ export default function TimetablePage() {
       ) ?? null
     );
   }, [deptParam, departments]);
+
+  const levelTabs = useMemo(
+    () => getCourseLevels(maxCourseLevel),
+    [maxCourseLevel],
+  );
+
+  const levelCounts = useMemo(() => {
+    const counts: Record<number, number> = {};
+    for (const level of levelTabs) counts[level] = 0;
+    for (const slot of slots) {
+      if (counts[slot.course_level] !== undefined) {
+        counts[slot.course_level]++;
+      }
+    }
+    return counts;
+  }, [slots, levelTabs]);
+
+  const levelCourses = useMemo(
+    () => courses.filter((c) => c.level === activeLevel),
+    [courses, activeLevel],
+  );
+
+  const selectedCourse = useMemo(
+    () => levelCourses.find((c) => c.id === newCourseId) ?? null,
+    [levelCourses, newCourseId],
+  );
+
+  useEffect(() => {
+    if (!uniId) return;
+    const syncMaxLevel = () => setMaxCourseLevel(getStoredMaxLevel(uniId));
+    syncMaxLevel();
+    window.addEventListener("focus", syncMaxLevel);
+    return () => window.removeEventListener("focus", syncMaxLevel);
+  }, [uniId]);
+
+  useEffect(() => {
+    if (!levelTabs.includes(activeLevel)) {
+      setActiveLevel((levelTabs[0] ?? 100) as CourseLevel);
+    }
+  }, [levelTabs, activeLevel]);
+
+  useEffect(() => {
+    setNewCourseId("");
+    setNewLecturerId("");
+  }, [activeLevel]);
+
+  const modalLecturers = useMemo(() => {
+    if (!newCourseId) return lecturers;
+    const assigned = courseAssignments[newCourseId] ?? [];
+    if (assigned.length === 0) return lecturers;
+    const assignedSet = new Set(assigned);
+    const preferred = lecturers.filter((l) => assignedSet.has(l.id));
+    const others = lecturers.filter((l) => !assignedSet.has(l.id));
+    return [...preferred, ...others];
+  }, [lecturers, newCourseId, courseAssignments]);
 
   const conflictCheck = useMemo(() => {
     if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) {
@@ -400,6 +484,7 @@ export default function TimetablePage() {
     let cancelled = false;
 
     async function fetchPageData() {
+      setFetchError("");
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -439,37 +524,75 @@ export default function TimetablePage() {
         return;
       }
 
+      const sessionYear = getCurrentAcademicSession();
+
       const [ttRes, courseRes, lecRes] = await Promise.all([
         supabase
           .from("timetable")
           .select(
-            `id, venue, day, start_time, end_time, course_id, department_id, courses(name, code), profiles(full_name), departments(name)`,
+            `id, venue, day_of_week, day, start_time, end_time, course_id, department_id, courses(title, code, level), profiles(full_name), departments(name)`,
           )
           .eq("university_id", profile.university_id)
           .eq("department_id", departmentId)
-          .order("day")
+          .order("day_of_week")
           .order("start_time"),
         supabase
           .from("courses")
-          .select("id, name, code")
+          .select("id, title, code, level, semester")
           .eq("university_id", profile.university_id)
-          .order("name"),
+          .eq("department_id", departmentId)
+          .eq("is_active", true)
+          .order("title"),
         supabase
           .from("profiles")
           .select("id, full_name, email")
           .eq("university_id", profile.university_id)
-          .eq("role", "lecturer")
+          .in("role", ["lecturer", "dean", "hod"])
           .order("full_name"),
       ]);
 
       if (cancelled) return;
 
+      const errors = [ttRes.error, courseRes.error, lecRes.error]
+        .filter(Boolean)
+        .map((e) => e!.message);
+      if (errors.length > 0) {
+        setFetchError(errors.join(" · "));
+      }
+
       const rawSlots = (ttRes.data ?? []).map((t) =>
         mapTimetableRow(t as unknown as TimetableRow),
       );
       setSlots(detectConflicts(rawSlots));
-      setCourses(courseRes.data ?? []);
+      setCourses(
+        (courseRes.data ?? []).map((c) => ({
+          ...c,
+          level: c.level,
+          semester: c.semester as 1 | 2,
+        })),
+      );
       setLecturers(lecRes.data ?? []);
+      setAcademicSession(sessionYear);
+
+      const courseIds = (courseRes.data ?? []).map((c) => c.id);
+      if (courseIds.length > 0) {
+        const { data: assignments } = await supabase
+          .from("lecturer_courses")
+          .select("course_id, lecturer_id")
+          .in("course_id", courseIds)
+          .eq("academic_session", sessionYear)
+          .eq("is_active", true);
+
+        const map: Record<string, string[]> = {};
+        for (const row of assignments ?? []) {
+          if (!map[row.course_id]) map[row.course_id] = [];
+          map[row.course_id].push(row.lecturer_id);
+        }
+        if (!cancelled) setCourseAssignments(map);
+      } else if (!cancelled) {
+        setCourseAssignments({});
+      }
+
       setLoading(false);
     }
 
@@ -557,7 +680,7 @@ export default function TimetablePage() {
         continue;
       }
 
-      if (!DAYS.includes(row.day)) {
+      if (!DAYS.includes(row.day as (typeof DAYS)[number])) {
         errors.push(
           `Row ${lineNum}: Invalid day "${row.day}" — must be Monday/Tuesday/Wednesday/Thursday/Friday`,
         );
@@ -581,16 +704,32 @@ export default function TimetablePage() {
         lecturer_id: lecProfile.id,
         department_id: activeDept.id,
         venue: row.venue,
-        day: row.day,
+        day_of_week: displayDayToDb(row.day),
         start_time: row.start_time,
         end_time: row.end_time,
         university_id: uniId,
+        academic_session: academicSession,
+        semester: course.semester,
+        is_active: true,
       });
 
       if (insErr) {
         errors.push(`Row ${lineNum}: ${insErr.message}`);
         continue;
       }
+
+      try {
+        await upsertLecturerCourseAssignment({
+          lecturerId: lecProfile.id,
+          courseId: course.id,
+          universityId: uniId!,
+          semester: course.semester,
+          academicSession,
+        });
+      } catch {
+        // Slot saved; assignment sync is best-effort during import
+      }
+
       successCount++;
     }
 
@@ -614,17 +753,31 @@ export default function TimetablePage() {
     try {
       if (newStart >= newEnd)
         throw new Error("End time must be after start time.");
+      const course = courses.find((c) => c.id === newCourseId);
+      if (!course) throw new Error("Selected course not found.");
+
       const { error: err } = await supabase.from("timetable").insert({
         course_id: newCourseId,
         lecturer_id: newLecturerId,
         department_id: activeDept.id,
         venue: newVenue.trim(),
-        day: newDay,
+        day_of_week: displayDayToDb(newDay),
         start_time: newStart,
         end_time: newEnd,
         university_id: uniId,
+        academic_session: academicSession,
+        semester: course.semester,
+        is_active: true,
       });
       if (err) throw new Error(err.message);
+
+      await upsertLecturerCourseAssignment({
+        lecturerId: newLecturerId,
+        courseId: newCourseId,
+        universityId: uniId!,
+        semester: course.semester,
+        academicSession,
+      });
       setNewCourseId("");
       setNewLecturerId("");
       setNewVenue("");
@@ -644,13 +797,14 @@ export default function TimetablePage() {
   }
 
   const filtered = slots.filter((s) => {
+    const matchLevel = s.course_level === activeLevel;
     const matchDay = s.day === activeDay;
     const matchSearch =
       s.course_name.toLowerCase().includes(search.toLowerCase()) ||
       s.course_code.toLowerCase().includes(search.toLowerCase()) ||
       s.lecturer_name.toLowerCase().includes(search.toLowerCase());
 
-    return matchDay && matchSearch;
+    return matchLevel && matchDay && matchSearch;
   });
 
   const daySlots = filtered;
@@ -878,6 +1032,26 @@ export default function TimetablePage() {
         </div>
       )}
 
+      {fetchError && (
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            background: "var(--danger-muted)",
+            border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "12px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <AlertCircle size={16} style={{ color: "var(--danger)" }} />
+          <p style={{ fontSize: "13px", color: "var(--danger)" }}>
+            Failed to load timetable data: {fetchError}
+          </p>
+        </div>
+      )}
+
       {/* Conflict banner */}
       {conflictCount > 0 && (
         <div
@@ -902,6 +1076,15 @@ export default function TimetablePage() {
           </p>
         </div>
       )}
+
+      <div style={{ marginBottom: "16px" }}>
+        <LevelTabs
+          levels={levelTabs}
+          activeLevel={activeLevel}
+          onChange={(level) => setActiveLevel(level as CourseLevel)}
+          counts={levelCounts}
+        />
+      </div>
 
       {/* Search */}
       <div
@@ -948,8 +1131,15 @@ export default function TimetablePage() {
         }}
       >
         {DAYS.map((day) => {
-          const count = slots.filter((s) => s.day === day).length;
-          const hasConflict = slots.some((s) => s.day === day && s.conflict);
+          const count = slots.filter(
+            (s) => s.day === day && s.course_level === activeLevel,
+          ).length;
+          const hasConflict = slots.some(
+            (s) =>
+              s.day === day &&
+              s.course_level === activeLevel &&
+              s.conflict,
+          );
           const active = day === activeDay;
           const color = DAY_COLORS[day];
           const mutedColor = DAY_MUTED_COLORS[day];
@@ -1029,7 +1219,8 @@ export default function TimetablePage() {
             style={{ color: "var(--text-muted)", marginBottom: "12px" }}
           />
           <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-            No classes scheduled for {activeDay}. Add a slot to get started.
+            No {activeLevel} level classes on {activeDay}. Add a slot to get
+            started.
           </p>
         </div>
       ) : (
@@ -1110,6 +1301,34 @@ export default function TimetablePage() {
                 </p>
               </div>
             )}
+            {levelCourses.length === 0 ? (
+              <div
+                style={{
+                  background: "var(--warning-muted)",
+                  border: "1px solid rgba(245,158,11,0.25)",
+                  borderRadius: "10px",
+                  padding: "12px 14px",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "13px",
+                    color: "var(--warning)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  No {activeLevel} level courses in this department yet.{" "}
+                  {activeDept && (
+                    <Link
+                      href={`/u/courses?department=${activeDept.id}&faculty=${activeDept.faculty}`}
+                      style={{ color: "var(--brand)", fontWeight: 600 }}
+                    >
+                      Create {activeLevel} level courses first
+                    </Link>
+                  )}
+                </p>
+              </div>
+            ) : null}
             <div>
               <label
                 className="label"
@@ -1121,16 +1340,24 @@ export default function TimetablePage() {
                 <select
                   required
                   value={newCourseId}
-                  onChange={(e) => setNewCourseId(e.target.value)}
+                  onChange={(e) => {
+                    const courseId = e.target.value;
+                    setNewCourseId(courseId);
+                    setNewLecturerId("");
+                    const assigned = courseAssignments[courseId] ?? [];
+                    if (assigned.length === 1) {
+                      setNewLecturerId(assigned[0]);
+                    }
+                  }}
                   className="select"
                   style={{ paddingRight: "32px", boxSizing: "border-box" }}
                 >
                   <option value="" disabled>
                     Select course...
                   </option>
-                  {courses.map((c) => (
+                  {levelCourses.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.code} — {c.name}
+                      {c.code} — {c.title}
                     </option>
                   ))}
                 </select>
@@ -1154,6 +1381,19 @@ export default function TimetablePage() {
               >
                 Lecturer
               </label>
+              {selectedCourse &&
+                (courseAssignments[selectedCourse.id] ?? []).length > 0 && (
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--text-muted)",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    Assigned lecturers shown first. You can still pick any staff
+                    member for this slot.
+                  </p>
+                )}
               <div style={{ position: "relative" }}>
                 <select
                   required
@@ -1165,9 +1405,12 @@ export default function TimetablePage() {
                   <option value="" disabled>
                     Select lecturer...
                   </option>
-                  {lecturers.map((l) => (
+                  {modalLecturers.map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.full_name}
+                      {(courseAssignments[newCourseId] ?? []).includes(l.id)
+                        ? " (assigned)"
+                        : ""}
                     </option>
                   ))}
                 </select>
@@ -1307,7 +1550,7 @@ export default function TimetablePage() {
               </button>
               <button
                 type="submit"
-                disabled={saving || !!conflictCheck}
+                disabled={saving || !!conflictCheck || levelCourses.length === 0}
                 className="btn-primary"
                 style={{
                   flex: 1,
