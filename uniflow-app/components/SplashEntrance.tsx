@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Text, StyleSheet, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   Extrapolation,
   interpolate,
@@ -16,6 +17,12 @@ import * as ExpoSplash from "expo-splash-screen";
 import UniflowLogo from "@/components/UniflowLogo";
 import { Theme } from "@/constants/Theme";
 import { MOTION } from "@/lib/motion";
+import {
+  claimSplashAnimation,
+  isSplashAnimationFinished,
+  markSplashAnimationFinished,
+  recordSplashMount,
+} from "@/lib/splash-session";
 
 const C = Theme.colors;
 const LOGO_SIZE = 108;
@@ -23,25 +30,28 @@ const LOCKUP_GAP = 6;
 const WORDMARK_FONT = 58;
 const CLAMP = Extrapolation.CLAMP;
 
+const SMOOTH_IN = Easing.bezier(0.25, 0.1, 0.25, 1);
 const SMOOTH_REVEAL = Easing.bezier(0.37, 0, 0.18, 1);
 
 interface SplashEntranceProps {
   onFinish: () => void;
 }
 
-/** Survives remounts so the entrance animation only runs once per cold start. */
-let splashAnimationPlayed = false;
-
 export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   const onFinishRef = useRef(onFinish);
   onFinishRef.current = onFinish;
 
-  // Start at the post-logo phase — native splash already showed the icon.
-  const progress = useSharedValue(splashAnimationPlayed ? 1 : 0.5);
+  recordSplashMount();
+  const shouldAnimate = claimSplashAnimation();
+
+  const progress = useSharedValue(
+    isSplashAnimationFinished() ? 1 : shouldAnimate ? 0 : 1,
+  );
   const wordmarkWidth = useSharedValue(220);
   const nativeHiddenRef = useRef(false);
 
   const finishSplash = () => {
+    markSplashAnimationFinished();
     onFinishRef.current();
   };
 
@@ -52,15 +62,23 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   };
 
   useEffect(() => {
-    if (splashAnimationPlayed) {
+    if (!shouldAnimate) {
       progress.value = 1;
-      finishSplash();
+      if (!isSplashAnimationFinished()) {
+        finishSplash();
+      }
       return;
     }
-    splashAnimationPlayed = true;
 
-    // Native splash already displayed the logo — only run wordmark reveal + settle.
+    if (__DEV__) {
+      console.log("[Splash] starting animation sequence");
+    }
+
     progress.value = withSequence(
+      withTiming(0.5, {
+        duration: MOTION.splash.hold,
+        easing: SMOOTH_IN,
+      }),
       withTiming(1, {
         duration: MOTION.splash.reveal,
         easing: SMOOTH_REVEAL,
@@ -72,7 +90,11 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
         }),
       ),
     );
-  }, [progress]);
+
+    return () => {
+      cancelAnimation(progress);
+    };
+  }, [progress, shouldAnimate]);
 
   const backdropStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(

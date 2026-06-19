@@ -13,6 +13,7 @@ import {
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { SplashEntrance } from "@/components/SplashEntrance";
 import { Theme } from "@/constants/Theme";
+import { isSplashAnimationFinished } from "@/lib/splash-session";
 
 ExpoSplash.preventAutoHideAsync().catch(() => {});
 
@@ -54,7 +55,7 @@ function AuthGuard() {
 export default function RootLayout() {
   const hydrateSession = useAuthStore((s) => s.hydrateSession);
   const isHydrated = useIsHydrated();
-  const [splashDone, setSplashDone] = useState(false);
+  const [splashDone, setSplashDone] = useState(isSplashAnimationFinished);
 
   const handleSplashFinish = useCallback(() => {
     setSplashDone(true);
