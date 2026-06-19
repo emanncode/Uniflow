@@ -77,21 +77,24 @@ interface TimetableRow {
   start_time: string;
   end_time: string;
   course_id: string;
+  lecturer_id: string;
   department_id: string | null;
-  courses: { title: string; code: string; level: number } | null;
-  profiles: { full_name: string } | null;
 }
 
 function mapTimetableRow(
   t: TimetableRow,
   departmentName: string,
+  courses: Course[],
+  lecturers: Lecturer[],
 ): TimetableSlot {
+  const course = courses.find((c) => c.id === t.course_id);
+  const lecturer = lecturers.find((l) => l.id === t.lecturer_id);
   return {
     id: t.id,
-    course_name: t.courses?.title ?? "—",
-    course_code: t.courses?.code ?? "—",
-    course_level: t.courses?.level ?? 100,
-    lecturer_name: t.profiles?.full_name ?? "—",
+    course_name: course?.title ?? "—",
+    course_code: course?.code ?? "—",
+    course_level: course?.level ?? 100,
+    lecturer_name: lecturer?.full_name ?? "—",
     venue: t.venue,
     day: dbDayToDisplay(t.day_of_week ?? t.day),
     start_time: t.start_time,
@@ -527,7 +530,7 @@ export default function TimetablePage() {
         supabase
           .from("timetable")
           .select(
-            `id, venue, day_of_week, day, start_time, end_time, course_id, department_id, courses(title, code, level), profiles(full_name)`,
+            "id, venue, day_of_week, day, start_time, end_time, course_id, lecturer_id, department_id",
           )
           .eq("university_id", profile.university_id)
           .eq("department_id", departmentId)
@@ -557,18 +560,24 @@ export default function TimetablePage() {
         setFetchError(errors.join(" · "));
       }
 
+      const loadedCourses: Course[] = (courseRes.data ?? []).map((c) => ({
+        ...c,
+        level: c.level,
+        semester: c.semester as 1 | 2,
+      }));
+      const loadedLecturers: Lecturer[] = lecRes.data ?? [];
+
       const rawSlots = (ttRes.data ?? []).map((t) =>
-        mapTimetableRow(t as unknown as TimetableRow, departmentName),
+        mapTimetableRow(
+          t as unknown as TimetableRow,
+          departmentName,
+          loadedCourses,
+          loadedLecturers,
+        ),
       );
       setSlots(detectConflicts(rawSlots));
-      setCourses(
-        (courseRes.data ?? []).map((c) => ({
-          ...c,
-          level: c.level,
-          semester: c.semester as 1 | 2,
-        })),
-      );
-      setLecturers(lecRes.data ?? []);
+      setCourses(loadedCourses);
+      setLecturers(loadedLecturers);
       setAcademicSession(sessionYear);
 
       const courseIds = (courseRes.data ?? []).map((c) => c.id);
