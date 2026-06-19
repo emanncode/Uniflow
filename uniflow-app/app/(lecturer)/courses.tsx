@@ -231,11 +231,17 @@ export default function LecturerCourses() {
     if (!profile) return;
     try {
       // 1. Get all lecturer_courses for this lecturer
-      const { data: lecturerCourses } = await supabase
+      const { data: lecturerCourses, error: lcError } = await supabase
         .from("lecturer_courses")
         .select("course_id")
         .eq("lecturer_id", profile.id)
         .eq("is_active", true);
+
+      if (lcError) {
+        console.error("Lecturer courses fetch error:", lcError.message);
+        setCourses([]);
+        return;
+      }
 
       if (!lecturerCourses || lecturerCourses.length === 0) {
         setCourses([]);
