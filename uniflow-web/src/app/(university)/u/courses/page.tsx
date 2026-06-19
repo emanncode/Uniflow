@@ -438,8 +438,8 @@ export default function CoursesPage() {
   }
 
   const CSV_TEMPLATE = `code,title,level,semester,credit_units,description,lecturer_emails
-CSC301,Data Structures,300,1,3,Introduction to data structures,lecturer@email.com
-MTH201,Calculus II,200,2,4,,john@email.com;jane@email.com`;
+CSC301,Data Structures,300,1,3,Introduction to data structures,lecturer@email.xyz
+MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
 
   function downloadTemplate() {
     const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });

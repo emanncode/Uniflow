@@ -445,7 +445,7 @@ export default function RegisterPage() {
                       <input
                         type="email"
                         className="input"
-                        placeholder="e.g. registrar@aaua.edu.ng"
+                        placeholder="e.g. registrar@aaua.edu.xyz"
                         value={form.official_email}
                         onChange={e => update('official_email', e.target.value)}
                         style={{ paddingLeft: '40px' }}
@@ -535,7 +535,7 @@ export default function RegisterPage() {
                       <input
                         type="url"
                         className="input"
-                        placeholder="https://www.aaua.edu.ng"
+                        placeholder="https://www.aaua.edu.xyz"
                         value={form.website}
                         onChange={e => update('website', e.target.value)}
                         style={{ paddingLeft: '40px' }}
