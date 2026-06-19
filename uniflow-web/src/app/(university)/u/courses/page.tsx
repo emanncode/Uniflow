@@ -998,7 +998,7 @@ MTH201,Calculus II,200,2,4,,john@email.com;jane@email.com`;
                 </p>
               </div>
               <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                {course.level}00L · Sem {course.semester}
+                {course.level}L · Sem {course.semester}
               </span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                 {course.assignedLecturers.length > 0 ? (

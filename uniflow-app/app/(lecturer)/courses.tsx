@@ -55,7 +55,7 @@ function capitalize(str: string): string {
 function LevelBadge({ level }: { level: number }) {
   return (
     <View style={styles.levelBadge}>
-      <Text style={styles.levelBadgeText}>{level}00L</Text>
+      <Text style={styles.levelBadgeText}>{level}L</Text>
     </View>
   );
 }

@@ -69,7 +69,7 @@ function CourseCard({ course, onPress }: CourseCardProps) {
           <Text style={styles.codeText}>{course.code}</Text>
         </View>
         <View style={styles.levelTag}>
-          <Text style={styles.levelText}>{course.level}00L</Text>
+          <Text style={styles.levelText}>{course.level}L</Text>
         </View>
         <View style={styles.semTag}>
           <Text style={styles.semText}>Sem {course.semester}</Text>
