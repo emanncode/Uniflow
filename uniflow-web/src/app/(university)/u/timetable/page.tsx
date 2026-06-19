@@ -9,6 +9,7 @@ import {
   dbDayToDisplay,
   displayDayToDb,
   getCurrentAcademicSession,
+  getDefaultDisplayDay,
 } from "@/lib/academic";
 import {
   fetchCourseAssignments,
@@ -369,7 +370,7 @@ export default function TimetablePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [activeDay, setActiveDay] = useState("Monday");
+  const [activeDay, setActiveDay] = useState(() => getDefaultDisplayDay());
   const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -393,7 +394,7 @@ export default function TimetablePage() {
   const [newCourseId, setNewCourseId] = useState("");
   const [newLecturerId, setNewLecturerId] = useState("");
   const [newVenue, setNewVenue] = useState("");
-  const [newDay, setNewDay] = useState("Monday");
+  const [newDay, setNewDay] = useState(() => getDefaultDisplayDay());
   const [newStart, setNewStart] = useState("08:00");
   const [newEnd, setNewEnd] = useState("10:00");
 

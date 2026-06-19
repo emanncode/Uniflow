@@ -8,6 +8,18 @@ export const DISPLAY_DAYS = [
 
 export type DisplayDay = (typeof DISPLAY_DAYS)[number];
 
+/** Current Mon–Fri tab; weekends default to Monday. */
+export function getDefaultDisplayDay(date = new Date()): DisplayDay {
+  const map: Partial<Record<number, DisplayDay>> = {
+    1: "Monday",
+    2: "Tuesday",
+    3: "Wednesday",
+    4: "Thursday",
+    5: "Friday",
+  };
+  return map[date.getDay()] ?? "Monday";
+}
+
 export function getCurrentAcademicSession(date = new Date()): string {
   const year = date.getFullYear();
   const month = date.getMonth();
