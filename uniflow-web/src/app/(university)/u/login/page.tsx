@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSubdomain } from '@/lib/subdomain'
@@ -251,13 +252,12 @@ export default function UniversityLoginPage() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <label className="label" style={{ marginBottom: 0 }}>Password</label>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPassGen(true)}
-                    style={{ background: 'none', border: 'none', color: 'var(--brand)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                  <Link
+                    href="/u/forgot-password"
+                    style={{ color: 'var(--brand)', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
                   >
-                    Forgot Password?
-                  </button>
+                    Forgot password?
+                  </Link>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <Lock size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />

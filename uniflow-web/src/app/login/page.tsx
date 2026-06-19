@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
@@ -168,7 +169,15 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="label">Password</label>
+                  <div className="flex items-center justify-between mb-2!">
+                    <label className="label mb-0!">Password</label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-brand hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <div className="relative">
                     <Lock
                       size={15}

@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { GraduationCap } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { getSubdomain } from "@/lib/subdomain";
-import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
-export default function UniversityResetPasswordPage() {
+export default function UniversityForgotPasswordPage() {
   const [university, setUniversity] = useState<{
     name: string;
     short_name: string;
@@ -30,27 +30,6 @@ export default function UniversityResetPasswordPage() {
     detectUniversity();
   }, []);
 
-  const badge = university ? (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        background: "rgba(251,191,36,0.1)",
-        border: "1px solid rgba(251,191,36,0.25)",
-        borderRadius: "20px",
-        padding: "5px 14px",
-        margin: "0 auto 12px",
-        width: "fit-content",
-      }}
-    >
-      <GraduationCap size={12} style={{ color: "var(--gold)" }} />
-      <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--gold)" }}>
-        {university.name}
-      </span>
-    </div>
-  ) : null;
-
   return (
     <div
       style={{
@@ -68,19 +47,42 @@ export default function UniversityResetPasswordPage() {
             uni<span className="text-brand">flow</span>
           </h1>
           <p className="mt-2! text-xs text-muted tracking-widest uppercase">
-            Set New Password
+            Reset Password
           </p>
+          {university ? (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                background: "rgba(251,191,36,0.1)",
+                border: "1px solid rgba(251,191,36,0.25)",
+                borderRadius: "20px",
+                padding: "5px 14px",
+                marginTop: "12px",
+              }}
+            >
+              <GraduationCap size={12} style={{ color: "var(--gold)" }} />
+              <span
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "var(--gold)",
+                }}
+              >
+                {university.name}
+              </span>
+            </div>
+          ) : null}
         </div>
 
         <div className="card">
-          <h2 className="text-xl font-bold text-primary mb-1! text-center">
-            Choose a new password
+          <h2 className="text-xl font-bold text-primary mb-1!">
+            Forgot password?
           </h2>
-          <ResetPasswordForm
+          <ForgotPasswordForm
             loginHref="/u/login"
-            forgotHref="/u/forgot-password"
             loginLabel="Back to portal sign in"
-            badge={badge}
           />
         </div>
       </div>

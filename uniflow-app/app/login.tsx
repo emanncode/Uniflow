@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "expo-router";
 import {
   View,
   Text,
@@ -10,17 +11,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Pressable,
-  Alert,
-  Clipboard
 } from "react-native";
-import { Key } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "@/store/useAuthStore";
 import UniflowLogo from "@/components/UniflowLogo";
 import GridBackground from "@/components/GridBackground";
 import { Theme } from "@/constants/Theme";
-import { CustomModal } from "@/components/CustomModal";
-import { webAppUrl } from "@/lib/config";
+
 import { FadeSlideIn } from "@/components/FadeSlideIn";
 import { ScalePressable } from "@/components/ScalePressable";
 
@@ -35,6 +32,7 @@ interface FieldError {
 // ─── Login Screen ──────────────────────────────────────────────────────────
 
 export default function LoginScreen() {
+  const router = useRouter();
   const signIn = useAuthStore((s) => s.signIn);
   const isLoading = useAuthStore((s) => s.isLoading);
 
@@ -42,12 +40,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldError>({});
-
-  // Self-service states
-  const [showPassModal, setShowPassModal] = useState(false);
-  const [genEmail, setGenEmail] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPass, setGeneratedPass] = useState<string | null>(null);
 
   // ── Validation ─────────────────────────────────────────────────────────
   const validate = (): boolean => {
@@ -78,39 +70,6 @@ export default function LoginScreen() {
 
     if (error) {
       setErrors({ general: error });
-    }
-  };
-
-  const handleGeneratePassword = async () => {
-    if (!genEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(genEmail.trim())) {
-      Alert.alert("Invalid Email", "Please enter a valid registered email address.");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const res = await fetch(webAppUrl("/api/public/generate-temp-password"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: genEmail.toLowerCase().trim() })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to generate password.");
-
-      setGeneratedPass(data.tempPassword);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to generate password.";
-      Alert.alert("Error", message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    if (generatedPass) {
-      Clipboard.setString(generatedPass);
-      Alert.alert("Copied", "Password copied to clipboard.");
     }
   };
 
@@ -178,7 +137,7 @@ export default function LoginScreen() {
             <View style={styles.fieldGroup}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text style={[styles.label, { marginBottom: 0 }]}>Password</Text>
-                <TouchableOpacity onPress={() => setShowPassModal(true)}>
+                <TouchableOpacity onPress={() => router.push("/forgot-password")}>
                   <Text style={styles.forgotText}>Forgot?</Text>
                 </TouchableOpacity>
               </View>
@@ -234,15 +193,15 @@ export default function LoginScreen() {
               )}
             </ScalePressable>
 
-            {/* Help text */}
             <Text style={styles.helpText}>
-              Need a temporary password?{" "}
-              <Text 
-                style={{ color: Theme.colors.brand, fontWeight: '600' }}
-                onPress={() => setShowPassModal(true)}
+              Registered by your school? Use{" "}
+              <Text
+                style={{ color: Theme.colors.brand, fontWeight: "600" }}
+                onPress={() => router.push("/forgot-password")}
               >
-                Click here
-              </Text>
+                forgot password
+              </Text>{" "}
+              to get a reset link by email.
             </Text>
           </View>
           </FadeSlideIn>
@@ -255,83 +214,6 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ── Temp Password Modal ── */}
-      <CustomModal
-        visible={showPassModal}
-        onClose={() => {
-          setShowPassModal(false);
-          setGeneratedPass(null);
-          setGenEmail("");
-        }}
-        title={generatedPass ? "Password Generated" : "Get Temporary Password"}
-        type="sheet"
-      >
-        {!generatedPass ? (
-          <View>
-            <Text style={styles.modalSubtitle}>
-              Enter your registered email address to receive a temporary login password.
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="yourname@university.edu"
-              placeholderTextColor={Theme.colors.textMuted}
-              value={genEmail}
-              onChangeText={setGenEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TouchableOpacity
-              style={[styles.button, { marginTop: 20 }, isGenerating ? styles.buttonDisabled : null]}
-              onPress={handleGeneratePassword}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text style={styles.buttonText}>Generate Now</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={{ alignItems: 'center', paddingBottom: 10 }}>
-            <View style={{ 
-              width: 56, 
-              height: 56, 
-              borderRadius: 28, 
-              backgroundColor: Theme.colors.brandMuted, 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              marginBottom: 16,
-              borderWidth: 1,
-              borderColor: Theme.colors.borderBrand
-            }}>
-              <Key size={24} color={Theme.colors.brand} strokeWidth={2.5} />
-            </View>
-
-            <Text style={[styles.modalSubtitle, { textAlign: 'center', marginBottom: 24 }]}>
-              Your temporary password is ready. Use it to log in and set your permanent password.
-            </Text>
-            
-            <View style={[styles.passContainer, { width: '100%' }]}>
-              <Text style={styles.passCode}>{generatedPass}</Text>
-              <TouchableOpacity onPress={copyToClipboard} style={styles.copyBtn}>
-                <Text style={{ color: Theme.colors.brand, fontWeight: '800', fontSize: 13 }}>COPY</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, { width: '100%', marginTop: 12 }]}
-              onPress={() => {
-                setEmail(genEmail);
-                setShowPassModal(false);
-                setGeneratedPass(null);
-              }}
-            >
-              <Text style={styles.buttonText}>Done</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </CustomModal>
     </View>
   );
 }

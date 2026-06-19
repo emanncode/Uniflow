@@ -1,17 +1,11 @@
 import { createAdminClient } from '@/lib/supabase-admin'
 import { NextResponse } from 'next/server'
 import { validateAndNormalizeEmail } from '@/lib/email'
-import { isSuperAdmin } from '@/lib/auth'
+import { canManageUniversity, isSuperAdmin } from '@/lib/auth'
+import { passwordResetUrlFromRequest } from '@/lib/password-reset'
 
 export async function POST(req: Request) {
   try {
-    // ── Security: SuperAdmin Authorization Check ───────────────────────────
-    const authorized = await isSuperAdmin()
-    if (!authorized) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
-    // ────────────────────────────────────────────────────────────────────────
-
     const { email } = await req.json()
 
     if (!email) {
@@ -30,7 +24,7 @@ export async function POST(req: Request) {
     // 1. Find user by email in profiles table to get their ID
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, university_id')
       .eq('email', lookupEmail)
       .single()
 
@@ -38,8 +32,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // ── Security Hardening: Standard Reset Email ───────────────────────────
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(lookupEmail)
+    const superAdmin = await isSuperAdmin()
+    const canManage =
+      profile.university_id &&
+      (await canManageUniversity(profile.university_id))
+
+    if (!superAdmin && !canManage) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const redirectTo = passwordResetUrlFromRequest(req)
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      lookupEmail,
+      { redirectTo },
+    )
 
     if (resetError) throw resetError
 

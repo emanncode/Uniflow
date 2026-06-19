@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase-admin'
+import { defaultPasswordResetUrl } from '@/lib/password-reset'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
@@ -94,7 +95,9 @@ export async function POST(req: Request) {
     // 3. send password reset so they set their own password
     // NOTE: This might fail if SMTP is not configured, but we proceed anyway as we return tempPassword
     try {
-      await supabase.auth.resetPasswordForEmail(finalEmail)
+      await supabase.auth.resetPasswordForEmail(finalEmail, {
+        redirectTo: defaultPasswordResetUrl(),
+      })
     } catch (e: unknown) {
       console.warn("API Create Staff: Failed to send reset email, but user was created.")
     }

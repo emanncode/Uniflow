@@ -31,3 +31,6 @@ export function webAppUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${WEB_APP_URL}${normalized}`;
 }
+
+/** Where Supabase password-reset emails should send users (web page). */
+export const PASSWORD_RESET_URL = webAppUrl("/reset-password");

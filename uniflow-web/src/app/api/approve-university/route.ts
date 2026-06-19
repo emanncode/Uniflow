@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     const host = request.headers.get('host') || ''
     const protocol = resolveProtocolFromRequestHost(host)
     const baseDomain = resolveBaseDomainFromRequestHost(host)
-    const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/login`
+    const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/u/reset-password`
 
     await supabase.auth.resetPasswordForEmail(finalEmail, {
       redirectTo,

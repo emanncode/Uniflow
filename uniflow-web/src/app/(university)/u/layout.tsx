@@ -17,6 +17,12 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const PUBLIC_PATHS = new Set([
+  "/u/login",
+  "/u/forgot-password",
+  "/u/reset-password",
+]);
+
 // ─── Role-based nav config ───────────────────────────────────────────────────
 
 type Role = "university_admin";
@@ -240,6 +246,11 @@ export default function UniversityPortalLayout({
 
   useEffect(() => {
     async function loadSession() {
+      if (PUBLIC_PATHS.has(pathname)) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const {
           data: { session },
@@ -247,8 +258,7 @@ export default function UniversityPortalLayout({
         } = await supabase.auth.getSession();
 
         if (sessionError || !session) {
-          if (pathname !== "/u/login") router.push("/u/login");
-          else setLoading(false);
+          router.push("/u/login");
           return;
         }
 
@@ -263,10 +273,8 @@ export default function UniversityPortalLayout({
           !profile ||
           profile.role !== "university_admin"
         ) {
-          if (pathname !== "/u/login") {
-            await supabase.auth.signOut();
-            router.push("/u/login");
-          } else setLoading(false);
+          await supabase.auth.signOut();
+          router.push("/u/login");
           return;
         }
 
@@ -314,7 +322,7 @@ export default function UniversityPortalLayout({
       </div>
     );
 
-  if (pathname === "/u/login") return <>{children}</>;
+  if (PUBLIC_PATHS.has(pathname)) return <>{children}</>;
   if (!user) return <>{children}</>;
 
   return (

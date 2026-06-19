@@ -31,7 +31,8 @@ function AuthGuard() {
   useEffect(() => {
     if (!isHydrated) return;
 
-    const inAuthGroup = segments[0] === "login";
+    const inAuthGroup =
+      segments[0] === "login" || segments[0] === "forgot-password";
     const inLecturerGroup = segments[0] === "(lecturer)";
     const inStudentGroup = segments[0] === "(student)";
 
