@@ -1,12 +1,15 @@
-/** Apex domain for Uniflow (marketing site + wildcard subdomains). */
+/** Apex domain for production (marketing site + wildcard subdomains). */
 export const BASE_DOMAIN =
-  process.env.NEXT_PUBLIC_BASE_DOMAIN?.toLowerCase() || "uniflow.xyz";
+  process.env.NEXT_PUBLIC_BASE_DOMAIN?.toLowerCase() || "uniflowapp.xyz";
 
 /** Public marketing / app URL (no trailing slash). */
 export const APP_URL = (
   process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
   `https://${BASE_DOMAIN}`
 );
+
+/** Local dev portal base — e.g. uni-admin.localhost:3000 */
+export const LOCAL_PORTAL_BASE = "localhost:3000";
 
 export function universityPortalHost(shortName: string): string {
   return `${shortName}-admin.${BASE_DOMAIN}`;
@@ -29,24 +32,14 @@ export function superAdminUrl(path = ""): string {
   return `https://${superAdminHost()}${normalized}`;
 }
 
-/** Resolve base domain for auth redirect URLs in API routes (localhost dev). */
+/** Resolve base host for auth redirect URLs in API routes. */
 export function resolveBaseDomainFromRequestHost(host: string): string {
-  const h = host.toLowerCase();
-  if (h.includes("lvh.me")) return "lvh.me:3000";
-  if (h.includes("localhost") || h.includes("127.0.0.1")) {
-    return "localhost:3000";
+  if (host.toLowerCase().includes("localhost")) {
+    return LOCAL_PORTAL_BASE;
   }
   return BASE_DOMAIN;
 }
 
 export function resolveProtocolFromRequestHost(host: string): "http" | "https" {
-  const h = host.toLowerCase();
-  if (
-    h.includes("localhost") ||
-    h.includes("lvh.me") ||
-    h.includes("127.0.0.1")
-  ) {
-    return "http";
-  }
-  return "https";
+  return host.toLowerCase().includes("localhost") ? "http" : "https";
 }

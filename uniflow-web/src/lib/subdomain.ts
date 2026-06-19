@@ -5,34 +5,18 @@ function extractPortalKey(host: string): string | null {
 }
 
 export function getSubdomain(hostname: string): string | null {
-  // localhost:3000 -> no subdomain
-  // aaua-admin.localhost:3000 -> "aaua"
-  // aaua-admin.lvh.me:3000 -> "aaua"
-  // aaua-admin.uniflow.xyz -> "aaua"
-  // admin.uniflow.xyz -> "super"
+  // localhost:3000 -> no subdomain (marketing + super-admin login)
+  // uni-admin.localhost:3000 -> "uni"
+  // uni-admin.uniflowapp.xyz -> "uni"
+  // admin.uniflowapp.xyz -> "super"
 
   const host = hostname.split(":")[0].toLowerCase();
   if (!host) return null;
 
-  if (host === "localhost" || host === "127.0.0.1") return null;
+  if (host === "localhost") return null;
 
   if (host.endsWith(".localhost")) {
     return extractPortalKey(host.replace(/\.localhost$/, ""));
-  }
-
-  if (host.endsWith(".lvh.me")) {
-    return extractPortalKey(host.replace(/\.lvh\.me$/, ""));
-  }
-
-  if (
-    host.endsWith(".127.0.0.1.nip.io") ||
-    host.endsWith(".127.0.0.1.sslip.io")
-  ) {
-    return extractPortalKey(
-      host
-        .replace(/\.127\.0\.0\.1\.nip\.io$/, "")
-        .replace(/\.127\.0\.0\.1\.sslip\.io$/, ""),
-    );
   }
 
   const parts = host.split(".");
