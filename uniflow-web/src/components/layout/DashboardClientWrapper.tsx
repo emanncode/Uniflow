@@ -296,30 +296,18 @@ export default function DashboardClientWrapper({
           position: "relative",
         }}
       >
-        {/* mobile menu button (floating since header is gone) */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="mobile-menu-btn"
-          style={{
-            display: "none",
-            position: "fixed",
-            top: "20px",
-            left: "20px",
-            zIndex: 35,
-            width: "40px",
-            height: "40px",
-            borderRadius: "10px",
-            backgroundColor: "var(--bg-secondary)",
-            border: "1px solid var(--border-primary)",
-            color: "var(--text-primary)",
-            cursor: "pointer",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "var(--shadow-lg)",
-          }}
-        >
-          <Menu size={20} />
-        </button>
+        <header className="mobile-top-bar">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="mobile-menu-btn"
+            aria-label="Open menu"
+          >
+            <Menu size={20} />
+          </button>
+          <UniflowLogo size={22} />
+          <span className="mobile-top-bar-title">Super Admin</span>
+        </header>
 
         {/* page content */}
         <div

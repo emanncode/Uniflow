@@ -127,8 +127,10 @@ export default function Navbar() {
 
           {/* mobile toggle */}
           <button
-            className="mobile-menu-btn md:hidden"
+            type="button"
+            className="flex md:hidden items-center justify-center"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
           >
             <MenuIcon ref={menuIconRef} />
           </button>
