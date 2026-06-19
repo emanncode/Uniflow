@@ -61,6 +61,11 @@ interface Lecturer {
   full_name: string;
   email: string;
 }
+
+interface AssignedLecturer {
+  id: string;
+  full_name: string;
+}
 interface Department {
   id: string;
   name: string;
@@ -376,7 +381,7 @@ export default function TimetablePage() {
   const [uniId, setUniId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [courseAssignments, setCourseAssignments] = useState<
-    Record<string, string[]>
+    Record<string, AssignedLecturer[]>
   >({});
   const [academicSession, setAcademicSession] = useState(
     getCurrentAcademicSession(),
@@ -441,15 +446,23 @@ export default function TimetablePage() {
     setNewLecturerId("");
   }, [activeLevel]);
 
-  const modalLecturers = useMemo(() => {
-    if (!newCourseId) return lecturers;
+  const selectedCourseLecturers = useMemo(
+    () => (newCourseId ? (courseAssignments[newCourseId] ?? []) : []),
+    [newCourseId, courseAssignments],
+  );
+
+  const hasAssignedLecturer =
+    selectedCourseLecturers.length === 1 ||
+    (selectedCourseLecturers.length > 1 && !!newLecturerId);
+
+  useEffect(() => {
+    if (!newCourseId) {
+      setNewLecturerId("");
+      return;
+    }
     const assigned = courseAssignments[newCourseId] ?? [];
-    if (assigned.length === 0) return lecturers;
-    const assignedSet = new Set(assigned);
-    const preferred = lecturers.filter((l) => assignedSet.has(l.id));
-    const others = lecturers.filter((l) => !assignedSet.has(l.id));
-    return [...preferred, ...others];
-  }, [lecturers, newCourseId, courseAssignments]);
+    setNewLecturerId(assigned.length === 1 ? assigned[0].id : "");
+  }, [newCourseId, courseAssignments]);
 
   const conflictCheck = useMemo(() => {
     if (!newVenue || !newDay || !newStart || !newEnd || !newLecturerId) {
@@ -525,7 +538,7 @@ export default function TimetablePage() {
       const departmentName =
         deptRes?.find((d) => d.id === departmentId)?.name ?? "—";
 
-      const [ttRes, courseRes, lecRes] = await Promise.all([
+      const [ttRes, courseRes, staffRes] = await Promise.all([
         supabase
           .from("timetable")
           .select(
@@ -542,19 +555,19 @@ export default function TimetablePage() {
           .eq("department_id", departmentId)
           .eq("is_active", true)
           .order("title"),
-        supabase
-          .from("profiles")
-          .select("id, full_name, email")
-          .eq("university_id", profile.university_id)
-          .in("role", ["lecturer", "dean", "hod"])
-          .order("full_name"),
+        fetch(`/api/staff?university_id=${profile.university_id}`),
       ]);
 
       if (cancelled) return;
 
-      const errors = [ttRes.error, courseRes.error, lecRes.error]
+      const staffData = await staffRes.json();
+      const staffFetchError = staffRes.ok
+        ? null
+        : ((staffData as { error?: string }).error ?? "Failed to load staff");
+
+      const errors = [ttRes.error, courseRes.error, staffFetchError]
         .filter(Boolean)
-        .map((e) => e!.message);
+        .map((e) => e as string);
       if (errors.length > 0) {
         setFetchError(errors.join(" · "));
       }
@@ -564,7 +577,9 @@ export default function TimetablePage() {
         level: c.level,
         semester: c.semester as 1 | 2,
       }));
-      const loadedLecturers: Lecturer[] = lecRes.data ?? [];
+      const loadedLecturers: Lecturer[] = staffRes.ok
+        ? ((staffData as { data?: Lecturer[] }).data ?? [])
+        : [];
 
       const rawSlots = (ttRes.data ?? []).map((t) =>
         mapTimetableRow(
@@ -581,17 +596,32 @@ export default function TimetablePage() {
 
       const courseIds = (courseRes.data ?? []).map((c) => c.id);
       if (courseIds.length > 0) {
-        const { data: assignments } = await supabase
+        const { data: assignments, error: assignError } = await supabase
           .from("lecturer_courses")
-          .select("course_id, lecturer_id")
+          .select("course_id, lecturer_id, profiles(id, full_name)")
           .in("course_id", courseIds)
           .eq("academic_session", sessionYear)
           .eq("is_active", true);
 
-        const map: Record<string, string[]> = {};
+        if (assignError && !cancelled) {
+          setFetchError((prev) =>
+            prev ? `${prev} · ${assignError.message}` : assignError.message,
+          );
+        }
+
+        const map: Record<string, AssignedLecturer[]> = {};
         for (const row of assignments ?? []) {
+          const profile = row.profiles as
+            | { id: string; full_name: string }
+            | { id: string; full_name: string }[]
+            | null;
+          const lecturer = Array.isArray(profile) ? profile[0] : profile;
+          if (!lecturer) continue;
           if (!map[row.course_id]) map[row.course_id] = [];
-          map[row.course_id].push(row.lecturer_id);
+          map[row.course_id].push({
+            id: lecturer.id,
+            full_name: lecturer.full_name,
+          });
         }
         if (!cancelled) setCourseAssignments(map);
       } else if (!cancelled) {
@@ -761,9 +791,21 @@ export default function TimetablePage() {
       const course = courses.find((c) => c.id === newCourseId);
       if (!course) throw new Error("Selected course not found.");
 
+      const assigned = courseAssignments[newCourseId] ?? [];
+      if (assigned.length === 0) {
+        throw new Error(
+          "Assign at least one lecturer to this course on the Courses page before adding a timetable slot.",
+        );
+      }
+      const lecturerId =
+        assigned.length === 1 ? assigned[0].id : newLecturerId;
+      if (!lecturerId || !assigned.some((l) => l.id === lecturerId)) {
+        throw new Error("Select which assigned lecturer will take this slot.");
+      }
+
       const { error: err } = await supabase.from("timetable").insert({
         course_id: newCourseId,
-        lecturer_id: newLecturerId,
+        lecturer_id: lecturerId,
         department_id: activeDept.id,
         venue: newVenue.trim(),
         day_of_week: displayDayToDb(newDay),
@@ -775,14 +817,6 @@ export default function TimetablePage() {
         is_active: true,
       });
       if (err) throw new Error(err.message);
-
-      await upsertLecturerCourseAssignment({
-        lecturerId: newLecturerId,
-        courseId: newCourseId,
-        universityId: uniId!,
-        semester: course.semester,
-        academicSession,
-      });
       setNewCourseId("");
       setNewLecturerId("");
       setNewVenue("");
@@ -1345,15 +1379,7 @@ export default function TimetablePage() {
                 <select
                   required
                   value={newCourseId}
-                  onChange={(e) => {
-                    const courseId = e.target.value;
-                    setNewCourseId(courseId);
-                    setNewLecturerId("");
-                    const assigned = courseAssignments[courseId] ?? [];
-                    if (assigned.length === 1) {
-                      setNewLecturerId(assigned[0]);
-                    }
-                  }}
+                  onChange={(e) => setNewCourseId(e.target.value)}
                   className="select"
                   style={{ paddingRight: "32px", boxSizing: "border-box" }}
                 >
@@ -1379,59 +1405,114 @@ export default function TimetablePage() {
                 />
               </div>
             </div>
-            <div>
-              <label
-                className="label"
-                style={{ display: "block", marginBottom: "6px" }}
-              >
-                Lecturer
-              </label>
-              {selectedCourse &&
-                (courseAssignments[selectedCourse.id] ?? []).length > 0 && (
-                  <p
+            {selectedCourse ? (
+              <div>
+                <label
+                  className="label"
+                  style={{ display: "block", marginBottom: "6px" }}
+                >
+                  Lecturer
+                </label>
+                {selectedCourseLecturers.length === 0 ? (
+                  <div
                     style={{
-                      fontSize: "11px",
-                      color: "var(--text-muted)",
-                      marginBottom: "6px",
+                      background: "var(--warning-muted)",
+                      border: "1px solid rgba(245,158,11,0.25)",
+                      borderRadius: "10px",
+                      padding: "12px 14px",
                     }}
                   >
-                    Assigned lecturers shown first. You can still pick any staff
-                    member for this slot.
-                  </p>
+                    <p
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--warning)",
+                        lineHeight: 1.5,
+                        margin: 0,
+                      }}
+                    >
+                      No lecturers assigned to {selectedCourse.code} yet. Assign
+                      lecturers on the Courses page before scheduling this class.
+                    </p>
+                    {activeDept ? (
+                      <Link
+                        href={`/u/courses?department=${activeDept.id}&faculty=${activeDept.faculty}`}
+                        style={{
+                          display: "inline-block",
+                          marginTop: "10px",
+                          fontSize: "13px",
+                          color: "var(--brand)",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Assign lecturers →
+                      </Link>
+                    ) : null}
+                  </div>
+                ) : selectedCourseLecturers.length === 1 ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      background: "var(--bg-hover)",
+                      border: "1px solid var(--border-primary)",
+                    }}
+                  >
+                    <Users size={14} style={{ color: "var(--brand)" }} />
+                    <span
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--text-primary)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {selectedCourseLecturers[0].full_name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text-muted)",
+                        marginLeft: "auto",
+                      }}
+                    >
+                      Assigned on Courses page
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ position: "relative" }}>
+                    <select
+                      required
+                      value={newLecturerId}
+                      onChange={(e) => setNewLecturerId(e.target.value)}
+                      className="select"
+                      style={{ paddingRight: "32px", boxSizing: "border-box" }}
+                    >
+                      <option value="" disabled>
+                        Select assigned lecturer...
+                      </option>
+                      {selectedCourseLecturers.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.full_name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      style={{
+                        position: "absolute",
+                        right: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
                 )}
-              <div style={{ position: "relative" }}>
-                <select
-                  required
-                  value={newLecturerId}
-                  onChange={(e) => setNewLecturerId(e.target.value)}
-                  className="select"
-                  style={{ paddingRight: "32px", boxSizing: "border-box" }}
-                >
-                  <option value="" disabled>
-                    Select lecturer...
-                  </option>
-                  {modalLecturers.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.full_name}
-                      {(courseAssignments[newCourseId] ?? []).includes(l.id)
-                        ? " (assigned)"
-                        : ""}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={14}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "var(--text-muted)",
-                    pointerEvents: "none",
-                  }}
-                />
               </div>
-            </div>
+            ) : null}
             <div
               style={{
                 display: "grid",
@@ -1555,7 +1636,13 @@ export default function TimetablePage() {
               </button>
               <button
                 type="submit"
-                disabled={saving || !!conflictCheck || levelCourses.length === 0}
+                disabled={
+                  saving ||
+                  !!conflictCheck ||
+                  levelCourses.length === 0 ||
+                  !newCourseId ||
+                  !hasAssignedLecturer
+                }
                 className="btn-primary"
                 style={{
                   flex: 1,
