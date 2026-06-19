@@ -22,6 +22,9 @@ import {
   isSplashAnimationFinished,
   markSplashAnimationFinished,
   recordSplashMount,
+  onSplashClaimReleased,
+  releaseSplashAnimationClaim,
+  subscribeSplashFinished,
 } from "@/lib/splash-session";
 
 const C = Theme.colors;
@@ -42,16 +45,15 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   onFinishRef.current = onFinish;
 
   recordSplashMount();
-  const shouldAnimate = claimSplashAnimation();
 
-  const progress = useSharedValue(
-    isSplashAnimationFinished() ? 1 : shouldAnimate ? 0 : 1,
-  );
+  const progress = useSharedValue(isSplashAnimationFinished() ? 1 : 0);
   const wordmarkWidth = useSharedValue(220);
   const nativeHiddenRef = useRef(false);
 
   const finishSplash = () => {
-    markSplashAnimationFinished();
+    if (!isSplashAnimationFinished()) {
+      markSplashAnimationFinished();
+    }
     onFinishRef.current();
   };
 
@@ -62,39 +64,72 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   };
 
   useEffect(() => {
-    if (!shouldAnimate) {
+    let disposed = false;
+    let unsubFinish = () => {};
+    let unsubClaim = () => {};
+
+    const completeSplash = () => {
+      if (disposed) return;
       progress.value = 1;
-      if (!isSplashAnimationFinished()) {
-        finishSplash();
+      finishSplash();
+    };
+
+    const startAnimation = () => {
+      if (__DEV__) {
+        console.log("[Splash] starting animation sequence");
       }
-      return;
-    }
 
-    if (__DEV__) {
-      console.log("[Splash] starting animation sequence");
-    }
-
-    progress.value = withSequence(
-      withTiming(0.5, {
-        duration: MOTION.splash.hold,
-        easing: SMOOTH_IN,
-      }),
-      withTiming(1, {
-        duration: MOTION.splash.reveal,
-        easing: SMOOTH_REVEAL,
-      }),
-      withDelay(
-        MOTION.splash.settle,
-        withTiming(1, { duration: 0 }, (finished) => {
-          if (finished) runOnJS(finishSplash)();
+      progress.value = withSequence(
+        withTiming(0.5, {
+          duration: MOTION.splash.hold,
+          easing: SMOOTH_IN,
         }),
-      ),
-    );
+        withTiming(1, {
+          duration: MOTION.splash.reveal,
+          easing: SMOOTH_REVEAL,
+        }),
+        withDelay(
+          MOTION.splash.settle,
+          withTiming(1, { duration: 0 }, (finished) => {
+            if (finished) runOnJS(finishSplash)();
+          }),
+        ),
+      );
+    };
+
+    const tryClaimAndAnimate = () => {
+      if (disposed) return;
+      if (isSplashAnimationFinished()) {
+        completeSplash();
+        return;
+      }
+      if (claimSplashAnimation()) {
+        unsubFinish();
+        unsubClaim();
+        startAnimation();
+        return;
+      }
+      unsubFinish = subscribeSplashFinished(completeSplash);
+      unsubClaim = onSplashClaimReleased(() => {
+        if (disposed || isSplashAnimationFinished()) return;
+        if (claimSplashAnimation()) {
+          unsubFinish();
+          unsubClaim();
+          startAnimation();
+        }
+      });
+    };
+
+    tryClaimAndAnimate();
 
     return () => {
+      disposed = true;
+      unsubFinish();
+      unsubClaim();
       cancelAnimation(progress);
+      releaseSplashAnimationClaim();
     };
-  }, [progress, shouldAnimate]);
+  }, [progress]);
 
   const backdropStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(

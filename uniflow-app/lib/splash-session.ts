@@ -6,6 +6,8 @@
 let animationStarted = false;
 let animationFinished = false;
 let mountCount = 0;
+const finishListeners = new Set<() => void>();
+const claimReleasedListeners = new Set<() => void>();
 
 export function recordSplashMount(): number {
   mountCount += 1;
@@ -17,7 +19,7 @@ export function recordSplashMount(): number {
 
 /** Call synchronously on render — before useEffect — to win races with remounts. */
 export function claimSplashAnimation(): boolean {
-  if (animationStarted) return false;
+  if (animationFinished || animationStarted) return false;
   animationStarted = true;
   if (__DEV__) {
     console.log("[Splash] animation claimed");
@@ -25,13 +27,45 @@ export function claimSplashAnimation(): boolean {
   return true;
 }
 
+/** Release claim when the animating instance unmounts before finishing. */
+export function releaseSplashAnimationClaim(): void {
+  if (animationFinished) return;
+  animationStarted = false;
+  if (__DEV__) {
+    console.log("[Splash] animation claim released");
+  }
+  claimReleasedListeners.forEach((listener) => listener());
+}
+
+export function onSplashClaimReleased(listener: () => void): () => void {
+  claimReleasedListeners.add(listener);
+  return () => {
+    claimReleasedListeners.delete(listener);
+  };
+}
+
 export function isSplashAnimationFinished(): boolean {
   return animationFinished;
 }
 
 export function markSplashAnimationFinished(): void {
+  if (animationFinished) return;
   animationFinished = true;
+  animationStarted = false;
   if (__DEV__) {
     console.log("[Splash] animation finished");
   }
+  finishListeners.forEach((listener) => listener());
+  finishListeners.clear();
+}
+
+export function subscribeSplashFinished(listener: () => void): () => void {
+  if (animationFinished) {
+    listener();
+    return () => {};
+  }
+  finishListeners.add(listener);
+  return () => {
+    finishListeners.delete(listener);
+  };
 }

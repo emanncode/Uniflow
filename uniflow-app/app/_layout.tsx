@@ -55,7 +55,7 @@ function AuthGuard() {
 export default function RootLayout() {
   const hydrateSession = useAuthStore((s) => s.hydrateSession);
   const isHydrated = useIsHydrated();
-  const [splashDone, setSplashDone] = useState(isSplashAnimationFinished);
+  const [splashDone, setSplashDone] = useState(() => isSplashAnimationFinished());
 
   const handleSplashFinish = useCallback(() => {
     setSplashDone(true);
