@@ -1,11 +1,41 @@
 import { getCurrentAcademicSession } from "@/lib/academic";
 
+export interface AssignedLecturer {
+  id: string;
+  full_name: string;
+}
+
 async function parseApiError(res: Response): Promise<string> {
   const data = await res.json().catch(() => ({}));
   return (
     (data as { error?: string }).error ||
     `Request failed (${res.status})`
   );
+}
+
+export async function fetchCourseAssignments(params: {
+  universityId: string;
+  courseIds: string[];
+  academicSession?: string;
+}): Promise<Record<string, AssignedLecturer[]>> {
+  if (params.courseIds.length === 0) return {};
+
+  const session = params.academicSession ?? getCurrentAcademicSession();
+  const qs = new URLSearchParams({
+    university_id: params.universityId,
+    course_ids: params.courseIds.join(","),
+    academic_session: session,
+  });
+
+  const res = await fetch(`/api/lecturer-courses?${qs}`);
+  if (!res.ok) {
+    throw new Error(await parseApiError(res));
+  }
+
+  const json = (await res.json()) as {
+    data?: Record<string, AssignedLecturer[]>;
+  };
+  return json.data ?? {};
 }
 
 export async function upsertLecturerCourseAssignment(params: {

@@ -3,6 +3,91 @@ import { canManageUniversity } from "@/lib/auth";
 import { getCurrentAcademicSession } from "@/lib/academic";
 import { NextResponse } from "next/server";
 
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const universityId = searchParams.get("university_id");
+    const courseIdsParam = searchParams.get("course_ids");
+
+    if (!universityId) {
+      return NextResponse.json(
+        { error: "university_id is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!(await canManageUniversity(universityId))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const courseIds =
+      courseIdsParam
+        ?.split(",")
+        .map((id) => id.trim())
+        .filter(Boolean) ?? [];
+    const academicSession =
+      searchParams.get("academic_session") ?? getCurrentAcademicSession();
+
+    const supabase = createAdminClient();
+
+    let query = supabase
+      .from("lecturer_courses")
+      .select("course_id, lecturer_id")
+      .eq("academic_session", academicSession)
+      .eq("is_active", true);
+
+    if (courseIds.length > 0) {
+      query = query.in("course_id", courseIds);
+    }
+
+    const { data: rows, error } = await query;
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const lecturerIds = [
+      ...new Set((rows ?? []).map((row) => row.lecturer_id)),
+    ];
+    const nameById = new Map<string, string>();
+
+    if (lecturerIds.length > 0) {
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", lecturerIds)
+        .eq("university_id", universityId);
+
+      if (profileError) {
+        return NextResponse.json(
+          { error: profileError.message },
+          { status: 500 },
+        );
+      }
+
+      for (const profile of profiles ?? []) {
+        nameById.set(profile.id, profile.full_name);
+      }
+    }
+
+    const data: Record<string, { id: string; full_name: string }[]> = {};
+    for (const row of rows ?? []) {
+      const fullName = nameById.get(row.lecturer_id);
+      if (!fullName) continue;
+      if (!data[row.course_id]) data[row.course_id] = [];
+      data[row.course_id].push({
+        id: row.lecturer_id,
+        full_name: fullName,
+      });
+    }
+
+    return NextResponse.json({ data });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : "Failed to load assignments";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 async function upsertAssignment(
   supabase: ReturnType<typeof createAdminClient>,
   params: {
@@ -31,14 +116,23 @@ async function upsertAssignment(
     return;
   }
 
-  const { error } = await supabase.from("lecturer_courses").insert({
+  const payload: Record<string, unknown> = {
     lecturer_id: params.lecturerId,
     course_id: params.courseId,
-    university_id: params.universityId,
     academic_session: params.academicSession,
     semester: params.semester,
     is_active: true,
+  };
+
+  let { error } = await supabase.from("lecturer_courses").insert({
+    ...payload,
+    university_id: params.universityId,
   });
+
+  if (error?.message?.includes('column "university_id"')) {
+    ({ error } = await supabase.from("lecturer_courses").insert(payload));
+  }
+
   if (error) throw error;
 }
 

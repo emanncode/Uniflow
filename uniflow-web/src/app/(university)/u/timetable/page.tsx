@@ -10,7 +10,10 @@ import {
   displayDayToDb,
   getCurrentAcademicSession,
 } from "@/lib/academic";
-import { upsertLecturerCourseAssignment } from "@/lib/lecturer-courses";
+import {
+  fetchCourseAssignments,
+  upsertLecturerCourseAssignment,
+} from "@/lib/lecturer-courses";
 import {
   type CourseLevel,
   type MaxCourseLevel,
@@ -596,34 +599,25 @@ export default function TimetablePage() {
 
       const courseIds = (courseRes.data ?? []).map((c) => c.id);
       if (courseIds.length > 0) {
-        const { data: assignments, error: assignError } = await supabase
-          .from("lecturer_courses")
-          .select("course_id, lecturer_id, profiles(id, full_name)")
-          .in("course_id", courseIds)
-          .eq("academic_session", sessionYear)
-          .eq("is_active", true);
-
-        if (assignError && !cancelled) {
-          setFetchError((prev) =>
-            prev ? `${prev} · ${assignError.message}` : assignError.message,
-          );
-        }
-
-        const map: Record<string, AssignedLecturer[]> = {};
-        for (const row of assignments ?? []) {
-          const profile = row.profiles as
-            | { id: string; full_name: string }
-            | { id: string; full_name: string }[]
-            | null;
-          const lecturer = Array.isArray(profile) ? profile[0] : profile;
-          if (!lecturer) continue;
-          if (!map[row.course_id]) map[row.course_id] = [];
-          map[row.course_id].push({
-            id: lecturer.id,
-            full_name: lecturer.full_name,
+        try {
+          const map = await fetchCourseAssignments({
+            universityId: profile.university_id,
+            courseIds,
+            academicSession: sessionYear,
           });
+          if (!cancelled) setCourseAssignments(map);
+        } catch (assignErr: unknown) {
+          const message =
+            assignErr instanceof Error
+              ? assignErr.message
+              : "Failed to load lecturer assignments";
+          if (!cancelled) {
+            setFetchError((prev) =>
+              prev ? `${prev} · ${message}` : message,
+            );
+            setCourseAssignments({});
+          }
         }
-        if (!cancelled) setCourseAssignments(map);
       } else if (!cancelled) {
         setCourseAssignments({});
       }

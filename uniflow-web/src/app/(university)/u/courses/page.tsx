@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getCurrentAcademicSession } from "@/lib/academic";
 import {
+  fetchCourseAssignments,
   syncLecturerCourseAssignments,
   upsertLecturerCourseAssignment,
 } from "@/lib/lecturer-courses";
@@ -74,6 +75,7 @@ export default function CoursesPage() {
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccess, setImportSuccess] = useState(0);
   const [importCorrected, setImportCorrected] = useState(0);
+  const [assignSuccess, setAssignSuccess] = useState("");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [assignCourse, setAssignCourse] = useState<CourseRow | null>(null);
@@ -235,29 +237,18 @@ export default function CoursesPage() {
         {};
 
       if (courseIds.length > 0) {
-        const { data: assignments, error: assignError } = await supabase
-          .from("lecturer_courses")
-          .select("course_id, lecturer_id, profiles(id, full_name)")
-          .in("course_id", courseIds)
-          .eq("academic_session", sessionYear)
-          .eq("is_active", true);
-
-        if (assignError) {
-          setFetchError(assignError.message);
-        } else {
-          for (const row of assignments ?? []) {
-            const profile = row.profiles as
-              | { id: string; full_name: string }
-              | { id: string; full_name: string }[]
-              | null;
-            const lecturer = Array.isArray(profile) ? profile[0] : profile;
-            if (!lecturer) continue;
-            if (!assignmentMap[row.course_id]) assignmentMap[row.course_id] = [];
-            assignmentMap[row.course_id].push({
-              id: lecturer.id,
-              full_name: lecturer.full_name,
-            });
-          }
+        try {
+          assignmentMap = await fetchCourseAssignments({
+            universityId: profile.university_id,
+            courseIds,
+            academicSession: sessionYear,
+          });
+        } catch (assignErr: unknown) {
+          const message =
+            assignErr instanceof Error
+              ? assignErr.message
+              : "Failed to load lecturer assignments";
+          if (!cancelled) setFetchError(message);
         }
       }
 
@@ -367,8 +358,13 @@ export default function CoursesPage() {
 
   async function handleAssignLecturers(e: React.FormEvent) {
     e.preventDefault();
-    if (!assignCourse || !uniId) return;
+    if (!assignCourse) return;
+    if (!uniId) {
+      setError("Session expired — refresh the page and try again.");
+      return;
+    }
     setError("");
+    setAssignSuccess("");
     setSaving(true);
     try {
       await syncLecturerCourseAssignments({
@@ -377,6 +373,23 @@ export default function CoursesPage() {
         semester: assignCourse.semester,
         lecturerIds: selectedLecturerIds,
       });
+
+      const updated = await fetchCourseAssignments({
+        universityId: uniId,
+        courseIds: [assignCourse.id],
+      });
+
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === assignCourse.id
+            ? { ...c, assignedLecturers: updated[assignCourse.id] ?? [] }
+            : c,
+        ),
+      );
+
+      setAssignSuccess(
+        `Saved ${selectedLecturerIds.length} lecturer assignment${selectedLecturerIds.length !== 1 ? "s" : ""} for ${assignCourse.code}.`,
+      );
       setAssignCourse(null);
       setSelectedLecturerIds([]);
       loadData();
@@ -413,6 +426,7 @@ export default function CoursesPage() {
     setAssignCourse(course);
     setSelectedLecturerIds(course.assignedLecturers.map((l) => l.id));
     setError("");
+    setAssignSuccess("");
   }
 
   function toggleLecturer(lecturerId: string) {
@@ -767,6 +781,24 @@ MTH201,Calculus II,200,2,4,,john@email.com;jane@email.com`;
           </button>
         </div>
       </div>
+
+      {assignSuccess && (
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            background: "rgba(34,197,94,0.1)",
+            border: "1px solid rgba(34,197,94,0.25)",
+            borderRadius: "12px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <UserCheck size={16} style={{ color: "#22c55e" }} />
+          <p style={{ fontSize: "13px", color: "#22c55e" }}>{assignSuccess}</p>
+        </div>
+      )}
 
       {fetchError && (
         <div
