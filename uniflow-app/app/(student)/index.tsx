@@ -302,6 +302,9 @@ export default function StudentDashboard() {
           <View style={styles.headerLeft}>
             <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.name}>{firstName}</Text>
+            {profile?.level ? (
+              <Text style={styles.levelLabel}>{profile.level} Level</Text>
+            ) : null}
             <Text style={styles.date}>{TODAY_LABEL}</Text>
           </View>
           <ScreenHeaderActions role="student" />
@@ -407,6 +410,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.8,
     lineHeight: 34,
+  },
+  levelLabel: {
+    color: C.brand,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
   },
   date: { color: C.textMuted, fontSize: 12, marginTop: 2 },
   statsRow: { flexDirection: 'row', gap: 10 },

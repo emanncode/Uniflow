@@ -370,6 +370,16 @@ return (
               />
             </>
           ) : null}
+          {profile.level ? (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
+                label="Level"
+                value={`${profile.level} Level`}
+              />
+            </>
+          ) : null}
           {facultyLabel ? (
             <>
               <View style={styles.rowDivider} />
