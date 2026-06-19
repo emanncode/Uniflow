@@ -12,10 +12,16 @@ import {
   getCurrentAcademicSession,
   getDefaultDisplayDay,
 } from "@/lib/academic";
+import { fetchCourseAssignments } from "@/lib/lecturer-courses";
 import {
-  fetchCourseAssignments,
-  upsertLecturerCourseAssignment,
-} from "@/lib/lecturer-courses";
+  buildTimetableDraftRows,
+  draftRowKey,
+  parseTimetableCsv,
+  TIMETABLE_CSV_HEADERS,
+  timetableDraftToCsv,
+  validateTimetableImportRow,
+  type TimetableDraftRow,
+} from "@/lib/timetable-csv";
 import {
   type CourseLevel,
   type MaxCourseLevel,
@@ -35,7 +41,9 @@ import {
   AlertTriangle,
   ChevronDown,
   Search,
-  ArrowLeft
+  ArrowLeft,
+  Download,
+  Sparkles,
 } from "lucide-react";
 import { validateAndNormalizeEmail } from "@/lib/email";
 
@@ -380,9 +388,16 @@ export default function TimetablePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importSuccess, setImportSuccess] = useState(0);
   const [importCorrected, setImportCorrected] = useState(0);
+  const [draftRows, setDraftRows] = useState<TimetableDraftRow[] | null>(null);
+  const [draftSkipped, setDraftSkipped] = useState<{
+    noLecturer: { code: string; title: string }[];
+    alreadyScheduled: number;
+  } | null>(null);
+  const [generateMessage, setGenerateMessage] = useState("");
   const [error, setError] = useState("");
   const [fetchError, setFetchError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
@@ -640,14 +655,60 @@ export default function TimetablePage() {
     setRefreshKey((k) => k + 1);
   }
 
-  const CSV_TEMPLATE = `course_code,lecturer_email,venue,day,start_time,end_time\nCSC301,lecturer@email.com,LT1,Monday,08:00,10:00\nMTH201,john@email.com,Hall A,Tuesday,10:00,12:00`;
+  const canExportDraft = draftRows !== null && draftRows.length > 0;
 
-  function downloadTemplate() {
-    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+  function handleGenerateFromCourses() {
+    if (!activeDept) return;
+    setGenerating(true);
+    setGenerateMessage("");
+    setImportErrors([]);
+    setImportSuccess(0);
+    setImportCorrected(0);
+
+    const scheduledKeys = new Set<string>();
+    for (const slot of slots) {
+      const lecturer = lecturers.find((l) => l.full_name === slot.lecturer_name);
+      if (lecturer) {
+        scheduledKeys.add(draftRowKey(slot.course_code, lecturer.email));
+      }
+    }
+
+    const result = buildTimetableDraftRows({
+      courses,
+      courseAssignments,
+      lecturers,
+      scheduledKeys,
+    });
+
+    setDraftRows(result.rows);
+    setDraftSkipped({
+      noLecturer: result.skippedNoLecturer,
+      alreadyScheduled: result.skippedAlreadyScheduled,
+    });
+
+    if (result.rows.length === 0) {
+      setGenerateMessage(
+        result.skippedNoLecturer.length > 0
+          ? "No courses ready to schedule. Assign lecturers on the Courses page first."
+          : "All assigned courses already have timetable slots.",
+      );
+    } else {
+      setGenerateMessage(
+        `${result.rows.length} course${result.rows.length !== 1 ? "s" : ""} ready — download the CSV, add venue/day/times, then import.`,
+      );
+    }
+
+    setGenerating(false);
+  }
+
+  function downloadDraftCsv() {
+    if (!draftRows?.length || !activeDept) return;
+    const csv = timetableDraftToCsv(draftRows);
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "timetable_template.csv";
+    a.download = `${activeDept.short_name || "dept"}_timetable_draft.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -655,94 +716,85 @@ export default function TimetablePage() {
   async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !activeDept) return;
+
+    if (!draftRows?.length) {
+      setImportErrors([
+        'Generate courses from the Courses page first, then download the CSV before importing times.',
+      ]);
+      e.target.value = "";
+      return;
+    }
+
     setImporting(true);
     setImportErrors([]);
     setImportSuccess(0);
     setImportCorrected(0);
 
     const text = await file.text();
-    const lines = text
-      .trim()
-      .split("\n")
-      .filter((l) => l.trim());
-    const headers = lines[0]
-      .toLowerCase()
-      .split(",")
-      .map((h) => h.trim());
-    const rows = lines.slice(1);
+    const { headers, rows } = parseTimetableCsv(text);
+    const missingHeaders = TIMETABLE_CSV_HEADERS.filter(
+      (h) => !headers.includes(h),
+    );
+    if (missingHeaders.length > 0) {
+      setImportErrors([
+        `CSV is missing columns: ${missingHeaders.join(", ")}. Download the draft CSV after generating courses.`,
+      ]);
+      setImporting(false);
+      e.target.value = "";
+      return;
+    }
+
+    const draftByKey = new Map(
+      draftRows.map((row) => [
+        draftRowKey(row.courseCode, row.lecturerEmail),
+        row,
+      ]),
+    );
 
     const errors: string[] = [];
     let successCount = 0;
     let correctedCount = 0;
+    const importedKeys = new Set<string>();
 
     for (let i = 0; i < rows.length; i++) {
-      const vals = rows[i].split(",").map((v) => v.trim());
-      const row: Record<string, string> = {};
-      headers.forEach((h, idx) => {
-        row[h] = vals[idx] ?? "";
-      });
+      const row = rows[i];
       const lineNum = i + 2;
-
-      const course = courses.find(
-        (c) => c.code.toLowerCase() === row.course_code?.toLowerCase(),
-      );
-      if (!course) {
-        errors.push(`Row ${lineNum}: Course "${row.course_code}" not found`);
-        continue;
-      }
 
       const emailCheck = validateAndNormalizeEmail(row.lecturer_email || "");
       if (!emailCheck.valid) {
-        errors.push(`Row ${lineNum}: Invalid lecturer email "${row.lecturer_email}"`);
+        errors.push(
+          `Row ${lineNum}: Invalid lecturer email "${row.lecturer_email}"`,
+        );
         continue;
       }
-      if (emailCheck.wasCorrected) {
-        correctedCount++;
-      }
+      if (emailCheck.wasCorrected) correctedCount++;
 
-      const { data: lecProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", emailCheck.normalized)
-        .eq("university_id", uniId)
-        .single();
-      if (!lecProfile) {
+      const key = draftRowKey(row.course_code || "", emailCheck.normalized);
+      const draft = draftByKey.get(key);
+      if (!draft) {
         errors.push(
-          `Row ${lineNum}: Lecturer "${emailCheck.normalized}" not found`,
+          `Row ${lineNum}: "${row.course_code}" with "${emailCheck.normalized}" was not in your generated batch. Re-generate from courses and use that CSV.`,
         );
         continue;
       }
 
-      if (!DAYS.includes(row.day as (typeof DAYS)[number])) {
-        errors.push(
-          `Row ${lineNum}: Invalid day "${row.day}" — must be Monday/Tuesday/Wednesday/Thursday/Friday`,
-        );
-        continue;
-      }
-      if (!row.start_time || !row.end_time) {
-        errors.push(`Row ${lineNum}: Missing start_time or end_time`);
-        continue;
-      }
-      if (row.start_time >= row.end_time) {
-        errors.push(`Row ${lineNum}: end_time must be after start_time`);
-        continue;
-      }
-      if (!row.venue) {
-        errors.push(`Row ${lineNum}: Missing venue`);
+      const scheduleError = validateTimetableImportRow(row);
+      if (scheduleError) {
+        errors.push(`Row ${lineNum}: ${scheduleError}`);
         continue;
       }
 
       const { error: insErr } = await supabase.from("timetable").insert({
-        course_id: course.id,
-        lecturer_id: lecProfile.id,
+        course_id: draft.courseId,
+        lecturer_id: draft.lecturerId,
         department_id: activeDept.id,
-        venue: row.venue,
+        venue: row.venue.trim(),
         day_of_week: displayDayToDb(row.day),
         start_time: row.start_time,
         end_time: row.end_time,
         university_id: uniId,
         academic_session: academicSession,
-        semester: course.semester,
+        semester: draft.semester,
         is_active: true,
       });
 
@@ -751,25 +803,25 @@ export default function TimetablePage() {
         continue;
       }
 
-      try {
-        await upsertLecturerCourseAssignment({
-          lecturerId: lecProfile.id,
-          courseId: course.id,
-          universityId: uniId!,
-          semester: course.semester,
-          academicSession,
-        });
-      } catch {
-        // Slot saved; assignment sync is best-effort during import
-      }
-
+      importedKeys.add(key);
       successCount++;
+    }
+
+    if (importedKeys.size > 0) {
+      const remaining = draftRows.filter(
+        (row) => !importedKeys.has(draftRowKey(row.courseCode, row.lecturerEmail)),
+      );
+      setDraftRows(remaining.length > 0 ? remaining : null);
+      if (remaining.length === 0) {
+        setGenerateMessage("");
+        setDraftSkipped(null);
+      }
+      loadData();
     }
 
     setImportErrors(errors);
     setImportSuccess(successCount);
     setImportCorrected(correctedCount);
-    if (successCount > 0) loadData();
     setImporting(false);
     e.target.value = "";
   }
@@ -932,34 +984,80 @@ export default function TimetablePage() {
           }}
         >
           <button
-            onClick={downloadTemplate}
+            onClick={handleGenerateFromCourses}
+            disabled={!activeDept || generating}
             className="btn-secondary"
+            title="Pull courses with assigned lecturers from the Courses page"
             style={{
               display: "flex",
               alignItems: "center",
               gap: "6px",
               fontSize: "13px",
+              opacity: !activeDept || generating ? 0.6 : 1,
             }}
           >
-            ↓ CSV Template
+            {generating ? (
+              <>
+                <Loader2 size={13} className="animate-spin" /> Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles size={13} /> Generate from Courses
+              </>
+            )}
           </button>
-          <label style={{ cursor: importing || !activeDept ? "not-allowed" : "pointer" }}>
+          <button
+            onClick={downloadDraftCsv}
+            disabled={!canExportDraft}
+            className="btn-secondary"
+            title={
+              canExportDraft
+                ? "Download courses without times — fill venue, day, and times, then import"
+                : "Generate from courses first"
+            }
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+              opacity: canExportDraft ? 1 : 0.5,
+              cursor: canExportDraft ? "pointer" : "not-allowed",
+            }}
+          >
+            <Download size={13} /> Download CSV
+          </button>
+          <label
+            style={{
+              cursor:
+                importing || !activeDept || !canExportDraft
+                  ? "not-allowed"
+                  : "pointer",
+            }}
+          >
             <input
               type="file"
               accept=".csv"
               onChange={handleCSVImport}
               style={{ display: "none" }}
-              disabled={importing || !activeDept}
+              disabled={importing || !activeDept || !canExportDraft}
             />
             <span
               className="btn-secondary"
+              title={
+                canExportDraft
+                  ? "Import the CSV after adding venue, day, and times"
+                  : "Generate and download the draft CSV first"
+              }
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
                 fontSize: "13px",
-                cursor: importing || !activeDept ? "not-allowed" : "pointer",
-                opacity: importing || !activeDept ? 0.6 : 1,
+                cursor:
+                  importing || !activeDept || !canExportDraft
+                    ? "not-allowed"
+                    : "pointer",
+                opacity: importing || !activeDept || !canExportDraft ? 0.5 : 1,
               }}
             >
               {importing ? (
@@ -986,6 +1084,72 @@ export default function TimetablePage() {
           </button>
         </div>
       </div>
+
+      {generateMessage && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "12px",
+            background: draftRows?.length
+              ? "var(--brand-muted)"
+              : "var(--warning-muted)",
+            border: `1px solid ${draftRows?.length ? "rgba(99,102,241,0.2)" : "rgba(245,158,11,0.25)"}`,
+            borderRadius: "12px",
+            padding: "12px 16px",
+            marginBottom: "20px",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontSize: "13px",
+                color: draftRows?.length ? "var(--brand)" : "var(--warning)",
+                lineHeight: 1.5,
+              }}
+            >
+              {generateMessage}
+            </p>
+            {draftSkipped && draftSkipped.noLecturer.length > 0 && (
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "var(--text-muted)",
+                  marginTop: "6px",
+                  lineHeight: 1.5,
+                }}
+              >
+                Skipped {draftSkipped.noLecturer.length} course
+                {draftSkipped.noLecturer.length !== 1 ? "s" : ""} with no
+                lecturer
+                {activeDept ? (
+                  <>
+                    {" "}
+                    —{" "}
+                    <Link
+                      href={`/u/courses?department=${activeDept.id}&faculty=${activeDept.faculty}`}
+                      style={{ color: "var(--brand)", fontWeight: 600 }}
+                    >
+                      assign on Courses page
+                    </Link>
+                  </>
+                ) : null}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              setGenerateMessage("");
+              setDraftRows(null);
+              setDraftSkipped(null);
+            }}
+            style={{ background: "none", border: "none", cursor: "pointer" }}
+          >
+            <X size={14} style={{ color: "var(--text-muted)" }} />
+          </button>
+        </div>
+      )}
 
       {/* Import success */}
       {importSuccess > 0 && importErrors.length === 0 && (
