@@ -80,10 +80,12 @@ interface TimetableRow {
   department_id: string | null;
   courses: { title: string; code: string; level: number } | null;
   profiles: { full_name: string } | null;
-  departments: { name: string } | null;
 }
 
-function mapTimetableRow(t: TimetableRow): TimetableSlot {
+function mapTimetableRow(
+  t: TimetableRow,
+  departmentName: string,
+): TimetableSlot {
   return {
     id: t.id,
     course_name: t.courses?.title ?? "—",
@@ -95,7 +97,7 @@ function mapTimetableRow(t: TimetableRow): TimetableSlot {
     start_time: t.start_time,
     end_time: t.end_time,
     department_id: t.department_id,
-    department_name: t.departments?.name ?? "—",
+    department_name: departmentName,
   };
 }
 const DAYS = [...DISPLAY_DAYS];
@@ -518,12 +520,14 @@ export default function TimetablePage() {
       }
 
       const sessionYear = getCurrentAcademicSession();
+      const departmentName =
+        deptRes?.find((d) => d.id === departmentId)?.name ?? "—";
 
       const [ttRes, courseRes, lecRes] = await Promise.all([
         supabase
           .from("timetable")
           .select(
-            `id, venue, day_of_week, day, start_time, end_time, course_id, department_id, courses(title, code, level), profiles(full_name), departments(name)`,
+            `id, venue, day_of_week, day, start_time, end_time, course_id, department_id, courses(title, code, level), profiles(full_name)`,
           )
           .eq("university_id", profile.university_id)
           .eq("department_id", departmentId)
@@ -554,7 +558,7 @@ export default function TimetablePage() {
       }
 
       const rawSlots = (ttRes.data ?? []).map((t) =>
-        mapTimetableRow(t as unknown as TimetableRow),
+        mapTimetableRow(t as unknown as TimetableRow, departmentName),
       );
       setSlots(detectConflicts(rawSlots));
       setCourses(
