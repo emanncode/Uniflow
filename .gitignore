@@ -1,0 +1,41 @@
+# --- Secrets & local env (never commit) ---
+.env
+.env.*
+!.env.example
+*.local
+.vercel/
+
+# --- AI agent / vibe-coding (personal tooling) ---
+.cursor/
+.grok/
+memory/
+AGENTS.md
+**/AGENTS.md
+**/CLAUDE.md
+scripts/
+
+# One-off dev/debug scripts (often contain credentials)
+check_staff.js
+**/check_*.js
+
+# Personal notes & checklists
+SEO-CHECKLIST.md
+**/SEO-CHECKLIST.md
+
+# Agent-generated design tooling (keep design/*.pen locally)
+design/build-uniflow-pen.py
+
+# --- Dependencies & build output ---
+node_modules/
+.next/
+out/
+dist/
+.expo/
+web-build/
+*.tsbuildinfo
+
+# --- OS & editor noise ---
+.DS_Store
+*.pem
+*.log
+Thumbs.db
