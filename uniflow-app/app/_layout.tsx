@@ -66,15 +66,14 @@ export default function RootLayout() {
     hydrateSession();
   }, [hydrateSession]);
 
-  const showSplash = !splashDone || !isHydrated;
-  const showApp = splashDone && isHydrated;
+  const appReady = splashDone && isHydrated;
 
   return (
     <View style={styles.root}>
       <StatusBar style="light" backgroundColor={C.bgDeep} />
       <AuthGuard />
-      {showApp ? <Slot /> : null}
-      {showSplash ? <SplashEntrance onFinish={handleSplashFinish} /> : null}
+      {appReady ? <Slot /> : null}
+      {!appReady ? <SplashEntrance onFinish={handleSplashFinish} /> : null}
     </View>
   );
 }

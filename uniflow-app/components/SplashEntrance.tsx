@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Text, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -23,25 +23,44 @@ const LOCKUP_GAP = 6;
 const WORDMARK_FONT = 58;
 const CLAMP = Extrapolation.CLAMP;
 
-const SMOOTH_IN = Easing.bezier(0.25, 0.1, 0.25, 1);
 const SMOOTH_REVEAL = Easing.bezier(0.37, 0, 0.18, 1);
 
 interface SplashEntranceProps {
   onFinish: () => void;
 }
 
+/** Survives remounts so the entrance animation only runs once per cold start. */
+let splashAnimationPlayed = false;
+
 export function SplashEntrance({ onFinish }: SplashEntranceProps) {
-  const progress = useSharedValue(0);
+  const onFinishRef = useRef(onFinish);
+  onFinishRef.current = onFinish;
+
+  // Start at the post-logo phase — native splash already showed the icon.
+  const progress = useSharedValue(splashAnimationPlayed ? 1 : 0.5);
   const wordmarkWidth = useSharedValue(220);
+  const nativeHiddenRef = useRef(false);
+
+  const finishSplash = () => {
+    onFinishRef.current();
+  };
+
+  const hideNativeSplash = () => {
+    if (nativeHiddenRef.current) return;
+    nativeHiddenRef.current = true;
+    ExpoSplash.hideAsync().catch(() => {});
+  };
 
   useEffect(() => {
-    ExpoSplash.hideAsync().catch(() => {});
+    if (splashAnimationPlayed) {
+      progress.value = 1;
+      finishSplash();
+      return;
+    }
+    splashAnimationPlayed = true;
 
+    // Native splash already displayed the logo — only run wordmark reveal + settle.
     progress.value = withSequence(
-      withTiming(0.5, {
-        duration: MOTION.splash.hold,
-        easing: SMOOTH_IN,
-      }),
       withTiming(1, {
         duration: MOTION.splash.reveal,
         easing: SMOOTH_REVEAL,
@@ -49,11 +68,11 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
       withDelay(
         MOTION.splash.settle,
         withTiming(1, { duration: 0 }, (finished) => {
-          if (finished) runOnJS(onFinish)();
+          if (finished) runOnJS(finishSplash)();
         }),
       ),
     );
-  }, [onFinish, progress]);
+  }, [progress]);
 
   const backdropStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
@@ -95,7 +114,10 @@ export function SplashEntrance({ onFinish }: SplashEntranceProps) {
   }));
 
   return (
-    <Animated.View style={[styles.root, backdropStyle]}>
+    <Animated.View
+      style={[styles.root, backdropStyle]}
+      onLayout={hideNativeSplash}
+    >
       <View style={styles.measure} pointerEvents="none">
         <Text
           style={styles.wordmark}
