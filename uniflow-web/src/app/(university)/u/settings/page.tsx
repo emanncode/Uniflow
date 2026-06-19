@@ -3,16 +3,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { User, Shield, Save, Eye, EyeOff, Loader2, GraduationCap } from "lucide-react";
-import {
-  type MaxCourseLevel,
-  getStoredMaxLevel,
-  setStoredMaxLevel,
-} from "@/lib/course-levels";
 
 export default function UniversitySettingsPage() {
   const [profile, setProfile] = useState({ full_name: "", email: "" });
-  const [universityId, setUniversityId] = useState<string | null>(null);
-  const [maxCourseLevel, setMaxCourseLevel] = useState<MaxCourseLevel>(400);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
@@ -30,13 +23,11 @@ export default function UniversitySettingsPage() {
       if (!session) return;
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, email, university_id")
+        .select("full_name, email")
         .eq("id", session.user.id)
         .single();
       if (data) {
         setProfile({ full_name: data.full_name, email: data.email });
-        setUniversityId(data.university_id);
-        setMaxCourseLevel(getStoredMaxLevel(data.university_id));
       }
       setLoading(false);
     };
@@ -88,18 +79,6 @@ export default function UniversitySettingsPage() {
       setTimeout(() => setSuccess(""), 3000);
     }
     setSaving(false);
-  }
-
-  function handleMaxLevelChange(level: MaxCourseLevel) {
-    if (!universityId) return;
-    setMaxCourseLevel(level);
-    setStoredMaxLevel(universityId, level);
-    setSuccess(
-      level === 500
-        ? "500 level enabled for courses and timetable."
-        : "Course levels set to 100–400 only.",
-    );
-    setTimeout(() => setSuccess(""), 3000);
   }
 
   if (loading)
@@ -291,43 +270,13 @@ export default function UniversitySettingsPage() {
             </p>
           </div>
         </div>
-        <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              cursor: "pointer",
-              fontSize: "13px",
-              color: "var(--text-secondary)",
-            }}
-          >
-            <input
-              type="radio"
-              name="maxCourseLevel"
-              checked={maxCourseLevel === 400}
-              onChange={() => handleMaxLevelChange(400)}
-            />
-            100 – 400 level (undergraduate)
-          </label>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              cursor: "pointer",
-              fontSize: "13px",
-              color: "var(--text-secondary)",
-            }}
-          >
-            <input
-              type="radio"
-              name="maxCourseLevel"
-              checked={maxCourseLevel === 500}
-              onChange={() => handleMaxLevelChange(500)}
-            />
-            100 – 500 level (include postgraduate)
-          </label>
+        <div style={{ padding: "20px" }}>
+          <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
+            Level ranges (100–400 or 100–500) are configured per department the
+            first time you open that department&apos;s Students page. The
+            choice is saved in the database and applies to students, courses,
+            and timetables for that department.
+          </p>
         </div>
       </div>
 

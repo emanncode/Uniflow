@@ -15,7 +15,6 @@ import {
   type CourseLevel,
   type MaxCourseLevel,
   getCourseLevels,
-  getStoredMaxLevel,
 } from "@/lib/course-levels";
 import LevelTabs from "@/components/ui/LevelTabs";
 import {
@@ -67,6 +66,7 @@ interface Department {
   name: string;
   short_name: string;
   faculty: string;
+  max_course_level: MaxCourseLevel | null;
 }
 
 interface TimetableRow {
@@ -359,7 +359,6 @@ export default function TimetablePage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [activeDay, setActiveDay] = useState("Monday");
   const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
-  const [maxCourseLevel, setMaxCourseLevel] = useState<MaxCourseLevel>(400);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -399,6 +398,8 @@ export default function TimetablePage() {
     );
   }, [deptParam, departments]);
 
+  const maxCourseLevel = (activeDept?.max_course_level ?? 400) as MaxCourseLevel;
+
   const levelTabs = useMemo(
     () => getCourseLevels(maxCourseLevel),
     [maxCourseLevel],
@@ -424,14 +425,6 @@ export default function TimetablePage() {
     () => levelCourses.find((c) => c.id === newCourseId) ?? null,
     [levelCourses, newCourseId],
   );
-
-  useEffect(() => {
-    if (!uniId) return;
-    const syncMaxLevel = () => setMaxCourseLevel(getStoredMaxLevel(uniId));
-    syncMaxLevel();
-    window.addEventListener("focus", syncMaxLevel);
-    return () => window.removeEventListener("focus", syncMaxLevel);
-  }, [uniId]);
 
   useEffect(() => {
     if (!levelTabs.includes(activeLevel)) {
@@ -507,7 +500,7 @@ export default function TimetablePage() {
 
       const { data: deptRes } = await supabase
         .from("departments")
-        .select("id, name, short_name, faculty")
+        .select("id, name, short_name, faculty, max_course_level")
         .eq("university_id", profile.university_id)
         .order("name");
 

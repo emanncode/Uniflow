@@ -14,7 +14,6 @@ import {
   type CourseLevel,
   type MaxCourseLevel,
   getCourseLevels,
-  getStoredMaxLevel,
   isValidCourseLevel,
   parseCourseLevel,
 } from "@/lib/course-levels";
@@ -38,6 +37,7 @@ interface Department {
   name: string;
   short_name: string;
   faculty: string;
+  max_course_level: MaxCourseLevel | null;
 }
 
 interface Lecturer {
@@ -80,7 +80,6 @@ export default function CoursesPage() {
   const [confirmDelete, setConfirmDelete] = useState<CourseRow | null>(null);
 
   const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
-  const [maxCourseLevel, setMaxCourseLevel] = useState<MaxCourseLevel>(400);
   const [newTitle, setNewTitle] = useState("");
   const [newCode, setNewCode] = useState("");
   const [newLevel, setNewLevel] = useState<CourseLevel>(100);
@@ -111,6 +110,8 @@ export default function CoursesPage() {
     );
   }, [lecturers, activeDept]);
 
+  const maxCourseLevel = (activeDept?.max_course_level ?? 400) as MaxCourseLevel;
+
   const levelTabs = useMemo(
     () => getCourseLevels(maxCourseLevel),
     [maxCourseLevel],
@@ -137,14 +138,6 @@ export default function CoursesPage() {
           )),
     );
   }, [courses, search, activeLevel]);
-
-  useEffect(() => {
-    if (!uniId) return;
-    const syncMaxLevel = () => setMaxCourseLevel(getStoredMaxLevel(uniId));
-    syncMaxLevel();
-    window.addEventListener("focus", syncMaxLevel);
-    return () => window.removeEventListener("focus", syncMaxLevel);
-  }, [uniId]);
 
   useEffect(() => {
     if (!levelTabs.includes(activeLevel)) {
@@ -190,7 +183,7 @@ export default function CoursesPage() {
 
       const { data: deptRes } = await supabase
         .from("departments")
-        .select("id, name, short_name, faculty")
+        .select("id, name, short_name, faculty, max_course_level")
         .eq("university_id", profile.university_id)
         .order("name");
 
@@ -529,7 +522,7 @@ MTH201,Calculus II,200,2,4,,john@email.com;jane@email.com`;
       }
       if (!isValidCourseLevel(level, maxCourseLevel)) {
         errors.push(
-          `Row ${lineNum}: Level ${level} is not enabled — go to Settings to allow up to 500 level`,
+          `Row ${lineNum}: Level ${level} is not enabled — set up this department via Students to allow 500 level`,
         );
         continue;
       }
