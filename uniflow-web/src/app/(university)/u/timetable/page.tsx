@@ -73,7 +73,6 @@ interface TimetableRow {
   id: string;
   venue: string;
   day_of_week: string | null;
-  day: string | null;
   start_time: string;
   end_time: string;
   course_id: string;
@@ -96,7 +95,7 @@ function mapTimetableRow(
     course_level: course?.level ?? 100,
     lecturer_name: lecturer?.full_name ?? "—",
     venue: t.venue,
-    day: dbDayToDisplay(t.day_of_week ?? t.day),
+    day: dbDayToDisplay(t.day_of_week),
     start_time: t.start_time,
     end_time: t.end_time,
     department_id: t.department_id,
@@ -530,7 +529,7 @@ export default function TimetablePage() {
         supabase
           .from("timetable")
           .select(
-            "id, venue, day_of_week, day, start_time, end_time, course_id, lecturer_id, department_id",
+            "id, venue, day_of_week, start_time, end_time, course_id, lecturer_id, department_id",
           )
           .eq("university_id", profile.university_id)
           .eq("department_id", departmentId)
