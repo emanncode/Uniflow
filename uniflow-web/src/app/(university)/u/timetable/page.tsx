@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
   DISPLAY_DAYS,
+  type DisplayDay,
   dbDayToDisplay,
   displayDayToDb,
   getCurrentAcademicSession,
@@ -370,7 +371,9 @@ export default function TimetablePage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [activeDay, setActiveDay] = useState(() => getDefaultDisplayDay());
+  const [activeDay, setActiveDay] = useState<DisplayDay>(() =>
+    getDefaultDisplayDay(),
+  );
   const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -394,7 +397,7 @@ export default function TimetablePage() {
   const [newCourseId, setNewCourseId] = useState("");
   const [newLecturerId, setNewLecturerId] = useState("");
   const [newVenue, setNewVenue] = useState("");
-  const [newDay, setNewDay] = useState(() => getDefaultDisplayDay());
+  const [newDay, setNewDay] = useState<DisplayDay>(() => getDefaultDisplayDay());
   const [newStart, setNewStart] = useState("08:00");
   const [newEnd, setNewEnd] = useState("10:00");
 
@@ -1526,7 +1529,7 @@ export default function TimetablePage() {
                   <select
                     required
                     value={newDay}
-                    onChange={(e) => setNewDay(e.target.value)}
+                    onChange={(e) => setNewDay(e.target.value as DisplayDay)}
                     className="select"
                     style={{ paddingRight: "28px", boxSizing: "border-box" }}
                   >
