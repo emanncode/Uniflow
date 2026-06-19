@@ -25,6 +25,14 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { validateAndNormalizeEmail } from "@/lib/email";
+import {
+  type CourseLevel,
+  type MaxCourseLevel,
+  getCourseLevels,
+  isValidCourseLevel,
+  parseCourseLevel,
+} from "@/lib/course-levels";
+import LevelTabs from "@/components/ui/LevelTabs";
 
 interface Student {
   id: string
@@ -33,6 +41,7 @@ interface Student {
   role: string
   department_id: string | null
   department_name: string | null
+  level: number | null
   status: string
   created_at: string
 }
@@ -42,6 +51,7 @@ interface Department {
   name: string
   short_name: string
   faculty: string
+  max_course_level: MaxCourseLevel | null
 }
 
 interface Faculty {
@@ -80,12 +90,14 @@ function StudentRow({
   onDelete,
   onResetPassword,
   onUpdate,
+  hideDepartment = false,
 }: {
   student: Student;
   departments: Department[];
   onDelete: (id: string) => void;
   onResetPassword: (student: Student) => void;
   onUpdate: (id: string, updates: Partial<Student>) => Promise<void>;
+  hideDepartment?: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(student.full_name);
@@ -115,7 +127,7 @@ function StudentRow({
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "2fr 1fr 120px 80px",
+        gridTemplateColumns: hideDepartment ? "2fr 100px 120px 80px" : "2fr 1fr 120px 80px",
         alignItems: "center",
         gap: "16px",
         padding: "10px 16px",
@@ -173,7 +185,27 @@ function StudentRow({
         )}
       </div>
 
+      {hideDepartment && !isEditing && (
+        <div>
+          <span
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              color: "var(--text-secondary)",
+              background: "var(--bg-tertiary)",
+              border: "1px solid var(--border-primary)",
+              borderRadius: "4px",
+              padding: "2px 6px",
+              fontFamily: "monospace",
+            }}
+          >
+            {student.level ? `${student.level}L` : "—"}
+          </span>
+        </div>
+      )}
+
       {/* Department */}
+      {!hideDepartment && (
       <div>
         {isEditing ? (
           <select className="select" value={editDeptId} onChange={(e) => setEditDeptId(e.target.value)} style={{ padding: '4px', width: '100%' }} disabled={saving}>
@@ -192,6 +224,7 @@ function StudentRow({
           </div>
         )}
       </div>
+      )}
 
       {/* Status */}
       <div>
@@ -271,9 +304,13 @@ export default function StudentsPage() {
   const [importSuccess, setImportSuccess] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
+  const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
+  const [showLevelSetup, setShowLevelSetup] = useState(false);
+  const [savingSetup, setSavingSetup] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const deptParam = searchParams.get("department");
 
   // Support direct links from Departments page: ?department=CODE&faculty=CODE
   useEffect(() => {
@@ -304,7 +341,48 @@ export default function StudentsPage() {
   const [confirmReset, setConfirmReset] = useState<Student | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
-  const CSV_TEMPLATE = `full_name,email,department_short_name\nJohn Doe,john@uni.edu,CSC\nJane Smith,jane@uni.edu,FOA\nMike Ade,mike@uni.edu,MTH`;
+  const activeDept = useMemo(() => {
+    if (!filterDept) return null;
+    return departments.find((d) => d.id === filterDept) ?? null;
+  }, [filterDept, departments]);
+
+  const isDeptScoped = Boolean(deptParam && activeDept);
+  const departmentConfigured = activeDept?.max_course_level != null;
+  const maxCourseLevel = (activeDept?.max_course_level ?? 400) as MaxCourseLevel;
+  const levelTabs = useMemo(
+    () => getCourseLevels(maxCourseLevel),
+    [maxCourseLevel],
+  );
+
+  const deptStudents = useMemo(() => {
+    if (!filterDept) return students;
+    return students.filter((s) => s.department_id === filterDept);
+  }, [students, filterDept]);
+
+  const levelCounts = useMemo(() => {
+    const counts: Record<number, number> = {};
+    for (const level of levelTabs) counts[level] = 0;
+    for (const student of deptStudents) {
+      if (student.level && counts[student.level] !== undefined) {
+        counts[student.level]++;
+      }
+    }
+    return counts;
+  }, [deptStudents, levelTabs]);
+
+  useEffect(() => {
+    if (!levelTabs.includes(activeLevel)) {
+      setActiveLevel((levelTabs[0] ?? 100) as CourseLevel);
+    }
+  }, [levelTabs, activeLevel]);
+
+  useEffect(() => {
+    if (isDeptScoped && activeDept && !departmentConfigured) {
+      setShowLevelSetup(true);
+    }
+  }, [isDeptScoped, activeDept, departmentConfigured]);
+
+  const CSV_TEMPLATE = `full_name,email,level,department_short_name\nJohn Doe,john@uni.edu,100,CSC\nJane Smith,jane@uni.edu,200,CSC\nMike Ade,mike@uni.edu,300,MTH`;
 
   function validateEmail(email: string) {
     const result = validateAndNormalizeEmail(email);
@@ -364,8 +442,33 @@ export default function StudentsPage() {
           continue;
         }
 
-        const dept = departments.find(d => d.short_name.toLowerCase() === row.department_short_name?.toLowerCase());
-        
+        const dept = isDeptScoped
+          ? activeDept
+          : departments.find(
+              (d) =>
+                d.short_name.toLowerCase() ===
+                row.department_short_name?.toLowerCase(),
+            );
+
+        const level = parseCourseLevel(row.level || "");
+        if (!level) {
+          errors.push(`Row ${lineNum}: Invalid level "${row.level}"`);
+          continue;
+        }
+        const deptMax = (dept?.max_course_level ?? 400) as MaxCourseLevel;
+        if (!isValidCourseLevel(level, deptMax)) {
+          errors.push(
+            `Row ${lineNum}: Level ${level} is not allowed for ${dept?.name ?? "this department"}`,
+          );
+          continue;
+        }
+        if (!dept?.max_course_level) {
+          errors.push(
+            `Row ${lineNum}: Department "${row.department_short_name}" has not been set up with levels yet`,
+          );
+          continue;
+        }
+
         try {
           const res = await fetch('/api/create-staff', {
             method: 'POST',
@@ -376,6 +479,7 @@ export default function StudentsPage() {
               role: 'student',
               department_id: dept?.id || null,
               university_id: uniId,
+              level,
             }),
           });
           const data = await res.json();
@@ -420,7 +524,7 @@ export default function StudentsPage() {
 
       const { data: deptData } = await supabase
           .from("departments")
-          .select("id, name, short_name, faculty")
+          .select("id, name, short_name, faculty, max_course_level")
           .eq("university_id", profile.university_id)
           .order("name");
 
@@ -445,6 +549,7 @@ export default function StudentsPage() {
           department_name: l.department_id
             ? (deptMap[l.department_id] ?? null)
             : null,
+          level: l.level ?? null,
           status: l.status ?? "pending",
           created_at: l.created_at,
         })),
@@ -462,14 +567,44 @@ export default function StudentsPage() {
     loadData();
   }, [loadData]);
 
+  async function handleDepartmentSetup(maxLevel: MaxCourseLevel) {
+    if (!activeDept) return;
+    setSavingSetup(true);
+    setError("");
+    try {
+      const { error: updateError } = await supabase
+        .from("departments")
+        .update({ max_course_level: maxLevel })
+        .eq("id", activeDept.id);
+      if (updateError) throw new Error(updateError.message);
+      setShowLevelSetup(false);
+      await loadData();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save department setup");
+    } finally {
+      setSavingSetup(false);
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (isDeptScoped && !departmentConfigured) {
+      setError("Complete department level setup first.");
+      return;
+    }
 
     const emailResult = validateEmail(newEmail);
     if (!emailResult.valid) {
         setError(emailResult.error || "Invalid email format.");
         return;
+    }
+
+    const targetDeptId = isDeptScoped ? activeDept!.id : (newDeptId || null);
+    if (!targetDeptId) {
+      setError("Select a department for this student.");
+      return;
     }
 
     setSaving(true)
@@ -483,8 +618,9 @@ export default function StudentsPage() {
           full_name: newName.trim(),
           email: emailResult.normalized,
           role: 'student',
-          department_id: newDeptId || null,
+          department_id: targetDeptId,
           university_id: uniId,
+          level: isDeptScoped || filterDept ? activeLevel : activeLevel,
         }),
       })
       const data = await res.json()
@@ -571,10 +707,14 @@ export default function StudentsPage() {
       const matchDept = !filterDept || l.department_id === filterDept;
       const matchFac = !filterFaculty || (dept && dept.faculty === filterFaculty);
       const matchStatus = !filterStatus || l.status === filterStatus;
+      const matchLevel =
+        !isDeptScoped || !departmentConfigured
+          ? true
+          : l.level === activeLevel;
       
-      return matchSearch && matchDept && matchFac && matchStatus;
+      return matchSearch && matchDept && matchFac && matchStatus && matchLevel;
     });
-  }, [students, search, filterFaculty, filterDept, filterStatus, departments]);
+  }, [students, search, filterFaculty, filterDept, filterStatus, departments, isDeptScoped, departmentConfigured, activeLevel]);
 
   const counts = useMemo(() => ({
     total: filtered.length,
@@ -653,10 +793,14 @@ export default function StudentsPage() {
                 marginBottom: "4px",
               }}
             >
-              Students
+              {isDeptScoped && activeDept
+                ? `${activeDept.name} Students`
+                : "Students"}
             </h1>
             <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-              {counts.total} total students · Manage and onboard
+              {isDeptScoped && departmentConfigured
+                ? `${counts.total} students in ${activeLevel} Level`
+                : `${counts.total} total students · Manage and onboard`}
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexShrink: 0 }}>
@@ -667,13 +811,20 @@ export default function StudentsPage() {
             >
               ↓ CSV Template
             </button>
-            <label style={{ cursor: importing ? "not-allowed" : "pointer" }}>
+            <label
+              style={{
+                cursor:
+                  importing || (isDeptScoped && !departmentConfigured)
+                    ? "not-allowed"
+                    : "pointer",
+              }}
+            >
               <input
                 type="file"
                 accept=".csv"
                 onChange={handleCSVImport}
                 style={{ display: "none" }}
-                disabled={importing}
+                disabled={importing || (isDeptScoped && !departmentConfigured)}
               />
               <span
                 className="btn-secondary"
@@ -682,8 +833,14 @@ export default function StudentsPage() {
                   alignItems: "center",
                   gap: "6px",
                   fontSize: "13px",
-                  cursor: importing ? "not-allowed" : "pointer",
-                  opacity: importing ? 0.6 : 1,
+                cursor:
+                  importing || (isDeptScoped && !departmentConfigured)
+                    ? "not-allowed"
+                    : "pointer",
+                opacity:
+                  importing || (isDeptScoped && !departmentConfigured)
+                    ? 0.6
+                    : 1,
                 }}
               >
                 {importing ? (
@@ -697,8 +854,10 @@ export default function StudentsPage() {
             </label>
             <button
               onClick={() => {
+                if (isDeptScoped) setNewDeptId(activeDept!.id);
                 setShowModal(true);
               }}
+              disabled={isDeptScoped && !departmentConfigured}
               className="btn-primary"
               style={{
                 display: "flex",
@@ -772,7 +931,19 @@ export default function StudentsPage() {
           </div>
         )}
 
+        {isDeptScoped && departmentConfigured && (
+          <div style={{ marginBottom: "16px" }}>
+            <LevelTabs
+              levels={levelTabs}
+              activeLevel={activeLevel}
+              onChange={(level) => setActiveLevel(level as CourseLevel)}
+              counts={levelCounts}
+            />
+          </div>
+        )}
+
         {/* Filters */}
+        {!isDeptScoped && (
         <div
           style={{
             display: "flex",
@@ -887,6 +1058,7 @@ export default function StudentsPage() {
             />
           </div>
         </div>
+        )}
 
         {/* Table */}
         <div
@@ -900,14 +1072,19 @@ export default function StudentsPage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "2fr 1fr 120px 80px",
+              gridTemplateColumns: isDeptScoped
+                ? "2fr 100px 120px 80px"
+                : "2fr 1fr 120px 80px",
               gap: "16px",
               padding: "12px 16px",
               borderBottom: "1px solid var(--border-primary)",
               background: "var(--bg-secondary)",
             }}
           >
-            {["Student", "Department", "Status", ""].map((h) => (
+            {(isDeptScoped
+              ? ["Student", "Level", "Status", ""]
+              : ["Student", "Department", "Status", ""]
+            ).map((h) => (
               <span
                 key={h}
                 style={{
@@ -944,22 +1121,79 @@ export default function StudentsPage() {
                 style={{ color: "var(--text-muted)", marginBottom: "12px" }}
               />
               <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                {search || filterDept || filterStatus
-                  ? "No students match your filters."
-                  : "No students yet. Add or upload a CSV to get started."}
+                {isDeptScoped && departmentConfigured
+                  ? `No ${activeLevel} level students yet. Add or import students for this level.`
+                  : search || filterDept || filterStatus
+                    ? "No students match your filters."
+                    : "No students yet. Add or upload a CSV to get started."}
               </p>
             </div>
           ) : (
             filtered.map((l) => (
-              <StudentRow key={l.id} student={l} departments={departments} onDelete={setConfirmDeleteId} onResetPassword={setConfirmReset} onUpdate={handleUpdate} />
+              <StudentRow
+                key={l.id}
+                student={l}
+                departments={departments}
+                hideDepartment={isDeptScoped}
+                onDelete={setConfirmDeleteId}
+                onResetPassword={setConfirmReset}
+                onUpdate={handleUpdate}
+              />
             ))
           )}
         </div>
 
         {/* Add Modal */}
+        {showLevelSetup && activeDept && (
+          <Modal
+            title={`Set up ${activeDept.name}`}
+            onClose={() => router.push("/u/departments")}
+            maxWidth="480px"
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                Before adding students to <strong>{activeDept.name}</strong>, choose
+                the highest level this department uses. This is saved once and
+                won&apos;t be asked again.
+              </p>
+              {error && (
+                <p style={{ fontSize: "12px", color: "var(--danger)" }}>{error}</p>
+              )}
+              <button
+                type="button"
+                disabled={savingSetup}
+                onClick={() => handleDepartmentSetup(400)}
+                className="btn-secondary"
+                style={{ padding: "14px", textAlign: "left" }}
+              >
+                <strong>100 – 400 Level</strong>
+                <span style={{ display: "block", fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                  Undergraduate only
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={savingSetup}
+                onClick={() => handleDepartmentSetup(500)}
+                className="btn-primary"
+                style={{ padding: "14px", textAlign: "left" }}
+              >
+                <strong>100 – 500 Level</strong>
+                <span style={{ display: "block", fontSize: "12px", opacity: 0.85, marginTop: "4px" }}>
+                  Includes postgraduate (500 level)
+                </span>
+              </button>
+            </div>
+          </Modal>
+        )}
+
         {showModal && (
           <Modal
-            title="Add Student"
+            title={
+              isDeptScoped
+                ? `Add ${activeLevel} Level Student`
+                : "Add Student"
+            }
             onClose={() => {
               setShowModal(false);
               setError("");
@@ -1053,45 +1287,72 @@ export default function StudentsPage() {
                   />
                 </div>
               </div>
-              <div>
-                <label
-                  className="label"
-                  style={{ display: "block", marginBottom: "8px" }}
-                >
-                  Department
-                </label>
-                <div style={{ position: "relative" }}>
-                  <select
-                    required
-                    value={newDeptId}
-                    onChange={(e) => setNewDeptId(e.target.value)}
-                    className="select"
-                    style={{
-                      width: "100%",
-                      paddingRight: "32px",
-                      boxSizing: "border-box",
-                    }}
-                  >
-                    <option value="" disabled>Select department...</option>
-                    {departments.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--text-muted)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                </div>
-              </div>
+              {isDeptScoped ? (
+                <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                  Adding to <strong>{activeDept?.name}</strong> ·{" "}
+                  <strong>{activeLevel} Level</strong>
+                </p>
+              ) : (
+                <>
+                  <div>
+                    <label
+                      className="label"
+                      style={{ display: "block", marginBottom: "8px" }}
+                    >
+                      Level
+                    </label>
+                    <LevelTabs
+                      levels={levelTabs}
+                      activeLevel={activeLevel}
+                      onChange={(level) =>
+                        setActiveLevel(level as CourseLevel)
+                      }
+                      size="sm"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="label"
+                      style={{ display: "block", marginBottom: "8px" }}
+                    >
+                      Department
+                    </label>
+                    <div style={{ position: "relative" }}>
+                      <select
+                        required
+                        value={newDeptId}
+                        onChange={(e) => setNewDeptId(e.target.value)}
+                        className="select"
+                        style={{
+                          width: "100%",
+                          paddingRight: "32px",
+                          boxSizing: "border-box",
+                        }}
+                      >
+                        <option value="" disabled>
+                          Select department...
+                        </option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        style={{
+                          position: "absolute",
+                          right: "12px",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          color: "var(--text-muted)",
+                          pointerEvents: "none",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
               <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
                 <button
                   type="button"
