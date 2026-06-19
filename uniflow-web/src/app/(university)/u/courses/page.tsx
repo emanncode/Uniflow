@@ -330,18 +330,24 @@ export default function CoursesPage() {
     setError("");
     setSaving(true);
     try {
-      const { error: insertError } = await supabase.from("courses").insert({
-        department_id: activeDept.id,
-        university_id: uniId,
-        title: newTitle.trim(),
-        code: newCode.trim().toUpperCase(),
-        level: newLevel,
-        semester: parseInt(newSemester, 10) as 1 | 2,
-        credit_units: parseInt(newCreditUnits, 10),
-        description: newDescription.trim() || null,
-        is_active: true,
+      const createRes = await fetch("/api/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          university_id: uniId,
+          department_id: activeDept.id,
+          title: newTitle.trim(),
+          code: newCode.trim().toUpperCase(),
+          level: newLevel,
+          semester: parseInt(newSemester, 10) as 1 | 2,
+          credit_units: parseInt(newCreditUnits, 10),
+          description: newDescription.trim() || null,
+        }),
       });
-      if (insertError) throw new Error(insertError.message);
+      const createData = await createRes.json();
+      if (!createRes.ok) {
+        throw new Error(createData.error || "Failed to create course");
+      }
 
       setNewTitle("");
       setNewCode("");
@@ -384,12 +390,19 @@ export default function CoursesPage() {
   }
 
   async function handleDeactivate(course: CourseRow) {
-    const { error: updateError } = await supabase
-      .from("courses")
-      .update({ is_active: false })
-      .eq("id", course.id);
-    if (updateError) {
-      alert(updateError.message);
+    if (!uniId) return;
+    const res = await fetch("/api/courses", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        university_id: uniId,
+        course_id: course.id,
+        is_active: false,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || "Failed to deactivate course");
       return;
     }
     setConfirmDelete(null);
@@ -547,36 +560,41 @@ MTH201,Calculus II,200,2,4,,john@email.com;jane@email.com`;
         courseId = existing.id;
         courseSemester = existing.semester;
       } else {
-        const { data: inserted, error: insertError } = await supabase
-          .from("courses")
-          .insert({
-            department_id: activeDept.id,
+        const createRes = await fetch("/api/courses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             university_id: uniId,
+            department_id: activeDept.id,
             title,
             code: code.toUpperCase(),
             level,
             semester: courseSemester,
             credit_units: creditUnits,
             description: row.description?.trim() || null,
-            is_active: true,
-          })
-          .select("id, code, semester")
-          .single();
+          }),
+        });
+        const createData = await createRes.json();
 
-        if (insertError || !inserted) {
+        if (!createRes.ok || !createData.course) {
           errors.push(
-            `Row ${lineNum}: ${insertError?.message ?? "Failed to create course"}`,
+            `Row ${lineNum}: ${createData.error ?? "Failed to create course"}`,
           );
           continue;
         }
 
+        const inserted = createData.course as {
+          id: string;
+          code: string;
+          semester: 1 | 2;
+        };
         courseId = inserted.id;
         existingByCode.set(code.toLowerCase(), {
           id: inserted.id,
           title,
           code: inserted.code,
           level,
-          semester: inserted.semester as 1 | 2,
+          semester: inserted.semester,
           credit_units: creditUnits,
           description: row.description?.trim() || null,
           is_active: true,

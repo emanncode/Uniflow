@@ -1,5 +1,12 @@
-import { supabase } from "@/lib/supabase";
 import { getCurrentAcademicSession } from "@/lib/academic";
+
+async function parseApiError(res: Response): Promise<string> {
+  const data = await res.json().catch(() => ({}));
+  return (
+    (data as { error?: string }).error ||
+    `Request failed (${res.status})`
+  );
+}
 
 export async function upsertLecturerCourseAssignment(params: {
   lecturerId: string;
@@ -8,35 +15,21 @@ export async function upsertLecturerCourseAssignment(params: {
   semester: 1 | 2;
   academicSession?: string;
 }): Promise<void> {
-  const session = params.academicSession ?? getCurrentAcademicSession();
-
-  const { data: existing } = await supabase
-    .from("lecturer_courses")
-    .select("id")
-    .eq("lecturer_id", params.lecturerId)
-    .eq("course_id", params.courseId)
-    .eq("academic_session", session)
-    .eq("semester", params.semester)
-    .maybeSingle();
-
-  if (existing) {
-    const { error } = await supabase
-      .from("lecturer_courses")
-      .update({ is_active: true })
-      .eq("id", existing.id);
-    if (error) throw error;
-    return;
-  }
-
-  const { error } = await supabase.from("lecturer_courses").insert({
-    lecturer_id: params.lecturerId,
-    course_id: params.courseId,
-    university_id: params.universityId,
-    academic_session: session,
-    semester: params.semester,
-    is_active: true,
+  const res = await fetch("/api/lecturer-courses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      university_id: params.universityId,
+      course_id: params.courseId,
+      semester: params.semester,
+      lecturer_id: params.lecturerId,
+      academic_session: params.academicSession ?? getCurrentAcademicSession(),
+    }),
   });
-  if (error) throw error;
+
+  if (!res.ok) {
+    throw new Error(await parseApiError(res));
+  }
 }
 
 export async function syncLecturerCourseAssignments(params: {
@@ -46,35 +39,19 @@ export async function syncLecturerCourseAssignments(params: {
   lecturerIds: string[];
   academicSession?: string;
 }): Promise<void> {
-  const session = params.academicSession ?? getCurrentAcademicSession();
-  const selected = new Set(params.lecturerIds);
-
-  const { data: existing, error: fetchError } = await supabase
-    .from("lecturer_courses")
-    .select("id, lecturer_id")
-    .eq("course_id", params.courseId)
-    .eq("academic_session", session)
-    .eq("semester", params.semester);
-
-  if (fetchError) throw fetchError;
-
-  for (const row of existing ?? []) {
-    if (!selected.has(row.lecturer_id)) {
-      const { error } = await supabase
-        .from("lecturer_courses")
-        .update({ is_active: false })
-        .eq("id", row.id);
-      if (error) throw error;
-    }
-  }
-
-  for (const lecturerId of params.lecturerIds) {
-    await upsertLecturerCourseAssignment({
-      lecturerId,
-      courseId: params.courseId,
-      universityId: params.universityId,
+  const res = await fetch("/api/lecturer-courses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      university_id: params.universityId,
+      course_id: params.courseId,
       semester: params.semester,
-      academicSession: session,
-    });
+      lecturer_ids: params.lecturerIds,
+      academic_session: params.academicSession ?? getCurrentAcademicSession(),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(await parseApiError(res));
   }
 }
