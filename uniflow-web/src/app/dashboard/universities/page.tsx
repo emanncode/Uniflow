@@ -7,6 +7,7 @@ import {
   Building2, Globe, Users, Mail,
   ExternalLink, Search, CheckCircle2, Key, Loader2, AlertTriangle
 } from 'lucide-react'
+import { universityPortalHost } from '@/lib/domain'
 
 interface University {
   id: string
@@ -262,7 +263,7 @@ export default function UniversitiesPage() {
                   fontFamily: 'monospace',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
-                  {uni.short_name}-admin.uniflow.com.ng
+                  {universityPortalHost(uni.short_name)}
                 </span>
                 {uni.website && (
                   <a

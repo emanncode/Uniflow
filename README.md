@@ -6,7 +6,7 @@
 
 A powerful, modern platform combining a feature-rich mobile application with an intuitive administrative web interface.
 
-[Live Demo](https://uniflow-ebon.vercel.app) • [Issues](https://github.com/Emann-Code-01/Uniflow/issues) • [Discussions](https://github.com/Emann-Code-01/Uniflow/discussions)
+[Live Demo](https://uniflow.xyz) • [Issues](https://github.com/Emann-Code-01/Uniflow/issues) • [Discussions](https://github.com/Emann-Code-01/Uniflow/discussions)
 
 </div>
 
@@ -185,7 +185,7 @@ npm run start
 4. Explore the full features of Uniflow on mobile
 
 ### Administrative Web Interface
-1. Navigate to [https://uniflow-ebon.vercel.app](https://uniflow-ebon.vercel.app)
+1. Navigate to [https://uniflow.xyz](https://uniflow.xyz)
 2. Log in with your administrator credentials
 3. Access the comprehensive dashboard to manage the platform
 4. Configure users, roles, and system settings
@@ -227,7 +227,7 @@ Have questions or need help? Here are some resources:
 - 📖 [Documentation](./docs)
 - 🐛 [Report Issues](https://github.com/Emann-Code-01/Uniflow/issues)
 - 💬 [Start a Discussion](https://github.com/Emann-Code-01/Uniflow/discussions)
-- 🌐 [Live Demo](https://uniflow-ebon.vercel.app)
+- 🌐 [Live Demo](https://uniflow.xyz)
 
 ---
 

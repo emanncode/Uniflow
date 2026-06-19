@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSubdomain } from '@/lib/subdomain'
+import { APP_URL } from '@/lib/domain'
 import { Lock, ArrowRight, Loader2, GraduationCap, AlertCircle, ShieldCheck, Eye, EyeOff } from 'lucide-react'
 
 export default function UniversityResetPasswordPage() {
@@ -82,7 +83,7 @@ export default function UniversityResetPasswordPage() {
           <p style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
             The university portal you are looking for does not exist or has not been approved yet.
           </p>
-          <button onClick={() => window.location.href = 'https://uniflow.com.ng'} className="btn-primary" style={{ padding: '12px 24px' }}>
+          <button onClick={() => window.location.href = APP_URL} className="btn-primary" style={{ padding: '12px 24px' }}>
             Return to Homepage
           </button>
         </div>

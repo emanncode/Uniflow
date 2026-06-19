@@ -1,4 +1,8 @@
 import { createAdminClient } from '@/lib/supabase-admin'
+import {
+  resolveBaseDomainFromRequestHost,
+  resolveProtocolFromRequestHost,
+} from '@/lib/domain'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
@@ -87,15 +91,8 @@ export async function POST(request: Request) {
 
     // 5. Send password reset email
     const host = request.headers.get('host') || ''
-    const isLocal = host.includes('localhost') || host.includes('lvh.me')
-    const protocol = isLocal ? 'http' : 'https'
-    
-    // Construct the redirect URL for the university admin portal
-    // We follow the lib's convention: [short_name]-admin.[base_domain]
-    let baseDomain = 'uniflow.com.ng'
-    if (host.includes('lvh.me')) baseDomain = 'lvh.me:3000'
-    else if (host.includes('localhost')) baseDomain = 'localhost:3000'
-
+    const protocol = resolveProtocolFromRequestHost(host)
+    const baseDomain = resolveBaseDomainFromRequestHost(host)
     const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/login`
 
     await supabase.auth.resetPasswordForEmail(finalEmail, {

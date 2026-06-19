@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { Building2, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { universityPortalHost } from '@/lib/domain'
 
 export const dynamic = 'force-dynamic'
 interface Stats {
@@ -180,7 +181,7 @@ export default function DashboardPage() {
                     {reg.university_name}
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    {reg.short_name}-admin.uniflow.com.ng · {reg.country}
+                    {universityPortalHost(reg.short_name)} · {reg.country}
                   </div>
                 </div>
                 <span style={{

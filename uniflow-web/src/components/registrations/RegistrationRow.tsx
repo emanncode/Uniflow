@@ -8,6 +8,7 @@ import {
   ChevronDown, ChevronUp, Globe, Mail,
   Phone, Users, User, Briefcase, ExternalLink
 } from 'lucide-react'
+import { universityPortalHost } from '@/lib/domain'
 
 
 interface Registration {
@@ -70,7 +71,7 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
               {reg.university_name}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-              {reg.short_name}-admin.uniflow.com.ng
+              {universityPortalHost(reg.short_name)}
             </div>
           </div>
         </div>

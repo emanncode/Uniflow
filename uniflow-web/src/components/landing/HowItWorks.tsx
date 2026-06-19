@@ -3,13 +3,14 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { Building2, CalendarCheck, Smartphone } from 'lucide-react'
+import { APP_URL, universityPortalHost } from '@/lib/domain'
 
 const steps = [
   {
     number: '01',
     icon: Building2,
     title: 'University registers',
-    desc: 'A university rep signs up on uniflow.com.ng. After Uniflow Admin approves, they get their own portal — aaua-admin.uniflow.com.ng — instantly.',
+    desc: `A university rep signs up on ${APP_URL.replace(/^https?:\/\//, '')}. After Uniflow Admin approves, they get their own portal — ${universityPortalHost('aaua')} — instantly.`,
     role: 'University Admin',
     details: [
       'Fill registration form',

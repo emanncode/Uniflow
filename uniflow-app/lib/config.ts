@@ -23,7 +23,7 @@ export const SUPABASE_ANON_KEY = requireEnv(
  */
 export const WEB_APP_URL = (
   process.env.EXPO_PUBLIC_WEB_APP_URL?.replace(/\/$/, "") ||
-  "https://uniflow-ebon.vercel.app"
+  "https://uniflow.xyz"
 );
 
 /** Build a full URL to a web app API route or page. */

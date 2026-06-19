@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { BASE_DOMAIN } from "@/lib/domain";
 
 export const dynamic = "force-dynamic";
 
@@ -160,7 +161,7 @@ export default function LoginPage() {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin@uniflow.com.ng"
+                      placeholder={`admin@${BASE_DOMAIN}`}
                       className="input pl-10!"
                     />
                   </div>

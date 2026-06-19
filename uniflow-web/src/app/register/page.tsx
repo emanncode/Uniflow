@@ -13,6 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import { validateAndNormalizeEmail } from '@/lib/email'
+import { universityPortalHost } from '@/lib/domain'
 
 export const dynamic = 'force-dynamic'
 
@@ -249,7 +250,7 @@ export default function RegisterPage() {
           >
             Your portal will be available at{' '}
             <strong style={{ color: 'var(--brand)', fontFamily: 'monospace' }}>
-              {form.short_name}-admin.uniflow.com.ng
+              {universityPortalHost(form.short_name)}
             </strong>
             {' '}once approved.
           </motion.div>
@@ -399,7 +400,7 @@ export default function RegisterPage() {
                   <FieldWrapper
                     label="Short Name *"
                     hint={form.short_name
-                      ? `Your portal will be: ${form.short_name}-admin.uniflow.com.ng`
+                      ? `Your portal will be: ${universityPortalHost(form.short_name)}`
                       : 'Lowercase letters and numbers only. This becomes your subdomain.'}
                   >
                     <div style={{ position: 'relative' }}>
@@ -429,7 +430,7 @@ export default function RegisterPage() {
                             pointerEvents: 'none',
                           }}
                         >
-                          {form.short_name}-admin.uniflow.com.ng
+                          {universityPortalHost(form.short_name)}
                         </motion.div>
                       )}
                     </div>
@@ -610,7 +611,7 @@ export default function RegisterPage() {
                     </div>
                     {[
                       { label: 'University', value: form.university_name },
-                      { label: 'Portal URL', value: `${form.short_name}-admin.uniflow.com.ng` },
+                      { label: 'Portal URL', value: universityPortalHost(form.short_name) },
                       { label: 'Email', value: form.official_email },
                       { label: 'Country', value: form.state ? `${form.state}, ${form.country}` : form.country },
                     ].map(item => (

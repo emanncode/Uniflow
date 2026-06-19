@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { universityPortalHost } from '@/lib/domain'
 
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
   ongoing: { color: '#22c55e', bg: 'rgba(34,197,94,0.12)', label: 'Ongoing' },
@@ -62,7 +63,7 @@ export default function LaptopMockup() {
               fontSize: '8px', color: 'var(--text-muted)',
               flex: 1, maxWidth: '160px',
             }}>
-              aaua-admin.uniflow.com.ng
+              {universityPortalHost('aaua')}
             </div>
             <motion.span
               animate={{ opacity: [1, 0.4, 1] }}

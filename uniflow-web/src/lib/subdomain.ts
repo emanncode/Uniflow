@@ -8,8 +8,8 @@ export function getSubdomain(hostname: string): string | null {
   // localhost:3000 -> no subdomain
   // aaua-admin.localhost:3000 -> "aaua"
   // aaua-admin.lvh.me:3000 -> "aaua"
-  // aaua-admin.uniflow.com.ng -> "aaua"
-  // admin.uniflow.com.ng -> "super"
+  // aaua-admin.uniflow.xyz -> "aaua"
+  // admin.uniflow.xyz -> "super"
 
   const host = hostname.split(":")[0].toLowerCase();
   if (!host) return null;
