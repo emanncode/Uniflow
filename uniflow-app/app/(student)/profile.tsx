@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -15,6 +16,7 @@ import {
   Phone,
   Building2,
   GraduationCap,
+  Layers,
   ChevronRight,
   LogOut,
   Lock,
@@ -31,6 +33,7 @@ import { useAvatarPicker } from "@/hooks/useAvatarPicker";
 import {
   getDepartmentLabel,
   getFacultyLabel,
+  getStudentLevelLabel,
 } from "@/lib/enrichProfile";
 import { getMobileRoleLabel } from "@/lib/roleLabel";
 import { ProfileBackHeader } from "@/components/ProfileBackHeader";
@@ -265,6 +268,7 @@ export default function StudentProfile() {
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
   const signOut = useAuthStore((s) => s.signOut);
+  const refreshProfile = useAuthStore((s) => s.refreshProfile);
 
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
@@ -285,6 +289,12 @@ export default function StudentProfile() {
     setSignOutModalVisible(false);
   }, [signOut]);
 
+  useFocusEffect(
+    useCallback(() => {
+      void refreshProfile();
+    }, [refreshProfile]),
+  );
+
   if (!profile) return null;
 
 const isUniflowAdmin = profile.role === 'uniflow_admin';
@@ -293,6 +303,7 @@ const universityShort = isUniflowAdmin ? 'Admin' : (profile.university?.short_na
 const roleDisplay = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
 const departmentLabel = getDepartmentLabel(profile);
 const facultyLabel = getFacultyLabel(profile);
+const levelLabel = getStudentLevelLabel(profile);
 
 return (
     <View style={styles.root}>
@@ -315,8 +326,15 @@ return (
           onEditPress={pickImage}
         />
         <Text style={styles.heroName}>{profile.full_name}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>{roleDisplay}</Text>
+        <View style={styles.heroBadges}>
+          <View style={styles.roleBadge}>
+            <Text style={styles.roleText}>{roleDisplay}</Text>
+          </View>
+          {levelLabel ? (
+            <View style={styles.levelBadge}>
+              <Text style={styles.levelBadgeText}>{levelLabel}</Text>
+            </View>
+          ) : null}
         </View>
         <Text style={styles.heroUniversity}>
           {universityShort || universityName}
@@ -338,6 +356,16 @@ return (
             label="Email"
             value={profile.email}
           />
+          {levelLabel ? (
+            <>
+              <View style={styles.rowDivider} />
+              <InfoRow
+                icon={<Layers size={16} color={C.brand} strokeWidth={1.8} />}
+                label="Study Level"
+                value={levelLabel}
+              />
+            </>
+          ) : null}
           {profile.phone ? (
             <>
               <View style={styles.rowDivider} />
@@ -367,16 +395,6 @@ return (
                 icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Department"
                 value={departmentLabel}
-              />
-            </>
-          ) : null}
-          {profile.level ? (
-            <>
-              <View style={styles.rowDivider} />
-              <InfoRow
-                icon={<GraduationCap size={16} color={C.brand} strokeWidth={1.8} />}
-                label="Level"
-                value={`${profile.level} Level`}
               />
             </>
           ) : null}
@@ -460,6 +478,12 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 8, gap: 20 },
 
   hero: { alignItems: "center", paddingVertical: 8, gap: 8 },
+  heroBadges: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+  },
   heroName: {
     color: C.textPrimary,
     fontSize: 22,
@@ -478,6 +502,19 @@ const styles = StyleSheet.create({
     borderColor: C.borderBrand,
   },
   roleText: { color: C.brand, fontSize: 12, fontWeight: "700" },
+  levelBadge: {
+    backgroundColor: C.bgCard,
+    borderRadius: R.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: C.borderPrimary,
+  },
+  levelBadgeText: {
+    color: C.textSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
   heroUniversity: { color: C.textMuted, fontSize: 13 },
 
   section: { gap: 8 },

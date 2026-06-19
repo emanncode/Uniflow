@@ -19,6 +19,7 @@ interface AuthStore {
   ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   hydrateSession: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => void;
 }
 
@@ -140,6 +141,25 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       profile: enrichedProfile,
       isHydrated: true,
     });
+  },
+
+  // ── Refresh Profile ────────────────────────────────────────────────────
+  refreshProfile: async () => {
+    const { user } = get();
+    if (!user) return;
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select(
+        "*, university:university_id(name, short_name), department:department_id(id, name, short_name, faculty), faculty:faculties!profiles_faculty_id_fkey(id, name, short_name)",
+      )
+      .eq("id", user.id)
+      .single();
+
+    if (error || !profile) return;
+
+    const enrichedProfile = await enrichProfile(profile as Profile);
+    set({ profile: enrichedProfile });
   },
 
   // ── Update Profile (local only) ──────────────────────────────────────────

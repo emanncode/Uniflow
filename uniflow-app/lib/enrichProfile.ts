@@ -71,3 +71,10 @@ export function getDepartmentLabel(profile: Profile): string | null {
     profile.department.short_name,
   );
 }
+
+export function getStudentLevelLabel(profile: Profile): string | null {
+  if (profile.role !== "student" || profile.level == null) {
+    return null;
+  }
+  return `${profile.level} Level`;
+}
