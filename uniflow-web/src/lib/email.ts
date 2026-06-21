@@ -188,9 +188,18 @@ export function normalizeOrThrow(email: string): string {
 
 // ─── Transactional email (Resend) ───────────────────────────────────────────
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const DEFAULT_FROM = "Uniflow <onboarding@resend.dev>";
+
+let resendClient: Resend | null = null;
+
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  if (!resendClient) {
+    resendClient = new Resend(apiKey);
+  }
+  return resendClient;
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -201,7 +210,8 @@ function escapeHtml(value: string): string {
 }
 
 export async function sendEmail(to: string, subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResendClient();
+  if (!resend) {
     console.warn("RESEND_API_KEY not set — skipping email send");
     return;
   }
