@@ -12,6 +12,7 @@ import {
 } from "@/store/useAuthStore";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { SplashEntrance } from "@/components/SplashEntrance";
+import { SpeedInsightsWeb } from "@/components/SpeedInsightsWeb";
 import { Theme } from "@/constants/Theme";
 import { isSplashAnimationFinished } from "@/lib/splash-session";
 
@@ -76,6 +77,7 @@ export default function RootLayout() {
       <AuthGuard />
       {appReady ? <Slot /> : null}
       {!appReady ? <SplashEntrance onFinish={handleSplashFinish} /> : null}
+      <SpeedInsightsWeb />
     </View>
   );
 }
