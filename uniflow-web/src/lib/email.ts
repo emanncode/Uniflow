@@ -6,6 +6,9 @@
  * or upload CSVs, and when universities submit the public registration form.
  */
 
+import { Resend } from "resend";
+import { APP_URL, BASE_DOMAIN } from "@/lib/domain";
+
 const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Common correct domains we care about protecting.
@@ -181,4 +184,98 @@ export function normalizeOrThrow(email: string): string {
     throw new Error(r.error || 'Invalid email');
   }
   return r.normalized;
+}
+
+// ─── Transactional email (Resend) ───────────────────────────────────────────
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const DEFAULT_FROM = "Uniflow <onboarding@resend.dev>";
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export async function sendEmail(to: string, subject: string, html: string) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY not set — skipping email send");
+    return;
+  }
+
+  const from = process.env.RESEND_FROM || DEFAULT_FROM;
+  const { error } = await resend.emails.send({ from, to, subject, html });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export function registrationReceivedEmail(universityName: string) {
+  const name = escapeHtml(universityName);
+  return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #0a0a0b; color: #ffffff; border-radius: 16px;">
+  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #ff5c1a;">flow</span></h1>
+  <p style="font-size: 12px; color: #666666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 32px;">Registration Received</p>
+  <p style="font-size: 15px; color: #a1a1a1; margin: 0 0 8px;">Application received ✓</p>
+  <p style="font-size: 13px; color: #666666; margin: 0 0 24px;">Thank you for registering <strong style="color: #ffffff;">${name}</strong> on Uniflow. Our team will review your application and get back to you within <strong style="color: #a1a1a1;">48 hours</strong>.</p>
+  <div style="background: rgba(255,92,26,0.08); border: 1px solid rgba(255,92,26,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
+    <p style="font-size: 12px; color: #666666; margin: 0 0 4px;">What happens next:</p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">① Our team reviews your application</p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">② You receive an approval or rejection email</p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0;">③ If approved — your portal is live and you receive login credentials</p>
+  </div>
+  <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 24px;" />
+  <p style="font-size: 12px; color: #444444; margin: 0;">© Uniflow · ${BASE_DOMAIN}</p>
+</div>`;
+}
+
+export function universityApprovedEmail(
+  universityName: string,
+  shortName: string,
+  email: string,
+  resetUrl: string,
+) {
+  const name = escapeHtml(universityName);
+  const portal = escapeHtml(`${shortName}-admin.${BASE_DOMAIN}`);
+  const loginEmail = escapeHtml(email);
+  const safeResetUrl = escapeHtml(resetUrl);
+
+  return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #0a0a0b; color: #ffffff; border-radius: 16px;">
+  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #ff5c1a;">flow</span></h1>
+  <p style="font-size: 12px; color: #666666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 32px;">Application Approved</p>
+  <p style="font-size: 15px; color: #a1a1a1; margin: 0 0 8px;">Welcome to Uniflow, <strong style="color: #ffffff;">${name}</strong> 🎓</p>
+  <p style="font-size: 13px; color: #666666; margin: 0 0 24px;">Your university has been approved. Your portal is live. Set your password to access your dashboard.</p>
+  <div style="background: rgba(255,92,26,0.08); border: 1px solid rgba(255,92,26,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
+    <p style="font-size: 12px; color: #666666; margin: 0 0 8px;">Your portal details:</p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">Portal: <strong style="color: #ff5c1a; font-family: monospace;">${portal}</strong></p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0;">Login email: <strong style="color: #ffffff;">${loginEmail}</strong></p>
+  </div>
+  <a href="${safeResetUrl}" style="display: inline-block; background: #ff5c1a; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 10px; text-decoration: none; margin: 0 0 24px;">Set Password &amp; Get Started →</a>
+  <p style="font-size: 13px; color: #666666; margin: 24px 0 8px;">This link expires in <strong style="color: #a1a1a1;">24 hours</strong>.</p>
+  <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 24px;" />
+  <p style="font-size: 12px; color: #444444; margin: 0;">© Uniflow · ${BASE_DOMAIN}</p>
+</div>`;
+}
+
+export function universityRejectedEmail(universityName: string, reason: string) {
+  const name = escapeHtml(universityName);
+  const safeReason = escapeHtml(reason);
+  const registerUrl = escapeHtml(`${APP_URL}/register`);
+
+  return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #0a0a0b; color: #ffffff; border-radius: 16px;">
+  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #ff5c1a;">flow</span></h1>
+  <p style="font-size: 12px; color: #666666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 32px;">Application Update</p>
+  <p style="font-size: 15px; color: #a1a1a1; margin: 0 0 8px;">We couldn't approve your application.</p>
+  <p style="font-size: 13px; color: #666666; margin: 0 0 24px;">After reviewing the registration for <strong style="color: #ffffff;">${name}</strong>, we were unable to approve it at this time.</p>
+  <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
+    <p style="font-size: 12px; color: #666666; margin: 0 0 6px;">Reason:</p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0; line-height: 1.6;">${safeReason}</p>
+  </div>
+  <a href="${registerUrl}" style="display: inline-block; background: #ff5c1a; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 10px; text-decoration: none; margin: 0 0 24px;">Reapply →</a>
+  <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 24px;" />
+  <p style="font-size: 12px; color: #444444; margin: 0;">© Uniflow · ${BASE_DOMAIN}</p>
+</div>`;
 }

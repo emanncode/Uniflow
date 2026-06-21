@@ -5,7 +5,11 @@ import {
 } from '@/lib/domain'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
-import { normalizeOrThrow } from '@/lib/email'
+import {
+  normalizeOrThrow,
+  sendEmail,
+  universityApprovedEmail,
+} from '@/lib/email'
 import { isSuperAdmin } from '@/lib/auth'
 
 export async function POST(request: Request) {
@@ -89,21 +93,46 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
 
-    // 5. Send password reset email
+    // 5. Generate password reset link for approval email
     const host = request.headers.get('host') || ''
     const protocol = resolveProtocolFromRequestHost(host)
     const baseDomain = resolveBaseDomainFromRequestHost(host)
     const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/u/reset-password`
 
-    await supabase.auth.resetPasswordForEmail(finalEmail, {
-      redirectTo,
-    })
+    const { data: linkData, error: linkError } =
+      await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: finalEmail,
+        options: { redirectTo },
+      })
+
+    if (linkError) {
+      return NextResponse.json({ error: linkError.message }, { status: 500 })
+    }
+
+    const resetUrl = linkData.properties.action_link
 
     // 6. Update registration status
     await supabase
       .from('university_registrations')
       .update({ status: 'approved', reviewed_at: new Date().toISOString() })
       .eq('id', registrationId)
+
+    // 7. Send approval email (non-blocking for API success)
+    try {
+      await sendEmail(
+        finalEmail,
+        `Your university has been approved — ${reg.university_name}`,
+        universityApprovedEmail(
+          reg.university_name,
+          reg.short_name,
+          finalEmail,
+          resetUrl,
+        ),
+      )
+    } catch (emailError) {
+      console.error('Approve University: failed to send approval email:', emailError)
+    }
 
     return NextResponse.json({ success: true, tempPassword })
   } catch (error) {
