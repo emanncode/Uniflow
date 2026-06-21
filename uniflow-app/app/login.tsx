@@ -63,6 +63,7 @@ export default function LoginScreen() {
 
   // ── Submit ──────────────────────────────────────────────────────────────
   const handleLogin = async () => {
+    if (isLoading) return;
     if (!validate()) return;
 
     setErrors({});
@@ -113,7 +114,11 @@ export default function LoginScreen() {
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Email address</Text>
               <TextInput
-                style={[styles.input, errors.email ? styles.inputError : null]}
+                style={[
+                  styles.input,
+                  errors.email ? styles.inputError : null,
+                  isLoading ? styles.inputDisabled : null,
+                ]}
                 placeholder="you@university.edu"
                 placeholderTextColor={Theme.colors.textMuted}
                 value={email}
@@ -137,7 +142,11 @@ export default function LoginScreen() {
             <View style={styles.fieldGroup}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                 <Text style={[styles.label, { marginBottom: 0 }]}>Password</Text>
-                <TouchableOpacity onPress={() => router.push("/forgot-password")}>
+                <TouchableOpacity
+                  onPress={() => router.push("/forgot-password")}
+                  disabled={isLoading}
+                  style={isLoading ? styles.linkDisabled : undefined}
+                >
                   <Text style={styles.forgotText}>Forgot?</Text>
                 </TouchableOpacity>
               </View>
@@ -145,6 +154,7 @@ export default function LoginScreen() {
                 style={[
                   styles.inputWrapper,
                   errors.password ? styles.inputError : null,
+                  isLoading ? styles.inputDisabled : null,
                 ]}
               >
                 <TextInput
@@ -166,7 +176,8 @@ export default function LoginScreen() {
                 />
                 <Pressable
                   onPress={() => setShowPassword((v) => !v)}
-                  style={styles.eyeButton}
+                  disabled={isLoading}
+                  style={[styles.eyeButton, isLoading ? styles.linkDisabled : null]}
                   hitSlop={8}
                 >
                   <Text style={styles.eyeText}>
@@ -196,8 +207,13 @@ export default function LoginScreen() {
             <Text style={styles.helpText}>
               Registered by your school? Use{" "}
               <Text
-                style={{ color: Theme.colors.brand, fontWeight: "600" }}
-                onPress={() => router.push("/forgot-password")}
+                style={[
+                  { color: Theme.colors.brand, fontWeight: "600" },
+                  isLoading ? styles.linkDisabled : null,
+                ]}
+                onPress={
+                  isLoading ? undefined : () => router.push("/forgot-password")
+                }
               >
                 forgot password
               </Text>{" "}
@@ -330,6 +346,12 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: "rgba(239, 68, 68, 0.4)",
+  },
+  inputDisabled: {
+    opacity: 0.7,
+  },
+  linkDisabled: {
+    opacity: 0.5,
   },
   eyeButton: {
     paddingHorizontal: 16,

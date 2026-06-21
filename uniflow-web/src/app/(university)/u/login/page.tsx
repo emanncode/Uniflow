@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { verifyPortalAccess } from '@/lib/verify-portal-client'
 import { getSubdomain } from '@/lib/subdomain'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -67,12 +68,14 @@ export default function UniversityLoginPage() {
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
       if (signInError) throw new Error('Invalid email or password.')
+      if (!data.session?.access_token) {
+        throw new Error('Sign in failed. Please try again.')
+      }
 
-      const verifyRes = await fetch('/api/auth/verify-portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portal: 'university_admin' }),
-      })
+      const verifyRes = await verifyPortalAccess(
+        data.session.access_token,
+        'university_admin',
+      )
 
       if (!verifyRes.ok) {
         const payload = (await verifyRes.json().catch(() => null)) as {

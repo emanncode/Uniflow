@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { verifyPortalAccess } from "@/lib/verify-portal-client";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { BASE_DOMAIN } from "@/lib/domain";
 import UniflowLogo from "@/components/ui/UniflowLogo";
@@ -40,11 +41,16 @@ export default function LoginPage() {
       return;
     }
 
-    const verifyRes = await fetch("/api/auth/verify-portal", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ portal: "uniflow_admin" }),
-    });
+    if (!data.session?.access_token) {
+      setError("Sign in failed. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    const verifyRes = await verifyPortalAccess(
+      data.session.access_token,
+      "uniflow_admin",
+    );
 
     if (!verifyRes.ok) {
       const payload = (await verifyRes.json().catch(() => null)) as {

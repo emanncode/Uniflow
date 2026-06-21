@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 
-export default function UnauthorizedPage() {
+function UnauthorizedContent() {
   const searchParams = useSearchParams();
   const reason = searchParams.get("reason");
 
@@ -50,5 +51,22 @@ export default function UnauthorizedPage() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function UnauthorizedPage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{ backgroundColor: "var(--bg-primary)" }}
+          className="min-h-screen flex items-center justify-center px-4!"
+        >
+          <div className="text-secondary text-sm">Loading...</div>
+        </main>
+      }
+    >
+      <UnauthorizedContent />
+    </Suspense>
   );
 }

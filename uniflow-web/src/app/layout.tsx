@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={sora.className}>
+    <html lang="en" className={sora.className} suppressHydrationWarning>
       <body>
         {children}
         <Analytics />

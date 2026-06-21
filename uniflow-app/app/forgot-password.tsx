@@ -28,6 +28,7 @@ export default function ForgotPasswordScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (loading) return;
     setError("");
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
@@ -67,7 +68,11 @@ export default function ForgotPasswordScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          <Pressable onPress={() => router.back()} style={styles.backRow}>
+          <Pressable
+            onPress={() => router.back()}
+            disabled={loading}
+            style={[styles.backRow, loading && styles.backRowDisabled]}
+          >
             <ArrowLeft size={18} color={Theme.colors.textMuted} />
             <Text style={styles.backText}>Back to sign in</Text>
           </Pressable>
@@ -115,7 +120,7 @@ export default function ForgotPasswordScreen() {
                       style={styles.inputIcon}
                     />
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, loading && styles.inputDisabled]}
                       placeholder="yourname@university.edu"
                       placeholderTextColor={Theme.colors.textMuted}
                       value={email}
@@ -163,6 +168,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginBottom: 24,
+  },
+  backRowDisabled: {
+    opacity: 0.5,
   },
   backText: {
     color: Theme.colors.textMuted,
@@ -218,6 +226,9 @@ const styles = StyleSheet.create({
     paddingRight: 14,
     color: Theme.colors.textPrimary,
     fontSize: 15,
+  },
+  inputDisabled: {
+    opacity: 0.7,
   },
   button: {
     backgroundColor: Theme.colors.brand,

@@ -39,3 +39,4 @@ web-build/
 *.pem
 *.log
 Thumbs.db
+.vercel

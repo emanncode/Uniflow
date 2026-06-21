@@ -4,6 +4,11 @@ import { getProfileForUser } from "@/lib/profile-server";
 
 type Portal = "uniflow_admin" | "university_admin";
 
+function getBearerToken(req: Request) {
+  const authHeader = req.headers.get("Authorization");
+  return authHeader?.match(/^Bearer\s+(.+)$/i)?.[1] ?? null;
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as { portal?: Portal };
@@ -14,9 +19,12 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createSupabaseServer();
+    const bearerToken = getBearerToken(req);
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = bearerToken
+      ? await supabase.auth.getUser(bearerToken)
+      : await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
