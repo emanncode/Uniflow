@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useUniversity } from "@/context/UniversityContext";
+import { staffApiUrl } from "@/lib/staff-api";
 import {
   Building2,
   Plus,
@@ -132,6 +134,7 @@ function DeptCard({
 }
 
 export default function DepartmentsPage() {
+  const { universityId: contextUniId, isReady } = useUniversity();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [hods, setHods] = useState<Profile[]>([]);
@@ -160,33 +163,29 @@ export default function DepartmentsPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (!isReady || !contextUniId) return;
+    loadData(contextUniId);
+  }, [isReady, contextUniId]);
 
-  async function loadData() {
+  async function loadData(currentUniId: string) {
     setLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data: profile } = await supabase.from("profiles").select("university_id").eq("id", session.user.id).single();
-    if (!profile?.university_id) { setLoading(false); return; }
-
-    setUniId(profile.university_id);
+    setUniId(currentUniId);
     
     try {
-      const { data: facData } = await supabase.from("faculties").select("id, name, short_name").eq("university_id", profile.university_id);
-      const { data: deptData } = await supabase.from("departments").select("id, name, short_name, faculty, hod_id, created_at").eq("university_id", profile.university_id);
-      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`);
+      const [facRes, deptRes, staffRes] = await Promise.all([
+        supabase.from("faculties").select("id, name, short_name").eq("university_id", currentUniId),
+        supabase.from("departments").select("id, name, short_name, faculty, hod_id, created_at").eq("university_id", currentUniId),
+        fetch(staffApiUrl(currentUniId, { roles: ["hod"] })),
+      ]);
+      const facData = facRes.data;
+      const deptData = deptRes.data;
       const staffData = await staffRes.json();
-      const allProfiles = staffData.data || [];
+      const hodData = staffData.data || [];
 
-      // Create a map of currently assigned HODs: profile_id -> faculty_short_name
       const hodAssignmentMap: Record<string, string> = {};
       (deptData ?? []).forEach(d => {
         if (d.hod_id) hodAssignmentMap[d.hod_id] = d.faculty;
       });
-
-      const hodData = allProfiles.filter((p: any) => (p.role || "").toLowerCase().trim() === "hod");
       
       const mappedHods = hodData.map((h: any) => ({
         id: h.id,
@@ -231,20 +230,20 @@ export default function DepartmentsPage() {
       });
       if (err) throw new Error(err.message);
       setShowModal(false);
-      loadData();
+      if (contextUniId) loadData(contextUniId);
     } catch (err: any) { setError(err.message); } finally { setSaving(false); }
   }
 
   async function handleAssignHod(deptId: string, hodId: string) {
     await supabase.from("departments").update({ hod_id: hodId }).eq("id", deptId);
-    loadData();
+    if (contextUniId) loadData(contextUniId);
   }
 
   async function handleDelete(id: string) {
     setConfirmDelete(null);
     setSaving(true);
     await supabase.from("departments").delete().eq("id", id);
-    loadData();
+    if (contextUniId) loadData(contextUniId);
     setSaving(false);
   }
 

@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useUniversity } from "@/context/UniversityContext";
+import { LECTURER_ROLES, staffApiUrl } from "@/lib/staff-api";
 import {
   DISPLAY_DAYS,
   type DisplayDay,
@@ -375,6 +377,7 @@ function SlotCard({
 }
 
 export default function TimetablePage() {
+  const { universityId: contextUniId, isReady } = useUniversity();
   const [slots, setSlots] = useState<TimetableSlot[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
@@ -516,31 +519,18 @@ export default function TimetablePage() {
     let cancelled = false;
 
     async function fetchPageData() {
+      if (!contextUniId) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
       setFetchError("");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session || cancelled) {
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("university_id")
-        .eq("id", session.user.id)
-        .single();
-      if (!profile || cancelled) {
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
-      if (!cancelled) setUniId(profile.university_id);
+      if (!cancelled) setUniId(contextUniId);
 
       const { data: deptRes } = await supabase
         .from("departments")
         .select("id, name, short_name, faculty, max_course_level")
-        .eq("university_id", profile.university_id)
+        .eq("university_id", contextUniId)
         .order("name");
 
       if (cancelled) return;
@@ -566,18 +556,18 @@ export default function TimetablePage() {
           .select(
             "id, venue, day_of_week, start_time, end_time, course_id, lecturer_id, department_id",
           )
-          .eq("university_id", profile.university_id)
+          .eq("university_id", contextUniId)
           .eq("department_id", departmentId)
           .order("day_of_week")
           .order("start_time"),
         supabase
           .from("courses")
           .select("id, title, code, level, semester")
-          .eq("university_id", profile.university_id)
+          .eq("university_id", contextUniId)
           .eq("department_id", departmentId)
           .eq("is_active", true)
           .order("title"),
-        fetch(`/api/staff?university_id=${profile.university_id}`),
+        fetch(staffApiUrl(contextUniId, { roles: LECTURER_ROLES })),
       ]);
 
       if (cancelled) return;
@@ -620,7 +610,7 @@ export default function TimetablePage() {
       if (courseIds.length > 0) {
         try {
           const map = await fetchCourseAssignments({
-            universityId: profile.university_id,
+            universityId: contextUniId,
             courseIds,
             academicSession: sessionYear,
           });
@@ -644,12 +634,14 @@ export default function TimetablePage() {
       setLoading(false);
     }
 
-    void fetchPageData();
+    if (isReady) {
+      void fetchPageData();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [deptParam, refreshKey]);
+  }, [deptParam, refreshKey, isReady, contextUniId]);
 
   function loadData() {
     setRefreshKey((k) => k + 1);

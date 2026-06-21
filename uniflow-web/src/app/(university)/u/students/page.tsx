@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useUniversity } from "@/context/UniversityContext";
+import { staffApiUrl } from "@/lib/staff-api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   GraduationCap,
@@ -289,6 +291,7 @@ function StudentRow({
 }
 
 export default function StudentsPage() {
+  const { universityId: contextUniId, isReady } = useUniversity();
   const [students, setStudents] = useState<Student[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
@@ -492,7 +495,7 @@ export default function StudentsPage() {
 
       setImportErrors(errors);
       setImportSuccess(successCount);
-      if (successCount > 0) await loadData();
+      if (successCount > 0 && contextUniId) await loadData(contextUniId);
     } catch (err: any) {
       setImportErrors([err.message]);
     } finally {
@@ -501,32 +504,27 @@ export default function StudentsPage() {
     }
   }
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (currentUniId: string) => {
     setLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("university_id")
-      .eq("id", session.user.id)
-      .single();
-    if (!profile) return;
-    setUniId(profile.university_id);
+    setUniId(currentUniId);
 
     try {
-      const { data: facData } = await supabase
+      const [facRes, deptRes, staffRes] = await Promise.all([
+        supabase
           .from("faculties")
           .select("id, name, short_name")
-          .eq("university_id", profile.university_id)
-          .order("name");
-      setFaculties(facData ?? []);
-
-      const { data: deptData } = await supabase
+          .eq("university_id", currentUniId)
+          .order("name"),
+        supabase
           .from("departments")
           .select("id, name, short_name, faculty, max_course_level")
-          .eq("university_id", profile.university_id)
-          .order("name");
+          .eq("university_id", currentUniId)
+          .order("name"),
+        fetch(staffApiUrl(currentUniId, { roles: ["student"] })),
+      ]);
+      const facData = facRes.data;
+      const deptData = deptRes.data;
+      setFaculties(facData ?? []);
 
       const deptMap: Record<string, string> = {};
       (deptData ?? []).forEach((d) => {
@@ -534,10 +532,8 @@ export default function StudentsPage() {
       });
       setDepartments(deptData ?? []);
 
-      const staffRes = await fetch(`/api/staff?university_id=${profile.university_id}`)
       const { data: allProfiles } = await staffRes.json()
-
-      const studentsData = (allProfiles || []).filter((p: { role: string }) => (p.role || "").toLowerCase().trim() === "student");
+      const studentsData = allProfiles || [];
 
       setStudents(
         studentsData.map((l: any) => ({
@@ -564,8 +560,9 @@ export default function StudentsPage() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!isReady || !contextUniId) return;
+    loadData(contextUniId);
+  }, [isReady, contextUniId, loadData]);
 
   async function handleDepartmentSetup(maxLevel: MaxCourseLevel) {
     if (!activeDept) return;
@@ -578,7 +575,7 @@ export default function StudentsPage() {
         .eq("id", activeDept.id);
       if (updateError) throw new Error(updateError.message);
       setShowLevelSetup(false);
-      await loadData();
+      if (contextUniId) await loadData(contextUniId);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save department setup");
     } finally {
@@ -629,7 +626,7 @@ export default function StudentsPage() {
       setNewName(''); setNewEmail(''); setNewDeptId('');
       setShowModal(false)
       alert(`Success! ${newName} has been added. They can now generate their login password on the portal using their email.`)
-      await loadData()
+      if (contextUniId) await loadData(contextUniId)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -671,7 +668,7 @@ export default function StudentsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      await loadData();
+      if (contextUniId) await loadData(contextUniId);
     } catch (e: any) {
       alert(e.message || "Failed to remove student");
     } finally {
@@ -694,7 +691,7 @@ export default function StudentsPage() {
     
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
-    await loadData();
+    if (contextUniId) await loadData(contextUniId);
   }
 
   const filtered = useMemo(() => {

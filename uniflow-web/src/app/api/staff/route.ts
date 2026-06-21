@@ -3,36 +3,72 @@ import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
 import { canManageUniversity } from '@/lib/auth'
 
+const LECTURER_ROLES = ['lecturer', 'dean', 'hod']
+
+function parseRoles(roleParam: string | null): string[] | null {
+  if (!roleParam) return null
+  const roles = roleParam
+    .split(',')
+    .map((r) => r.trim().toLowerCase())
+    .filter(Boolean)
+  return roles.length > 0 ? roles : null
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const universityId = searchParams.get('university_id')
+    const countOnly = searchParams.get('count_only') === 'true'
+    const roles = parseRoles(searchParams.get('role'))
+    const limitParam = searchParams.get('limit')
+    const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10), 1), 100) : null
 
     if (!universityId) {
       return NextResponse.json({ error: 'University ID is required' }, { status: 400 })
     }
 
-    // ── Security: Authorization Check ──────────────────────────────────────
     const isAuthorized = await canManageUniversity(universityId)
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     const supabase = createAdminClient()
 
-    console.log('API Staff GET: Fetching for university:', universityId)
+    if (countOnly) {
+      const [studentRes, lecturerRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('university_id', universityId)
+          .eq('role', 'student'),
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('university_id', universityId)
+          .in('role', LECTURER_ROLES),
+      ])
 
-    // Fetch all profiles for this university using the service role (bypassing RLS)
-    // We attempt the join first, but we'll log exactly what happens
-    const { data, error } = await supabase
+      if (studentRes.error || lecturerRes.error) {
+        const message = studentRes.error?.message ?? lecturerRes.error?.message
+        return NextResponse.json({ error: message }, { status: 500 })
+      }
+
+      return NextResponse.json({
+        counts: {
+          students: studentRes.count ?? 0,
+          lecturers: lecturerRes.count ?? 0,
+        },
+      })
+    }
+
+    let query = supabase
       .from('profiles')
       .select(`
-        id, 
-        full_name, 
-        email, 
-        role, 
-        status, 
+        id,
+        full_name,
+        email,
+        role,
+        status,
         department_id,
         level,
         created_at,
@@ -43,40 +79,52 @@ export async function GET(req: Request) {
       .eq('university_id', universityId)
       .order('created_at', { ascending: false })
 
+    if (roles) {
+      query = query.in('role', roles)
+    }
+
+    if (limit) {
+      query = query.limit(limit)
+    }
+
+    const { data, error } = await query
+
     if (error) {
-      console.error('API Staff GET: Supabase error:', error.message, error.details, error.hint)
-      
-      // Fallback: If the join failed, try fetching without the join to see if data exists at all
-      const { data: fallbackData, error: fallbackError } = await supabase
+      let fallbackQuery = supabase
         .from('profiles')
         .select('id, full_name, email, role, status, department_id, level, created_at')
         .eq('university_id', universityId)
         .order('created_at', { ascending: false })
-      
+
+      if (roles) {
+        fallbackQuery = fallbackQuery.in('role', roles)
+      }
+      if (limit) {
+        fallbackQuery = fallbackQuery.limit(limit)
+      }
+
+      const { data: fallbackData, error: fallbackError } = await fallbackQuery
+
       if (fallbackError) {
-        console.error('API Staff GET: Fallback also failed:', fallbackError.message)
         return NextResponse.json({ error: error.message }, { status: 500 })
       }
 
-      console.log(`API Staff GET: Fallback succeeded. Found ${fallbackData?.length || 0} staff.`)
-      return NextResponse.json({ 
-        data: fallbackData, 
-        warning: 'Faculty mapping disabled due to join error: ' + error.message 
+      return NextResponse.json({
+        data: fallbackData,
+        warning: 'Faculty mapping disabled due to join error: ' + error.message,
       })
     }
 
-    console.log(`API Staff GET: Success. Found ${data?.length || 0} staff members.`)
-
-    // Flatten the departments.faculty into a simple property for easier consumption
-    const flattened = (data || []).map((p: any) => ({
+    const flattened = (data || []).map((p: Record<string, unknown>) => ({
       ...p,
-      faculty: p.departments?.faculty || null,
-      departments: undefined // remove the nested object
+      faculty: (p.departments as { faculty?: string } | null)?.faculty || null,
+      departments: undefined,
     }))
 
     return NextResponse.json({ data: flattened })
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -87,7 +135,6 @@ export async function PATCH(req: Request) {
 
     const supabase = createAdminClient()
 
-    // Get current profile to check if email changed
     const { data: currentProfile, error: fetchError } = await supabase
       .from('profiles')
       .select('email, university_id')
@@ -95,18 +142,15 @@ export async function PATCH(req: Request) {
       .single()
 
     if (fetchError || !currentProfile) {
-      console.error('API Staff PATCH: Fetch current profile failed:', fetchError?.message)
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
     }
 
-    // ── Security: Authorization Check ──────────────────────────────────────
     const isAuthorized = await canManageUniversity(currentProfile.university_id)
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
-    // ────────────────────────────────────────────────────────────────────────
 
-    const updates: any = {}
+    const updates: Record<string, unknown> = {}
     if (full_name !== undefined) updates.full_name = full_name
     if (department_id !== undefined) updates.department_id = department_id
     if (status !== undefined) updates.status = status
@@ -125,18 +169,15 @@ export async function PATCH(req: Request) {
       try {
         const normalizedEmail = normalizeOrThrow(email)
         updates.email = normalizedEmail
-        
-        // Also update auth email if changed
+
         const { error: authError } = await supabase.auth.admin.updateUserById(id, {
           email: normalizedEmail,
-          email_confirm: true // Force confirmation so it changes immediately
+          email_confirm: true,
         })
-        if (authError) {
-          console.error('API Staff PATCH: Auth email update failed:', authError.message)
-          throw authError
-        }
-      } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 400 })
+        if (authError) throw authError
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Invalid email'
+        return NextResponse.json({ error: message }, { status: 400 })
       }
     }
 
@@ -145,15 +186,12 @@ export async function PATCH(req: Request) {
       .update(updates)
       .eq('id', id)
 
-    if (updateError) {
-      console.error('API Staff PATCH: Profile update failed:', updateError.message)
-      throw updateError
-    }
+    if (updateError) throw updateError
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    console.error('API Staff PATCH internal error:', err.message)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -164,7 +202,6 @@ export async function DELETE(req: Request) {
 
     const supabase = createAdminClient()
 
-    // ── Security: Authorization Check ──────────────────────────────────────
     const { data: currentProfile } = await supabase
       .from('profiles')
       .select('university_id')
@@ -179,30 +216,22 @@ export async function DELETE(req: Request) {
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
-    // ────────────────────────────────────────────────────────────────────────
 
-    console.log(`API Staff DELETE: Removing staff member ${id}`)
-
-    // 1. Delete from auth (cascades to profile if set up, or removes login)
     const { error: authError } = await supabase.auth.admin.deleteUser(id)
     if (authError) {
-      console.warn('API Staff DELETE: Auth delete failed (might be missing or already deleted):', authError.message)
+      console.warn('API Staff DELETE: Auth delete failed:', authError.message)
     }
 
-    // 2. Delete profile explicitly (in case CASCADE is not set up)
     const { error: profileError } = await supabase
       .from('profiles')
       .delete()
       .eq('id', id)
 
-    if (profileError) {
-      console.error('API Staff DELETE: Profile delete failed:', profileError.message)
-      throw profileError
-    }
+    if (profileError) throw profileError
 
     return NextResponse.json({ success: true })
-  } catch (err: any) {
-    console.error('API Staff DELETE internal error:', err.message)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

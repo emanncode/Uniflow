@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useUniversity } from "@/context/UniversityContext";
+import { LECTURER_ROLES, staffApiUrl } from "@/lib/staff-api";
 import { getCurrentAcademicSession } from "@/lib/academic";
 import {
   fetchCourseAssignments,
@@ -61,6 +63,7 @@ interface CourseRow {
 }
 
 export default function CoursesPage() {
+  const { universityId: contextUniId, isReady } = useUniversity();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [courses, setCourses] = useState<CourseRow[]>([]);
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
@@ -162,31 +165,18 @@ export default function CoursesPage() {
     let cancelled = false;
 
     async function fetchPageData() {
+      if (!contextUniId) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
       setFetchError("");
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session || cancelled) {
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("university_id")
-        .eq("id", session.user.id)
-        .single();
-      if (!profile || cancelled) {
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
-      if (!cancelled) setUniId(profile.university_id);
+      if (!cancelled) setUniId(contextUniId);
 
       const { data: deptRes } = await supabase
         .from("departments")
         .select("id, name, short_name, faculty, max_course_level")
-        .eq("university_id", profile.university_id)
+        .eq("university_id", contextUniId)
         .order("name");
 
       if (cancelled) return;
@@ -208,18 +198,18 @@ export default function CoursesPage() {
           .select(
             "id, title, code, level, semester, credit_units, description, is_active",
           )
-          .eq("university_id", profile.university_id)
+          .eq("university_id", contextUniId)
           .eq("department_id", departmentId)
           .order("code"),
-        fetch(`/api/staff?university_id=${profile.university_id}`),
+        fetch(staffApiUrl(contextUniId, { roles: LECTURER_ROLES })),
         supabase
           .from("faculties")
           .select("id, short_name, dean_id")
-          .eq("university_id", profile.university_id),
+          .eq("university_id", contextUniId),
         supabase
           .from("departments")
           .select("id, faculty, hod_id")
-          .eq("university_id", profile.university_id),
+          .eq("university_id", contextUniId),
       ]);
 
       if (cancelled) return;
@@ -239,7 +229,7 @@ export default function CoursesPage() {
       if (courseIds.length > 0) {
         try {
           assignmentMap = await fetchCourseAssignments({
-            universityId: profile.university_id,
+            universityId: contextUniId,
             courseIds,
             academicSession: sessionYear,
           });
@@ -261,7 +251,7 @@ export default function CoursesPage() {
       );
 
       const staffData = await staffRes.json();
-      const allProfiles = staffRes.ok ? (staffData.data ?? []) : [];
+      const lecturerProfiles = staffRes.ok ? (staffData.data ?? []) : [];
       const facData = facRes.data ?? [];
       const deptData = deptFullRes.data ?? [];
 
@@ -278,11 +268,7 @@ export default function CoursesPage() {
         if (d.hod_id) hodMap[d.hod_id] = d.faculty;
       });
 
-      const lecRoles = ["lecturer", "dean", "hod"];
-      const mappedLecturers: Lecturer[] = allProfiles
-        .filter((p: { role: string }) =>
-          lecRoles.includes((p.role || "").toLowerCase().trim()),
-        )
+      const mappedLecturers: Lecturer[] = lecturerProfiles
         .map((l: {
           id: string;
           full_name: string;
@@ -308,12 +294,14 @@ export default function CoursesPage() {
       setLoading(false);
     }
 
-    void fetchPageData();
+    if (isReady) {
+      void fetchPageData();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [deptParam, refreshKey]);
+  }, [deptParam, refreshKey, isReady, contextUniId]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();

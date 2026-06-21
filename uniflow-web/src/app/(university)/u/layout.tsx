@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { UniversityProvider } from "@/context/UniversityContext";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import {
   LayoutDashboard,
@@ -241,6 +242,7 @@ export default function UniversityPortalLayout({
     name: string;
     short_name: string;
   } | null>(null);
+  const [universityId, setUniversityId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);  
   const [loading, setLoading] = useState(true);
 
@@ -289,6 +291,7 @@ export default function UniversityPortalLayout({
           email: session.user.email!,
           role: profile.role as Role,
         });
+        setUniversityId(profile.university_id);
         setUniversity(uni);
       } catch (err) {
         console.error("Critical error in UniversityPortalLayout:", err);
@@ -322,10 +325,33 @@ export default function UniversityPortalLayout({
       </div>
     );
 
-  if (PUBLIC_PATHS.has(pathname)) return <>{children}</>;
+  if (PUBLIC_PATHS.has(pathname)) {
+    return (
+      <UniversityProvider
+        value={{
+          universityId: null,
+          universityName: null,
+          universityShortName: null,
+          userEmail: null,
+          isReady: true,
+        }}
+      >
+        {children}
+      </UniversityProvider>
+    );
+  }
   if (!user) return <>{children}</>;
 
   return (
+    <UniversityProvider
+      value={{
+        universityId,
+        universityName: university?.name ?? null,
+        universityShortName: university?.short_name ?? null,
+        userEmail: user.email,
+        isReady: true,
+      }}
+    >
     <div
       style={{
         display: "flex",
@@ -428,5 +454,6 @@ export default function UniversityPortalLayout({
       </div>
 
     </div>
+    </UniversityProvider>
   );
 }

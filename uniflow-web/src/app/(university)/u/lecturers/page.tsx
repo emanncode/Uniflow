@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useUniversity } from "@/context/UniversityContext";
+import { LECTURER_ROLES, staffApiUrl } from "@/lib/staff-api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -208,7 +210,7 @@ function LecturerRow({
 }
 
 export default function LecturersPage() {
-  // ── State ───────────────────────────────────────────────────────────────
+  const { universityId: contextUniId, isReady } = useUniversity();
   const [lecturers, setLecturers] = useState<Lecturer[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
@@ -242,48 +244,31 @@ export default function LecturersPage() {
   const searchParams = useSearchParams();
 
   // ── Load Data ────────────────────────────────────────────────────────────
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (currentUniId: string) => {
     setLoading(true);
     setError("");
+    setUniId(currentUniId);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("university_id")
-        .eq("id", session.user.id)
-        .single();
-      
-      if (!profile?.university_id) {
-        setLoading(false);
-        return;
-      }
-      
-      const currentUniId = profile.university_id;
-      setUniId(currentUniId);
-
-      // 1. Fetch Staff
-      const staffRes = await fetch(`/api/staff?university_id=${currentUniId}`)
-      const staffData = await staffRes.json()
-      if (!staffRes.ok) throw new Error(staffData.error || "Failed to fetch staff");
-      const allProfiles = staffData.data || []
-
-      // 2. Fetch Faculties
-      const { data: facData } = await supabase
+      const [staffRes, facRes, deptRes] = await Promise.all([
+        fetch(staffApiUrl(currentUniId, { roles: LECTURER_ROLES })),
+        supabase
           .from("faculties")
           .select("id, name, short_name, dean_id")
           .eq("university_id", currentUniId)
-          .order("name");
-      setFaculties(facData ?? []);
-
-      // 3. Fetch Departments
-      const { data: deptData } = await supabase
+          .order("name"),
+        supabase
           .from("departments")
           .select("id, name, short_name, faculty, hod_id")
           .eq("university_id", currentUniId)
-          .order("name");
+          .order("name"),
+      ]);
+      const staffData = await staffRes.json()
+      if (!staffRes.ok) throw new Error(staffData.error || "Failed to fetch staff");
+      const lecturersData = staffData.data || []
+      const facData = facRes.data;
+      const deptData = deptRes.data;
+      setFaculties(facData ?? []);
       
       const deptList = (deptData ?? []).map((d: any) => ({
         id: d.id,
@@ -308,12 +293,6 @@ export default function LecturersPage() {
       const hodMap: Record<string, { id: string, name: string, faculty: string }> = {};
       (deptData ?? []).forEach(d => {
         if (d.hod_id) hodMap[d.hod_id] = { id: d.id, name: d.name, faculty: d.faculty };
-      });
-
-      const lecRoles = ['lecturer', 'dean', 'hod'];
-      const lecturersData = allProfiles.filter((p: { role: string }) => {
-        const normalizedRole = (p.role || "").toLowerCase().trim();
-        return lecRoles.includes(normalizedRole);
       });
 
       const mapped = lecturersData.map((l: any) => {
@@ -351,8 +330,9 @@ export default function LecturersPage() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!isReady || !contextUniId) return;
+    loadData(contextUniId);
+  }, [isReady, contextUniId, loadData]);
 
   // Support direct links from Departments page
   useEffect(() => {
@@ -398,7 +378,7 @@ export default function LecturersPage() {
         title: "Staff Added",
         message: `${name} has been added successfully.`
       });
-      await loadData()
+      if (contextUniId) await loadData(contextUniId)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -455,7 +435,7 @@ export default function LecturersPage() {
       }
       setImportErrors(errs);
       setImportSuccess(success);
-      if (success > 0) await loadData();
+      if (success > 0 && contextUniId) await loadData(contextUniId);
     } catch (err: any) {
       setImportErrors([err.message]);
     } finally {
@@ -499,7 +479,7 @@ export default function LecturersPage() {
         body: JSON.stringify({ id })
       });
       if (!res.ok) { const data = await res.json(); throw new Error(data.error); }
-      await loadData();
+      if (contextUniId) await loadData(contextUniId);
     } catch (e: any) {
       setError(e.message || "Failed to remove staff");
     } finally {
@@ -519,7 +499,7 @@ export default function LecturersPage() {
       body: JSON.stringify({ id, ...updates })
     });
     if (!res.ok) { const data = await res.json(); throw new Error(data.error); }
-    await loadData();
+    if (contextUniId) await loadData(contextUniId);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

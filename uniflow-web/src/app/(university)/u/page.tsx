@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
+import { useUniversity } from '@/context/UniversityContext'
+import { staffApiUrl } from '@/lib/staff-api'
 import {
   BookOpen,
   Building2,
@@ -156,59 +158,37 @@ function formatTime(iso: string) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function UniversityOverviewPage() {
+  const { universityId, universityName, isReady } = useUniversity()
   const [stats, setStats] = useState<Stats>({ faculties: 0, departments: 0, lecturers: 0, students: 0, timetableSlots: 0 })
   const [activity, setActivity] = useState<RecentActivity[]>([])
-  const [uniName, setUniName] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!isReady || !universityId) return
+    const currentUniId = universityId
+
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+      setLoading(true)
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, university_id, full_name')
-        .eq('id', session.user.id)
-        .single()
-
-      if (!profile) return
-
-      // Load university name
-      const { data: uni } = await supabase
-        .from('universities')
-        .select('name')
-        .eq('id', profile.university_id)
-        .single()
-      if (uni) setUniName(uni.name)
-
-      // Load stats in parallel
-      const [facRes, deptRes, ttRes, staffRes] = await Promise.all([
-        supabase.from('faculties').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id),
-        supabase.from('departments').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id),
-        supabase.from('timetable').select('id', { count: 'exact', head: true }).eq('university_id', profile.university_id),
-        fetch(`/api/staff?university_id=${profile.university_id}`).then(res => res.json())
+      const [facRes, deptRes, ttRes, staffCountsRes, recentLecRes, recentFac, recentDept] = await Promise.all([
+        supabase.from('faculties').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
+        supabase.from('departments').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
+        supabase.from('timetable').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
+        fetch(staffApiUrl(currentUniId, { countOnly: true })).then(res => res.json()),
+        fetch(staffApiUrl(currentUniId, { roles: ['lecturer', 'dean', 'hod'], limit: 3 })).then(res => res.json()),
+        supabase.from('faculties').select('name, created_at').eq('university_id', currentUniId).order('created_at', { ascending: false }).limit(3),
+        supabase.from('departments').select('name, created_at').eq('university_id', currentUniId).order('created_at', { ascending: false }).limit(3),
       ])
-
-      const allProfiles = (staffRes.data || []) as { role: string; full_name: string; created_at: string }[];
-      const lecturersData = allProfiles.filter(p => ['lecturer', 'dean', 'hod'].includes((p.role || '').toLowerCase().trim()));
-      const studentsData = allProfiles.filter(p => (p.role || '').toLowerCase().trim() === 'student');
 
       setStats({
         faculties: facRes.count ?? 0,
         departments: deptRes.count ?? 0,
-        lecturers: lecturersData.length,
-        students: studentsData.length,
+        lecturers: staffCountsRes.counts?.lecturers ?? 0,
+        students: staffCountsRes.counts?.students ?? 0,
         timetableSlots: ttRes.count ?? 0,
       })
 
-      // Build recent activity from latest records
-      const [recentFac, recentDept] = await Promise.all([
-        supabase.from('faculties').select('name, created_at').eq('university_id', profile.university_id).order('created_at', { ascending: false }).limit(3),
-        supabase.from('departments').select('name, created_at').eq('university_id', profile.university_id).order('created_at', { ascending: false }).limit(3),
-      ])
-
-      const recentLec = lecturersData.slice(0, 3);
+      const recentLec = (recentLecRes.data || []) as { full_name: string; created_at: string }[];
 
       const allActivity: RecentActivity[] = [
         ...(recentFac.data ?? []).map(r => ({
@@ -237,7 +217,7 @@ export default function UniversityOverviewPage() {
       setLoading(false)
     }
     load()
-  }, [])
+  }, [isReady, universityId])
 
   const greeting = () => {
     const h = new Date().getHours()
@@ -269,7 +249,7 @@ export default function UniversityOverviewPage() {
           {greeting()} 👋
         </h1>
         <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-          {uniName} · Portal Overview
+          {universityName || 'University'} · Portal Overview
         </p>
       </div>
 

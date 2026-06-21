@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useUniversity } from "@/context/UniversityContext";
+import { staffApiUrl } from "@/lib/staff-api";
 import {
   BookOpen,
   Plus,
@@ -358,6 +360,7 @@ function FacultyCard({
 }
 
 export default function FacultiesPage() {
+  const { universityId: contextUniId, isReady } = useUniversity();
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [deans, setDeans] = useState<Profile[]>([]);
   const [search, setSearch] = useState("");
@@ -440,7 +443,7 @@ export default function FacultiesPage() {
 
       setImportErrors(errors);
       setImportSuccess(successCount);
-      if (successCount > 0) await loadData();
+      if (successCount > 0 && contextUniId) await loadData(contextUniId);
     } catch (err: any) {
       setImportErrors([err.message]);
     } finally {
@@ -450,61 +453,41 @@ export default function FacultiesPage() {
   }
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (!isReady || !contextUniId) return;
+    loadData(contextUniId);
+  }, [isReady, contextUniId]);
 
-  async function loadData() {
+  async function loadData(currentUniId: string) {
     setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data: profile, error: pErr } = await supabase
-      .from("profiles")
-      .select("university_id")
-      .eq("id", session.user.id)
-      .single();
-
-    if (pErr || !profile?.university_id) {
-      setLoading(false);
-      return;
-    }
-
-    setUniId(profile.university_id);
+    setUniId(currentUniId);
 
     try {
-      const { data: facData } = await supabase
-        .from("faculties")
-        .select(`id, name, short_name, dean_id, created_at`)
-        .eq("university_id", profile.university_id)
-        .order("created_at", { ascending: false });
-
-      const { data: deptCounts } = await supabase
-        .from("departments")
-        .select("faculty")
-        .eq("university_id", profile.university_id);
+      const [facRes, deptRes, staffRes] = await Promise.all([
+        supabase
+          .from("faculties")
+          .select(`id, name, short_name, dean_id, created_at`)
+          .eq("university_id", currentUniId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("departments")
+          .select("faculty")
+          .eq("university_id", currentUniId),
+        fetch(staffApiUrl(currentUniId, { roles: ["dean"] })),
+      ]);
+      const facData = facRes.data;
+      const deptCounts = deptRes.data;
+      const { data: deanData } = await staffRes.json();
 
       const countMap: Record<string, number> = {};
-      (deptCounts ?? []).forEach((d: any) => {
+      (deptCounts ?? []).forEach((d: { faculty?: string }) => {
         const key = d.faculty;
         if (key) countMap[key] = (countMap[key] ?? 0) + 1;
       });
 
-      const staffRes = await fetch(
-        `/api/staff?university_id=${profile.university_id}`,
-      );
-      const { data: allProfiles } = await staffRes.json();
-
-      // Create a map of currently assigned deans: profile_id -> faculty_short_name
       const deanAssignmentMap: Record<string, string> = {};
       (facData ?? []).forEach(f => {
         if (f.dean_id) deanAssignmentMap[f.dean_id] = f.short_name;
       });
-
-      const deanData = (allProfiles || []).filter(
-        (p: { role: string }) => (p.role || "").toLowerCase().trim() === "dean",
-      );
 
       const mappedDeans = deanData.map((d: any) => ({
         id: d.id,
@@ -554,7 +537,7 @@ export default function FacultiesPage() {
       setNewName("");
       setNewShortName("");
       setShowModal(false);
-      await loadData();
+      if (contextUniId) await loadData(contextUniId);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -567,7 +550,7 @@ export default function FacultiesPage() {
       .from("faculties")
       .update({ dean_id: deanId })
       .eq("id", facultyId);
-    await loadData();
+    if (contextUniId) await loadData(contextUniId);
   }
 
   async function handleDelete(id: string) {
@@ -579,7 +562,7 @@ export default function FacultiesPage() {
         .delete()
         .eq("id", id);
       if (err) throw err;
-      await loadData();
+      if (contextUniId) await loadData(contextUniId);
     } catch (err: any) {
       alert(err.message || "Failed to delete faculty");
     } finally {
