@@ -24,7 +24,10 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.emanncode.Uniflow"
+      "package": "com.emanncode.Uniflow",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -60,9 +63,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "c2701cc7-c451-44a8-8d94-4ae6e17bc09e"
+        "projectId": "b3d6efa4-f754-478c-9cf4-8a43e75aadc6"
       }
     },
-    "owner": "emanncodes-organization"
+    "owner": "emanncode"
   }
 }
