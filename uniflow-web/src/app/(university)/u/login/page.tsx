@@ -129,7 +129,7 @@ export default function UniversityLoginPage() {
 
           {university ? (
             <div
-              className="inline-flex items-center gap-1.5 mt-4! px-4! py-1.5! rounded-full"
+              className="inline-flex items-center gap-1.5 mt-4! px-4! py-1.5! rounded-2xl"
               style={{
                 background: 'var(--warning-muted)',
                 border: '1px solid rgba(245, 158, 11, 0.2)',
