@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.radius.lg,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: Theme.colors.borderPrimary,
     padding: 24,
   },
   title: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: Theme.colors.bgTertiary,
     borderWidth: 1,
-    borderColor: Theme.colors.border,
+    borderColor: Theme.colors.borderPrimary,
     borderRadius: Theme.radius.md,
     paddingVertical: 14,
     paddingLeft: 42,
