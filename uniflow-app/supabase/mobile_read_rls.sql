@@ -138,19 +138,49 @@ CREATE POLICY "University admins manage class_updates"
   );
 
 -- ── profiles (for lecturer name joins in timetable/courses) ──────────────────
+-- Uses SECURITY DEFINER helpers to avoid infinite RLS recursion (42P17).
+-- See profiles_rls_fix.sql if these functions are not yet deployed.
+
+CREATE OR REPLACE FUNCTION public.auth_user_role()
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION public.auth_user_university_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT university_id FROM public.profiles WHERE id = auth.uid();
+$$;
+
+REVOKE ALL ON FUNCTION public.auth_user_role() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.auth_user_university_id() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.auth_user_role() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.auth_user_university_id() TO authenticated;
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users read profiles in same university" ON profiles;
+DROP POLICY IF EXISTS "Users read own profile" ON profiles;
+
+CREATE POLICY "Users read own profile"
+  ON profiles FOR SELECT TO authenticated
+  USING (id = auth.uid());
 
 CREATE POLICY "Users read profiles in same university"
   ON profiles FOR SELECT TO authenticated
   USING (
-    EXISTS (
-      SELECT 1 FROM profiles me
-      WHERE me.id = auth.uid()
-        AND me.university_id = profiles.university_id
+    (
+      auth_user_university_id() IS NOT NULL
+      AND university_id = auth_user_university_id()
     )
-    OR EXISTS (
-      SELECT 1 FROM profiles me
-      WHERE me.id = auth.uid() AND me.role = 'uniflow_admin'
-    )
+    OR auth_user_role() = 'uniflow_admin'
   );

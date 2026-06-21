@@ -60,6 +60,7 @@ export default function UniversityLoginPage() {
 
   async function handleCredentials(e: React.FormEvent) {
     e.preventDefault()
+    if (loading) return
     setError('')
     setLoading(true)
 
@@ -67,15 +68,24 @@ export default function UniversityLoginPage() {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
       if (signInError) throw new Error('Invalid email or password.')
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single()
+      const verifyRes = await fetch('/api/auth/verify-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portal: 'university_admin' }),
+      })
 
-      if (!profile || profile.role !== 'university_admin') {
-        await supabase.auth.signOut()
-        throw new Error('Only university admin accounts can access this portal.')
+      if (!verifyRes.ok) {
+        const payload = (await verifyRes.json().catch(() => null)) as {
+          error?: string
+        } | null
+        if (verifyRes.status === 403) {
+          await supabase.auth.signOut()
+        }
+        throw new Error(
+          payload?.error === 'Access denied'
+            ? 'Only university admin accounts can access this portal.'
+            : 'Could not verify your account. Please try again.',
+        )
       }
 
       router.push('/u')
@@ -129,7 +139,7 @@ export default function UniversityLoginPage() {
 
           {university ? (
             <div
-              className="inline-flex items-center gap-1.5 mt-4! px-4! py-1.5! rounded-2xl"
+              className="inline-flex items-center gap-1.5 mt-4! px-4! py-1.5! rounded-full"
               style={{
                 background: 'var(--warning-muted)',
                 border: '1px solid rgba(245, 158, 11, 0.2)',
@@ -157,7 +167,7 @@ export default function UniversityLoginPage() {
                 <div className="alert-error mb-6!">{error}</div>
               )}
 
-              <form onSubmit={handleCredentials} className="space-y-5">
+              <form onSubmit={handleCredentials} className="space-y-5" aria-busy={loading}>
                 <div>
                   <label className="label">Email Address</label>
                   <div className="relative">
@@ -172,6 +182,8 @@ export default function UniversityLoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@university.edu"
                       className="input pl-10!"
+                      disabled={loading}
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -181,7 +193,9 @@ export default function UniversityLoginPage() {
                     <label className="label mb-0!">Password</label>
                     <Link
                       href="/u/forgot-password"
-                      className="text-xs text-brand hover:underline"
+                      className={`text-xs text-brand hover:underline${loading ? ' pointer-events-none opacity-50' : ''}`}
+                      aria-disabled={loading}
+                      tabIndex={loading ? -1 : undefined}
                     >
                       Forgot password?
                     </Link>
@@ -198,11 +212,14 @@ export default function UniversityLoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="input pl-10! pr-10!"
+                      disabled={loading}
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
+                      disabled={loading}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>

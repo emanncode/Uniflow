@@ -1,4 +1,5 @@
 import { createSupabaseServer } from "./supabase-server";
+import { getProfileForUser } from "./profile-server";
 
 export type UserRole = "uniflow_admin" | "university_admin" | "dean" | "hod" | "lecturer" | "student";
 
@@ -7,11 +8,7 @@ export async function getSession() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role, university_id")
-    .eq("id", user.id)
-    .single();
+  const profile = await getProfileForUser(user.id);
 
   return {
     user,

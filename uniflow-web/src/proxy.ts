@@ -5,9 +5,22 @@ import {
   isSuperAdmin,
   isUniversityPortal,
 } from "@/lib/subdomain";
+import { getProfileForUser } from "@/lib/profile-server";
 
 const publicRoutes = ["/", "/register", "/login"];
 const authRoutes = ["/login", "/register"];
+
+/** Share auth cookies across localhost and *.localhost in local dev. */
+function withLocalCookieDomain(
+  hostname: string,
+  options?: Parameters<NextResponse["cookies"]["set"]>[2],
+) {
+  const host = hostname.split(":")[0].toLowerCase();
+  if (host === "localhost" || host.endsWith(".localhost")) {
+    return { ...options, domain: ".localhost", path: "/" };
+  }
+  return options;
+}
 
 function rewriteWithCookies(
   request: NextRequest,
@@ -51,7 +64,11 @@ export async function proxy(request: NextRequest) {
           );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
+            supabaseResponse.cookies.set(
+              name,
+              value,
+              withLocalCookieDomain(hostname, options),
+            ),
           );
         },
       },
@@ -86,11 +103,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    const profile = await getProfileForUser(user.id);
 
     if (profile?.role !== "uniflow_admin") {
       const url = request.nextUrl.clone();
@@ -102,6 +115,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isUniversityPortal(hostname)) {
+    if (pathname === "/unauthorized") {
+      return supabaseResponse;
+    }
+
     if (pathname === "/u" || pathname.startsWith("/u/")) {
       const url = request.nextUrl.clone();
       url.pathname = pathname === "/u" ? "/" : pathname.replace(/^\/u/, "");
@@ -124,16 +141,24 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, university_id, universities(short_name)")
-      .eq("id", user.id)
-      .single();
+    const profile = await getProfileForUser(user.id, {
+      includeUniversity: true,
+    });
 
     const allowedRoles = ["university_admin"];
     if (!profile || !allowedRoles.includes(profile.role)) {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";
+      return NextResponse.redirect(url);
+    }
+
+    const universityShortName = (
+      profile.universities as { short_name?: string } | null
+    )?.short_name;
+    if (!universityShortName || universityShortName !== subdomain) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/unauthorized";
+      url.searchParams.set("reason", "wrong-portal");
       return NextResponse.redirect(url);
     }
 

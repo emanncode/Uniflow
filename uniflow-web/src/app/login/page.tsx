@@ -24,6 +24,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState("");
 
   const handleCredentials = async () => {
+    if (loading) return;
     setLoading(true);
     setError("");
 
@@ -39,16 +40,24 @@ export default function LoginPage() {
       return;
     }
 
-    // check if admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
+    const verifyRes = await fetch("/api/auth/verify-portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ portal: "uniflow_admin" }),
+    });
 
-    if (profile?.role !== "uniflow_admin") {
-      setError("Access denied. This portal is for uniflow admins only.");
-      await supabase.auth.signOut();
+    if (!verifyRes.ok) {
+      const payload = (await verifyRes.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+      setError(
+        payload?.error === "Access denied"
+          ? "Access denied. This portal is for uniflow admins only."
+          : "Could not verify your account. Please try again.",
+      );
+      if (verifyRes.status === 403) {
+        await supabase.auth.signOut();
+      }
       setLoading(false);
       return;
     }
@@ -148,7 +157,7 @@ export default function LoginPage() {
 
               {otpError && <div className="alert-error mb-6!">{otpError}</div>}
 
-              <div className="space-y-5">
+              <div className="space-y-5" aria-busy={loading}>
                 <div>
                   <label className="label">Email Address</label>
                   <div className="relative">
@@ -162,6 +171,8 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={`admin@${BASE_DOMAIN}`}
                       className="input pl-10!"
+                      disabled={loading}
+                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -171,7 +182,9 @@ export default function LoginPage() {
                     <label className="label mb-0!">Password</label>
                     <Link
                       href="/forgot-password"
-                      className="text-xs text-brand hover:underline"
+                      className={`text-xs text-brand hover:underline${loading ? " pointer-events-none opacity-50" : ""}`}
+                      aria-disabled={loading}
+                      tabIndex={loading ? -1 : undefined}
                     >
                       Forgot password?
                     </Link>
@@ -187,14 +200,17 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="input pl-10! pr-10!"
+                      disabled={loading}
+                      autoComplete="current-password"
                       onKeyDown={(e) =>
-                        e.key === "Enter" && handleCredentials()
+                        e.key === "Enter" && !loading && handleCredentials()
                       }
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
+                      disabled={loading}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -220,7 +236,8 @@ export default function LoginPage() {
                     setError("");
                     setOtp("");
                   }}
-                  className="text-xs hover:text-brand transition-colors mb-6! flex items-center gap-1"
+                  disabled={loading}
+                  className="text-xs hover:text-brand transition-colors mb-6! flex items-center gap-1 disabled:opacity-50 disabled:pointer-events-none"
                   style={{ color: "var(--text-muted)" }}
                 >
                   ← Back
@@ -251,7 +268,8 @@ export default function LoginPage() {
                     placeholder="000000"
                     className="input text-center text-2xl font-bold tracking-[0.5em]"
                     maxLength={6}
-                    onKeyDown={(e) => e.key === "Enter" && handleOtp()}
+                    disabled={loading}
+                    onKeyDown={(e) => e.key === "Enter" && !loading && handleOtp()}
                   />
                 </div>
 
@@ -270,7 +288,8 @@ export default function LoginPage() {
                   Didn&apos;t receive the code?{" "}
                   <button
                     onClick={handleResend}
-                    className="text-brand hover:underline"
+                    disabled={loading}
+                    className="text-brand hover:underline disabled:opacity-50 disabled:pointer-events-none"
                     style={{ color: "var(--brand)" }}
                   >
                     Resend
