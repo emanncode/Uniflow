@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { BASE_DOMAIN } from "@/lib/domain";
+import UniflowLogo from "@/components/ui/UniflowLogo";
 
 export const dynamic = "force-dynamic";
 
@@ -128,12 +129,9 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-[linear-gradient(var(--bg-hover)_1px,transparent_1px),linear-gradient(90deg,var(--bg-hover)_1px,transparent_1px)] bg-size-[64px_64px]" />
 
       <div className="relative w-full max-w-md">
-        {/* logo */}
-        <div className="mb-10! text-center">
-          <h1 className="text-4xl font-black tracking-tighter text-primary">
-            uni<span className="text-brand">flow</span>
-          </h1>
-          <p className="mt-2! text-xs text-muted tracking-widest uppercase">
+        <div className="mb-10! flex flex-col items-center text-center">
+          <UniflowLogo size={40} />
+          <p className="mt-3! text-xs text-muted tracking-widest uppercase">
             Admin Portal
           </p>
         </div>
