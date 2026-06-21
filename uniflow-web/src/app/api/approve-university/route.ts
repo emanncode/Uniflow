@@ -1,8 +1,4 @@
 import { createAdminClient } from '@/lib/supabase-admin'
-import {
-  resolveBaseDomainFromRequestHost,
-  resolveProtocolFromRequestHost,
-} from '@/lib/domain'
 import { generateTempPassword } from '@/lib/utils'
 import { NextResponse } from 'next/server'
 import {
@@ -93,41 +89,27 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
 
-    // 5. Generate password reset link for approval email
-    const host = request.headers.get('host') || ''
-    const protocol = resolveProtocolFromRequestHost(host)
-    const baseDomain = resolveBaseDomainFromRequestHost(host)
-    const redirectTo = `${protocol}://${reg.short_name}-admin.${baseDomain}/u/reset-password`
-
-    const { data: linkData, error: linkError } =
-      await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: finalEmail,
-        options: { redirectTo },
-      })
-
-    if (linkError) {
-      return NextResponse.json({ error: linkError.message }, { status: 500 })
-    }
-
-    const resetUrl = linkData.properties.action_link
-
-    // 6. Update registration status
+    // 5. Update registration status
     await supabase
       .from('university_registrations')
       .update({ status: 'approved', reviewed_at: new Date().toISOString() })
       .eq('id', registrationId)
 
-    // 7. Send approval email (non-blocking for API success)
+    // Generate reset link and send approval email
+    const { data: linkData } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: finalEmail,
+    })
+
     try {
       await sendEmail(
-        finalEmail,
-        `Your university has been approved — ${reg.university_name}`,
+        reg.official_email,
+        'Your university is approved on Uniflow 🎉',
         universityApprovedEmail(
           reg.university_name,
           reg.short_name,
-          finalEmail,
-          resetUrl,
+          reg.official_email,
+          linkData?.properties?.action_link ?? '',
         ),
       )
     } catch (emailError) {

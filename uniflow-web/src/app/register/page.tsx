@@ -124,10 +124,9 @@ export default function RegisterPage() {
     }
     const finalOfficialEmail = emailCheck.normalized
 
-    const response = await fetch('/api/public/university-registration', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const { error: insertError } = await supabase
+      .from('university_registrations')
+      .insert({
         university_name: form.university_name.trim(),
         short_name: form.short_name.trim(),
         official_email: finalOfficialEmail,
@@ -135,21 +134,26 @@ export default function RegisterPage() {
         country: form.country,
         state: form.state || null,
         website: form.website.trim() || null,
-        estimated_students: form.estimated_students
-          ? parseInt(form.estimated_students, 10)
-          : null,
+        estimated_students: form.estimated_students ? parseInt(form.estimated_students) : null,
         contact_person_name: form.contact_person_name.trim(),
         contact_person_role: form.contact_person_role.trim() || null,
-      }),
-    })
+        status: 'pending',
+      })
 
-    const result = await response.json()
-
-    if (!response.ok) {
-      setError(result.error || 'Failed to submit registration')
+    if (insertError) {
+      setError(insertError.message)
       setLoading(false)
       return
     }
+
+    await fetch('/api/send-registration-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: finalOfficialEmail,
+        university_name: form.university_name.trim(),
+      }),
+    })
 
     setSubmitted(true)
     setLoading(false)

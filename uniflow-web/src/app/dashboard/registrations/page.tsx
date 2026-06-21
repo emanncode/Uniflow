@@ -93,27 +93,14 @@ export default function RegistrationsPage() {
   const handleReject = async (reason: string) => {
     if (!rejectTarget) return
     setActionLoading(true)
-
-    try {
-      const response = await fetch('/api/reject-university', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registrationId: rejectTarget, reason }),
-      })
-
-      const result = await response.json()
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to reject registration')
-      }
-
-      setRejectTarget(null)
-      await fetchRegistrations()
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'An unknown error occurred'
-      alert('Error: ' + message)
-    } finally {
-      setActionLoading(false)
-    }
+    await fetch('/api/reject-university', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationId: rejectTarget, reason }),
+    })
+    setRejectTarget(null)
+    await fetchRegistrations()
+    setActionLoading(false)
   }
 
   const copyToClipboard = (text: string) => {
