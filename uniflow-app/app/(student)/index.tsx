@@ -21,6 +21,7 @@ import {
 } from 'lucide-react-native'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useStudentEnrollments } from '@/hooks/useStudentEnrollments'
 import { Theme } from '@/constants/Theme'
 import { DashboardSkeleton } from '@/components/SkeletonLoader'
 import { ScreenHeaderActions } from '@/components/ScreenHeaderActions'
@@ -181,23 +182,21 @@ export default function StudentDashboard() {
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
+  const { refresh: refreshEnrollments } = useStudentEnrollments()
+
   const fetchData = useCallback(async () => {
     if (!profile) return
     try {
-      const { data: enrollments } = await supabase
-        .from('enrollments')
-        .select('course_id')
-        .eq('student_id', profile.id)
-        .eq('is_active', true)
+      const courseIds = await refreshEnrollments(true)
 
-      if (!enrollments || enrollments.length === 0) {
+      if (courseIds.length === 0) {
         setTodaySlots([])
         setUpcomingSlots([])
         setTotalCourses(0)
+        setTodayUpdates({})
         return
       }
 
-      const courseIds = enrollments.map((e) => e.course_id)
       setTotalCourses(courseIds.length)
 
       const { data: allSlots } = await supabase
@@ -218,23 +217,31 @@ export default function StudentDashboard() {
       setTodaySlots(today)
       setUpcomingSlots(upcoming)
 
+      const todayIds = today.map((s) => s.id)
+      if (todayIds.length === 0) {
+        setTodayUpdates({})
+        return
+      }
+
       const todayDate = new Date().toISOString().split('T')[0]
       const { data: updates } = await supabase
         .from('class_updates')
         .select('*')
         .eq('university_id', profile.university_id)
         .eq('update_date', todayDate)
-        .in('timetable_id', today.map((s) => s.id))
+        .in('timetable_id', todayIds)
 
       if (updates) {
         const map: Record<string, ClassUpdate> = {}
         updates.forEach((u) => { map[u.timetable_id] = u })
         setTodayUpdates(map)
+      } else {
+        setTodayUpdates({})
       }
     } catch (e) {
       console.error('Student dashboard fetch error:', e)
     }
-  }, [profile])
+  }, [profile, refreshEnrollments])
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false))

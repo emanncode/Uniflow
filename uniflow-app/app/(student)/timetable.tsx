@@ -23,6 +23,7 @@ import {
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
@@ -341,24 +342,19 @@ export default function StudentTimetable() {
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
+  const { refresh: refreshEnrollments } = useStudentEnrollments();
+
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      // 1. Get student enrollments
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .eq("student_id", profile.id)
-        .eq("is_active", true);
+      const courseIds = await refreshEnrollments(true);
 
-      if (!enrollments || enrollments.length === 0) {
+      if (courseIds.length === 0) {
         setAllSlots([]);
+        setUpdates({});
         return;
       }
 
-      const courseIds = enrollments.map((e) => e.course_id);
-
-      // 2. Fetch timetable slots for enrolled courses
       const { data: slots } = await supabase
         .from("timetable")
         .select(
@@ -369,15 +365,22 @@ export default function StudentTimetable() {
         .order("day_of_week")
         .order("start_time");
 
-      if (slots) setAllSlots(slots);
+      const loadedSlots = slots ?? [];
+      setAllSlots(loadedSlots);
 
-      // 3. Fetch today's updates
+      const slotIds = loadedSlots.map((s) => s.id);
+      if (slotIds.length === 0) {
+        setUpdates({});
+        return;
+      }
+
       const todayDate = new Date().toISOString().split("T")[0];
       const { data: todayUpdates } = await supabase
         .from("class_updates")
         .select("*")
         .eq("university_id", profile.university_id)
-        .eq("update_date", todayDate);
+        .eq("update_date", todayDate)
+        .in("timetable_id", slotIds);
 
       if (todayUpdates) {
         const map: Record<string, ClassUpdate> = {};
@@ -385,11 +388,13 @@ export default function StudentTimetable() {
           map[u.timetable_id] = u;
         });
         setUpdates(map);
+      } else {
+        setUpdates({});
       }
     } catch (e) {
       console.error("Student timetable fetch error:", e);
     }
-  }, [profile]);
+  }, [profile, refreshEnrollments]);
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false));

@@ -31,6 +31,7 @@ import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
 import { FadeSlideIn } from "@/components/FadeSlideIn";
 import { ScalePressable } from "@/components/ScalePressable";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import type { Resource, ResourceType, FileType, Course } from "@/types";
@@ -505,47 +506,40 @@ export default function LecturerResources() {
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
+  const { refresh: refreshCourseIds } = useLecturerCourseIds();
+
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      // Get assigned course IDs
-      const { data: lecturerCourses } = await supabase
-        .from("lecturer_courses")
-        .select("course_id")
-        .eq("lecturer_id", profile.id)
-        .eq("is_active", true);
+      const courseIds = await refreshCourseIds(true);
 
-      if (!lecturerCourses?.length) {
+      if (courseIds.length === 0) {
         setCourses([]);
         setResources([]);
         return;
       }
 
-      const courseIds = lecturerCourses.map((lc) => lc.course_id);
+      const [courseRes, resourceRes] = await Promise.all([
+        supabase
+          .from("courses")
+          .select("*")
+          .in("id", courseIds)
+          .eq("is_active", true)
+          .order("code"),
+        supabase
+          .from("resources")
+          .select("*")
+          .eq("uploaded_by", profile.id)
+          .in("course_id", courseIds)
+          .order("created_at", { ascending: false }),
+      ]);
 
-      // Fetch courses
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("*")
-        .in("id", courseIds)
-        .eq("is_active", true)
-        .order("code");
-
-      if (courseData) setCourses(courseData);
-
-      // Fetch resources uploaded by this lecturer
-      const { data: resourceData } = await supabase
-        .from("resources")
-        .select("*")
-        .eq("uploaded_by", profile.id)
-        .in("course_id", courseIds)
-        .order("created_at", { ascending: false });
-
-      if (resourceData) setResources(resourceData);
+      if (courseRes.data) setCourses(courseRes.data);
+      if (resourceRes.data) setResources(resourceRes.data);
     } catch (e) {
       console.error("Resources fetch error:", e);
     }
-  }, [profile]);
+  }, [profile, refreshCourseIds]);
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false));

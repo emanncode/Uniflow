@@ -6,7 +6,19 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getSubdomain } from '@/lib/subdomain'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Lock, ArrowRight, Loader2, GraduationCap, AlertCircle, Eye, EyeOff, Key, X, Copy, Check, Info } from 'lucide-react'
+import {
+  Mail,
+  Lock,
+  Loader2,
+  GraduationCap,
+  Eye,
+  EyeOff,
+  Key,
+  X,
+  Copy,
+  Check,
+  Info,
+} from 'lucide-react'
 
 type Step = 'credentials' | 'otp'
 
@@ -20,16 +32,13 @@ export default function UniversityLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
-  const [resendTimer, setResendTimer] = useState(0)
 
-  // Self-service password states
   const [showPassGen, setShowPassGen] = useState(false)
   const [genEmail, setPassGenEmail] = useState('')
   const [genLoading, setGenLoading] = useState(false)
   const [tempPassword, setTempPassword] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
-  // Detect university from subdomain
   useEffect(() => {
     async function detectUniversity() {
       const subdomain = getSubdomain(window.location.hostname)
@@ -47,13 +56,6 @@ export default function UniversityLoginPage() {
     }
     detectUniversity()
   }, [])
-
-  // Resend countdown
-  useEffect(() => {
-    if (resendTimer <= 0) return
-    const t = setTimeout(() => setResendTimer(r => r - 1), 1000)
-    return () => clearTimeout(t)
-  }, [resendTimer])
 
   async function handleCredentials(e: React.FormEvent) {
     e.preventDefault()
@@ -75,44 +77,13 @@ export default function UniversityLoginPage() {
         throw new Error('Only university admin accounts can access this portal.')
       }
 
-      // OTP logic disabled temporarily. DO NOT UNCOMMENT YET.
-      router.push('/')
+      router.push('/u')
     } catch (err: unknown) {
       setError((err as Error).message)
     } finally {
       setLoading(false)
     }
   }
-
-  // OTP functions disabled temporarily. DO NOT UNCOMMENT YET.
-  /*
-  async function handleOtp(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'email',
-      })
-      if (verifyError) throw new Error('Invalid or expired code. Check your email and try again.')
-
-      router.push('/')
-    } catch (err: unknown) {
-      setError((err as Error).message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleResend() {
-    setError('')
-    await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
-    setResendTimer(60)
-  }
-  */
 
   async function handleGenerateTempPass(e: React.FormEvent) {
     e.preventDefault()
@@ -122,14 +93,14 @@ export default function UniversityLoginPage() {
       const res = await fetch('/api/public/generate-temp-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: genEmail })
+        body: JSON.stringify({ email: genEmail }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      
+
       setTempPassword(data.tempPassword)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to generate password')
     } finally {
       setGenLoading(false)
     }
@@ -142,318 +113,269 @@ export default function UniversityLoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg-primary)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
+    <main
+      style={{ backgroundColor: 'var(--bg-primary)' }}
+      className="min-h-screen flex items-center justify-center px-4! relative"
+    >
+      <div className="absolute inset-0 bg-[linear-gradient(var(--bg-hover)_1px,transparent_1px),linear-gradient(90deg,var(--bg-hover)_1px,transparent_1px)] bg-size-[64px_64px]" />
 
-      {/* Background glow */}
-      <div style={{
-        position: 'absolute',
-        top: '-20%',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '600px',
-        height: '600px',
-        background: 'radial-gradient(ellipse, rgba(255,92,26,0.08) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-
-      <div style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }}>
-
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-            <h1 style={{ fontSize: '36px', fontWeight: 900, letterSpacing: '-0.05em', color: 'var(--text-primary)' }}>
-              uni<span style={{ color: 'var(--brand)' }}>flow</span>
-            </h1>
-            <p style={{ marginTop: '8px', fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-              Portal Login
-            </p>
-          </div>
+      <div className="relative w-full max-w-md">
+        <div className="mb-10! text-center">
+          <h1 className="text-4xl font-black tracking-tighter text-primary">
+            uni<span className="text-brand">flow</span>
+          </h1>
+          <p className="mt-2! text-xs text-muted tracking-widest uppercase">
+            University Portal
+          </p>
 
           {university ? (
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: 'var(--warning-muted)',
-              border: '1px solid rgba(245, 158, 11, 0.2)',
-              borderRadius: 'var(--radius-full)',
-              padding: '6px 16px',
-              marginBottom: '12px',
-            }}>
+            <div
+              className="inline-flex items-center gap-1.5 mt-4! px-4! py-1.5! rounded-full"
+              style={{
+                background: 'var(--warning-muted)',
+                border: '1px solid rgba(245, 158, 11, 0.2)',
+              }}
+            >
               <GraduationCap size={14} style={{ color: 'var(--warning)' }} />
-              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--warning)' }}>
+              <span className="text-xs font-semibold" style={{ color: 'var(--warning)' }}>
                 {university.name}
               </span>
             </div>
           ) : null}
-
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            {step === 'credentials' ? 'Sign in to your portal' : 'Verify your identity'}
-          </p>
         </div>
 
-        {/* Card */}
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border-secondary)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '32px',
-          backdropFilter: 'blur(24px)',
-          boxShadow: 'var(--shadow-premium)',
-        }}>
-
-          {/* Error */}
-          {error && !showPassGen && (
-            <div style={{
-              display: 'flex',
-              gap: '8px',
-              alignItems: 'flex-start',
-              background: 'var(--danger-muted)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              borderRadius: 'var(--radius-md)',
-              padding: '12px',
-              marginBottom: '20px',
-            }}>
-              <AlertCircle size={15} style={{ color: 'var(--danger)', flexShrink: 0, marginTop: '1px' }} />
-              <p style={{ fontSize: '13px', color: 'var(--danger)', lineHeight: 1.5 }}>
-                {error}
+        <div className="card">
+          {step === 'credentials' ? (
+            <>
+              <h2 className="text-xl font-bold text-primary mb-1!">
+                Welcome back
+              </h2>
+              <p className="text-secondary text-sm mb-8!">
+                Sign in to manage your university
               </p>
-            </div>
-          )}
 
-          {/* Step 1 — Credentials */}
-          {step === 'credentials' && (
-            <form onSubmit={handleCredentials} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label className="label">Email Address</label>
-                <div style={{ position: 'relative' }}>
-                  <Mail size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="you@university.edu"
-                    className="input"
-                    style={{ width: '100%', paddingLeft: '40px', boxSizing: 'border-box' }}
-                  />
-                </div>
-              </div>
+              {error && !showPassGen && (
+                <div className="alert-error mb-6!">{error}</div>
+              )}
 
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label className="label" style={{ marginBottom: 0 }}>Password</label>
-                  <Link
-                    href="/u/forgot-password"
-                    style={{ color: 'var(--brand)', fontSize: '11px', fontWeight: 600, textDecoration: 'none' }}
-                  >
-                    Forgot password?
-                  </Link>
+              <form onSubmit={handleCredentials} className="space-y-5">
+                <div>
+                  <label className="label">Email Address</label>
+                  <div className="relative">
+                    <Mail
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+                    />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@university.edu"
+                      className="input pl-10!"
+                    />
+                  </div>
                 </div>
-                <div style={{ position: 'relative' }}>
-                  <Lock size={15} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="input"
-                    style={{ width: '100%', paddingLeft: '40px', paddingRight: '40px', boxSizing: 'border-box' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute', right: '14px', top: '50%',
-                      transform: 'translateY(-50%)', background: 'none',
-                      border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
-                      padding: 0, display: 'flex', alignItems: 'center'
-                    }}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </div>
 
+                <div>
+                  <div className="flex items-center justify-between mb-2!">
+                    <label className="label mb-0!">Password</label>
+                    <Link
+                      href="/u/forgot-password"
+                      className="text-xs text-brand hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock
+                      size={15}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted"
+                    />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input pl-10! pr-10!"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full mt-2!"
+                >
+                  {loading ? 'Verifying...' : 'Continue'}
+                </button>
+              </form>
+            </>
+          ) : (
+            <div className="text-center py-5!">
+              <p className="text-secondary text-sm mb-4!">OTP is currently disabled.</p>
               <button
-                type="submit"
-                disabled={loading}
-                className="btn-primary"
-                style={{ width: '100%', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                type="button"
+                onClick={() => setStep('credentials')}
+                className="btn-secondary"
               >
-                {loading
-                  ? <Loader2 size={16} className="animate-spin" />
-                  : <>Sign In <ArrowRight size={15} /></>
-                }
+                Back
               </button>
-            </form>
-          )}
-
-          {/* Step 2 — OTP (Left in for future use if step is toggled) */}
-          {step === 'otp' && (
-            <div style={{ textAlign: 'center', padding: '20px' }}>
-              <p style={{ color: 'var(--text-muted)' }}>OTP is currently disabled.</p>
-              <button onClick={() => setStep('credentials')} className="btn-secondary" style={{ marginTop: '12px' }}>Back</button>
             </div>
           )}
         </div>
 
-        <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)', marginTop: '20px' }}>
-          Powered by Uniflow · University Portal
+        <p
+          className="text-center text-xs mt-6!"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Uniflow © {new Date().getFullYear()}
         </p>
       </div>
 
-      {/* Self-Service Password Generation Modal */}
       <AnimatePresence>
         {showPassGen && (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(4px)',
-          }}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-5!"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              style={{
-                width: '100%', maxWidth: '400px',
-                backgroundColor: 'var(--bg-card)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-primary)',
-                padding: '28px', position: 'relative',
-              }}
+              className="card w-full max-w-md relative"
             >
               <button
-                onClick={() => { setShowPassGen(false); setTempPassword(null); setError('') }}
-                style={{
-                  position: 'absolute', right: '16px', top: '16px',
-                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                  cursor: 'pointer', padding: '4px',
+                type="button"
+                onClick={() => {
+                  setShowPassGen(false)
+                  setTempPassword(null)
+                  setError('')
                 }}
+                className="absolute right-4 top-4 text-muted hover:text-primary transition-colors"
               >
                 <X size={18} />
               </button>
 
               {!tempPassword ? (
                 <>
-                  <div style={{
-                    width: '48px', height: '48px', borderRadius: '12px',
-                    backgroundColor: 'var(--brand-muted)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: '20px', border: '1px solid var(--border-brand)',
-                  }}>
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-5!"
+                    style={{
+                      backgroundColor: 'var(--brand-muted)',
+                      border: '1px solid var(--border-brand)',
+                    }}
+                  >
                     <Key size={24} color="var(--brand)" />
                   </div>
 
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  <h3 className="text-lg font-bold text-primary mb-2!">
                     Generate Temporary Password
                   </h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
-                    If you haven't set a password or can't access your email, enter your registered email below to get a temporary login password.
+                  <p className="text-secondary text-sm mb-6! leading-relaxed">
+                    If you haven&apos;t set a password or can&apos;t access your email, enter your
+                    registered email below to get a temporary login password.
                   </p>
 
-                  <form onSubmit={handleGenerateTempPass} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <form onSubmit={handleGenerateTempPass} className="space-y-4">
                     <div>
                       <label className="label">Registered Email</label>
                       <input
                         type="email"
                         required
                         value={genEmail}
-                        onChange={e => setPassGenEmail(e.target.value)}
+                        onChange={(e) => setPassGenEmail(e.target.value)}
                         placeholder="yourname@university.edu"
                         className="input"
-                        style={{ width: '100%' }}
                       />
                     </div>
 
-                    {error && (
-                      <div style={{
-                        display: 'flex', gap: '8px', padding: '10px',
-                        background: 'var(--danger-muted)', borderRadius: 'var(--radius-md)',
-                        fontSize: '12px', color: 'var(--danger)'
-                      }}>
-                        <AlertCircle size={14} style={{ flexShrink: 0 }} />
-                        {error}
-                      </div>
-                    )}
+                    {error && <div className="alert-error">{error}</div>}
 
                     <button
                       type="submit"
                       disabled={genLoading}
-                      className="btn-primary"
-                      style={{ height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                      className="btn-primary w-full flex items-center justify-center gap-2"
                     >
-                      {genLoading ? <Loader2 size={16} className="animate-spin" /> : 'Generate Password'}
+                      {genLoading ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        'Generate Password'
+                      )}
                     </button>
                   </form>
                 </>
               ) : (
                 <>
-                  <div style={{
-                    width: '48px', height: '48px', borderRadius: '50%',
-                    backgroundColor: 'var(--success-muted)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: '20px', border: '1px solid var(--success-muted)',
-                  }}>
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center mb-5!"
+                    style={{
+                      backgroundColor: 'var(--success-muted)',
+                      border: '1px solid var(--success-muted)',
+                    }}
+                  >
                     <Check size={24} color="var(--success)" />
                   </div>
 
-                  <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                  <h3 className="text-lg font-bold text-primary mb-2!">
                     Password Generated
                   </h3>
-                  
-                  <div style={{
-                    padding: '12px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--info-muted)',
-                    border: '1px solid var(--info-muted)',
-                    display: 'flex', gap: '10px', marginBottom: '20px'
-                  }}>
-                    <Info size={16} color="var(--info)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <p style={{ fontSize: '12px', color: 'var(--info)', lineHeight: 1.5, margin: 0 }}>
-                      <strong>Security Note:</strong> This temporary password will be invalidated immediately after your first successful login.
+
+                  <div
+                    className="flex gap-2.5 p-3! rounded-md mb-5!"
+                    style={{
+                      backgroundColor: 'var(--info-muted)',
+                      border: '1px solid var(--info-muted)',
+                    }}
+                  >
+                    <Info size={16} color="var(--info)" className="shrink-0 mt-0.5" />
+                    <p className="text-xs leading-relaxed m-0!" style={{ color: 'var(--info)' }}>
+                      <strong>Security Note:</strong> This temporary password will be invalidated
+                      immediately after your first successful login.
                     </p>
                   </div>
 
-                  <div style={{
-                    padding: '16px', borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'rgba(0,0,0,0.2)',
-                    border: '1px solid var(--border-primary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    gap: '12px', marginBottom: '24px',
-                  }}>
-                    <code style={{ fontSize: '18px', fontWeight: 700, color: 'var(--brand)', letterSpacing: '0.05em' }}>
+                  <div
+                    className="flex items-center justify-between gap-3 p-4! rounded-md mb-6!"
+                    style={{
+                      backgroundColor: 'rgba(0,0,0,0.2)',
+                      border: '1px solid var(--border-primary)',
+                    }}
+                  >
+                    <code
+                      className="text-lg font-bold tracking-wide"
+                      style={{ color: 'var(--brand)' }}
+                    >
                       {tempPassword}
                     </code>
                     <button
+                      type="button"
                       onClick={() => copyToClipboard(tempPassword)}
-                      style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                      className="text-muted hover:text-primary transition-colors"
                     >
                       {copied ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
                     </button>
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => {
                       setEmail(genEmail)
                       setShowPassGen(false)
                       setTempPassword(null)
                     }}
-                    style={{
-                      width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
-                      backgroundColor: 'var(--brand)', color: 'white',
-                      fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer',
-                    }}
+                    className="btn-primary w-full"
                   >
                     Done, Proceed to Login
                   </button>
@@ -463,6 +385,6 @@ export default function UniversityLoginPage() {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   )
 }

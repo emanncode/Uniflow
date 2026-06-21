@@ -320,15 +320,22 @@ export default function LecturerTimetable() {
         return;
       }
 
-      if (slots) setAllSlots(slots);
+      const loadedSlots = slots ?? [];
+      setAllSlots(loadedSlots);
 
-      // Fetch today's updates
+      const slotIds = loadedSlots.map((s) => s.id);
+      if (slotIds.length === 0) {
+        setUpdates({});
+        return;
+      }
+
       const todayDate = new Date().toISOString().split("T")[0];
       const { data: todayUpdates } = await supabase
         .from("class_updates")
         .select("*")
         .eq("university_id", profile.university_id)
-        .eq("update_date", todayDate);
+        .eq("update_date", todayDate)
+        .in("timetable_id", slotIds);
 
       if (todayUpdates) {
         const map: Record<string, ClassUpdate> = {};
@@ -336,6 +343,8 @@ export default function LecturerTimetable() {
           map[u.timetable_id] = u;
         });
         setUpdates(map);
+      } else {
+        setUpdates({});
       }
     } catch (e) {
       console.error("Timetable fetch error:", e);

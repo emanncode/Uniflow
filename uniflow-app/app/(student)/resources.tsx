@@ -27,6 +27,7 @@ import { ScreenPageHeader } from '@/components/ScreenPageHeader'
 import { FadeSlideIn } from '@/components/FadeSlideIn'
 import { ScalePressable } from '@/components/ScalePressable'
 import { useAuthStore } from '@/store/useAuthStore'
+import { useStudentEnrollments } from '@/hooks/useStudentEnrollments'
 import { Theme } from '@/constants/Theme'
 import type { Resource, FileType, ResourceType } from '@/types'
 
@@ -193,24 +194,18 @@ export default function StudentResources() {
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
+  const { refresh: refreshEnrollments } = useStudentEnrollments()
+
   const fetchData = useCallback(async () => {
     if (!profile) return
     try {
-      // 1. Enrolled course IDs
-      const { data: enrollments } = await supabase
-        .from('enrollments')
-        .select('course_id')
-        .eq('student_id', profile.id)
-        .eq('is_active', true)
+      const courseIds = await refreshEnrollments(true)
 
-      if (!enrollments || enrollments.length === 0) {
+      if (courseIds.length === 0) {
         setResources([])
         return
       }
 
-      const courseIds = enrollments.map((e) => e.course_id)
-
-      // 2. Approved resources for enrolled courses
       const { data: resourceData } = await supabase
         .from('resources')
         .select('*, courses(code, title)')
@@ -230,7 +225,7 @@ export default function StudentResources() {
     } catch (e) {
       console.error('Resources fetch error:', e)
     }
-  }, [profile])
+  }, [profile, refreshEnrollments])
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false))

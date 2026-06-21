@@ -193,18 +193,26 @@ export default function LecturerDashboard() {
       setUpcomingSlots(upcoming)
       setTotalCourses(new Set(allSlots.map((s) => s.course_id)).size)
 
+      const todayIds = today.map((s) => s.id)
+      if (todayIds.length === 0) {
+        setTodayUpdates({})
+        return
+      }
+
       const todayDate = new Date().toISOString().split('T')[0]
       const { data: updates } = await supabase
         .from('class_updates')
         .select('*')
         .eq('university_id', profile.university_id)
         .eq('update_date', todayDate)
-        .in('timetable_id', today.map((s) => s.id))
+        .in('timetable_id', todayIds)
 
       if (updates) {
         const map: Record<string, ClassUpdate> = {}
         updates.forEach((u) => { map[u.timetable_id] = u })
         setTodayUpdates(map)
+      } else {
+        setTodayUpdates({})
       }
     } catch (e) {
       console.error('Dashboard fetch error:', e)

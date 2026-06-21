@@ -20,6 +20,8 @@ import {
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
+import { countByCourseId } from "@/lib/enrollmentCounts";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { CoursesSkeleton } from "@/components/SkeletonLoader";
@@ -227,72 +229,62 @@ export default function LecturerCourses() {
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
+  const { refresh: refreshCourseIds } = useLecturerCourseIds();
+
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      // 1. Get all lecturer_courses for this lecturer
-      const { data: lecturerCourses, error: lcError } = await supabase
-        .from("lecturer_courses")
-        .select("course_id")
-        .eq("lecturer_id", profile.id)
-        .eq("is_active", true);
+      const courseIds = await refreshCourseIds(true);
 
-      if (lcError) {
-        console.error("Lecturer courses fetch error:", lcError.message);
+      if (courseIds.length === 0) {
         setCourses([]);
         return;
       }
 
-      if (!lecturerCourses || lecturerCourses.length === 0) {
-        setCourses([]);
-        return;
-      }
+      const [courseRes, slotsRes, enrollmentsRes] = await Promise.all([
+        supabase
+          .from("courses")
+          .select("*")
+          .in("id", courseIds)
+          .eq("is_active", true)
+          .order("code"),
+        supabase
+          .from("timetable")
+          .select("*")
+          .eq("lecturer_id", profile.id)
+          .in("course_id", courseIds)
+          .eq("is_active", true)
+          .order("day_of_week")
+          .order("start_time"),
+        supabase
+          .from("enrollments")
+          .select("course_id")
+          .in("course_id", courseIds)
+          .eq("is_active", true),
+      ]);
 
-      const courseIds = lecturerCourses.map((lc) => lc.course_id);
-
-      // 2. Fetch full course data
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("*")
-        .in("id", courseIds)
-        .eq("is_active", true)
-        .order("code");
+      const courseData = courseRes.data;
+      const slots = slotsRes.data;
+      const enrollmentCounts = countByCourseId(enrollmentsRes.data ?? []);
 
       if (!courseData) return;
 
-      // 3. Fetch timetable slots for these courses
-      const { data: slots } = await supabase
-        .from("timetable")
-        .select("*")
-        .eq("lecturer_id", profile.id)
-        .in("course_id", courseIds)
-        .eq("is_active", true)
-        .order("day_of_week")
-        .order("start_time");
-
-      // 4. Fetch student enrollment counts per course
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .in("course_id", courseIds)
-        .eq("is_active", true);
-
-      // 5. Build enriched course objects
       const enriched: CourseWithMeta[] = courseData.map((course) => {
         const courseSlots = (slots ?? []).filter(
           (s) => s.course_id === course.id,
         );
-        const studentCount = (enrollments ?? []).filter(
-          (e) => e.course_id === course.id,
-        ).length;
-        return { ...course, slots: courseSlots, studentCount };
+        return {
+          ...course,
+          slots: courseSlots,
+          studentCount: enrollmentCounts[course.id] ?? 0,
+        };
       });
 
       setCourses(enriched);
     } catch (e) {
       console.error("Courses fetch error:", e);
     }
-  }, [profile]);
+  }, [profile, refreshCourseIds]);
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false));

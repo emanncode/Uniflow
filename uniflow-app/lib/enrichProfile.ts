@@ -5,32 +5,38 @@ import type { Profile } from "@/types";
 export async function enrichProfile(profile: Profile): Promise<Profile> {
   const enriched: Profile = { ...profile };
 
-  if (enriched.role === "hod" && !enriched.department) {
-    const { data: dept } = await supabase
-      .from("departments")
-      .select("id, name, short_name, faculty")
-      .eq("hod_id", enriched.id)
-      .eq("university_id", enriched.university_id)
-      .maybeSingle();
-    if (dept) {
-      enriched.department = dept;
-    }
+  const needsHodDept = enriched.role === "hod" && !enriched.department;
+  const needsDeanFaculty = enriched.role === "dean" && !enriched.faculty;
+
+  const [deptResult, deanFacultyResult] = await Promise.all([
+    needsHodDept
+      ? supabase
+          .from("departments")
+          .select("id, name, short_name, faculty")
+          .eq("hod_id", enriched.id)
+          .eq("university_id", enriched.university_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    needsDeanFaculty
+      ? supabase
+          .from("faculties")
+          .select("id, name, short_name")
+          .eq("dean_id", enriched.id)
+          .eq("university_id", enriched.university_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  if (deptResult.data) {
+    enriched.department = deptResult.data;
+  }
+  if (deanFacultyResult.data) {
+    enriched.faculty = deanFacultyResult.data;
   }
 
-  if (enriched.role === "dean" && !enriched.faculty) {
-    const { data: facultyData } = await supabase
-      .from("faculties")
-      .select("id, name, short_name")
-      .eq("dean_id", enriched.id)
-      .eq("university_id", enriched.university_id)
-      .maybeSingle();
-    if (facultyData) {
-      enriched.faculty = facultyData;
-    }
-  }
-
-  if (enriched.department?.faculty && !enriched.faculty?.name) {
-    const facultyShort = enriched.department.faculty;
+  const facultyShort =
+    enriched.department?.faculty ?? enriched.faculty?.short_name;
+  if (facultyShort && !enriched.faculty?.name) {
     const { data: facultyData } = await supabase
       .from("faculties")
       .select("id, name, short_name")

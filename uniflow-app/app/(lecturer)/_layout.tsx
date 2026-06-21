@@ -1,5 +1,8 @@
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
 import { StyleSheet, Platform } from "react-native";
+import { useAuthStore } from "@/store/useAuthStore";
+import { prefetchLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -13,6 +16,14 @@ const C = Theme.colors;
 const TAB_ICON_SIZE = 24;
 
 export default function LecturerLayout() {
+  const profile = useAuthStore((s) => s.profile);
+
+  useEffect(() => {
+    if (profile?.id) {
+      prefetchLecturerCourseIds(profile.id);
+    }
+  }, [profile?.id]);
+
   return (
     <Tabs
       screenOptions={{

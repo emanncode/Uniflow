@@ -20,6 +20,7 @@ import {
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { CoursesSkeleton } from "@/components/SkeletonLoader";
@@ -220,48 +221,44 @@ export default function StudentCourses() {
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
+  const { refresh: refreshEnrollments } = useStudentEnrollments();
+
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      // 1. Enrolled course IDs
-      const { data: enrollments } = await supabase
-        .from("enrollments")
-        .select("course_id")
-        .eq("student_id", profile.id)
-        .eq("is_active", true);
+      const courseIds = await refreshEnrollments(true);
 
-      if (!enrollments || enrollments.length === 0) {
+      if (courseIds.length === 0) {
         setCourses([]);
         return;
       }
 
-      const courseIds = enrollments.map((e) => e.course_id);
+      const [courseRes, slotsRes, lecturerRes] = await Promise.all([
+        supabase
+          .from("courses")
+          .select("*")
+          .in("id", courseIds)
+          .eq("is_active", true)
+          .order("code"),
+        supabase
+          .from("timetable")
+          .select("*, profiles(full_name)")
+          .in("course_id", courseIds)
+          .eq("is_active", true)
+          .order("day_of_week")
+          .order("start_time"),
+        supabase
+          .from("lecturer_courses")
+          .select("course_id, profiles(full_name)")
+          .in("course_id", courseIds)
+          .eq("is_active", true),
+      ]);
 
-      // 2. Course data
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("*")
-        .in("id", courseIds)
-        .eq("is_active", true)
-        .order("code");
+      const courseData = courseRes.data;
+      const slots = slotsRes.data;
+      const lecturerAssignments = lecturerRes.data;
 
       if (!courseData) return;
-
-      // 3. Timetable slots with lecturer profile
-      const { data: slots } = await supabase
-        .from("timetable")
-        .select("*, profiles(full_name)")
-        .in("course_id", courseIds)
-        .eq("is_active", true)
-        .order("day_of_week")
-        .order("start_time");
-
-      // 4. Assigned lecturers per course
-      const { data: lecturerAssignments } = await supabase
-        .from("lecturer_courses")
-        .select("course_id, profiles(full_name)")
-        .in("course_id", courseIds)
-        .eq("is_active", true);
 
       const lecturerMap: Record<string, string[]> = {};
       for (const row of lecturerAssignments ?? []) {
@@ -298,7 +295,7 @@ export default function StudentCourses() {
     } catch (e) {
       console.error("Student courses fetch error:", e);
     }
-  }, [profile]);
+  }, [profile, refreshEnrollments]);
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false));
