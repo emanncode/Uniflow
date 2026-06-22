@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 export type RecoveryState = "loading" | "confirm" | "ready" | "invalid";
@@ -15,6 +16,27 @@ function parseAuthError(params: URLSearchParams): string | null {
     params.get("error_description")?.replace(/\+/g, " ") ||
     "This reset link is invalid or has expired."
   );
+}
+
+/** Some mail clients strip "=" from query strings (token_hashVALUE instead of token_hash=VALUE). */
+function extractTokenHash(search: string, searchParams: URLSearchParams): string | null {
+  const direct = searchParams.get("token_hash");
+  if (direct) return direct;
+
+  for (const [key] of searchParams.entries()) {
+    if (key.startsWith("token_hash") && key.length > "token_hash".length) {
+      return key.slice("token_hash".length);
+    }
+  }
+
+  const match = search.match(/[?&]token_hash([^=&]+)/);
+  return match?.[1] ?? null;
+}
+
+function isRecoverySession(session: Session | null): boolean {
+  if (!session) return false;
+  const user = session.user as { recovery_sent_at?: string | null };
+  return Boolean(user.recovery_sent_at);
 }
 
 function waitForRecoveryEvent(timeoutMs: number): Promise<boolean> {
@@ -41,12 +63,24 @@ function waitForRecoveryEvent(timeoutMs: number): Promise<boolean> {
   });
 }
 
-async function waitForSession(attempts = 8, delayMs = 400): Promise<boolean> {
+function cleanRecoveryUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const university = params.get("university");
+  const next = university
+    ? `${window.location.pathname}?university=${encodeURIComponent(university)}`
+    : window.location.pathname;
+  window.history.replaceState({}, "", next);
+}
+
+async function waitForRecoverySession(
+  attempts = 8,
+  delayMs = 400,
+): Promise<boolean> {
   for (let i = 0; i < attempts; i += 1) {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (session) return true;
+    if (isRecoverySession(session)) return true;
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
   return false;
@@ -75,7 +109,7 @@ export function usePasswordRecoverySession() {
     }
 
     setState("ready");
-    window.history.replaceState({}, "", window.location.pathname);
+    cleanRecoveryUrl();
   }, [tokenHash]);
 
   useEffect(() => {
@@ -92,11 +126,12 @@ export function usePasswordRecoverySession() {
     };
 
     const init = async () => {
-      const searchParams = new URLSearchParams(window.location.search);
+      const search = window.location.search;
+      const searchParams = new URLSearchParams(search);
       const searchError = parseAuthError(searchParams);
       if (searchError) {
         invalid(searchError);
-        window.history.replaceState({}, "", window.location.pathname);
+        cleanRecoveryUrl();
         return;
       }
 
@@ -107,12 +142,12 @@ export function usePasswordRecoverySession() {
       const hashError = parseAuthError(hashParams);
       if (hashError) {
         invalid(hashError);
-        window.history.replaceState({}, "", window.location.pathname);
+        cleanRecoveryUrl();
         return;
       }
 
       const hashToken = hashParams.get("token_hash");
-      const queryToken = searchParams.get("token_hash");
+      const queryToken = extractTokenHash(search, searchParams);
       const recoveryType =
         searchParams.get("type") === "recovery" ||
         hashParams.get("type") === "recovery";
@@ -133,7 +168,7 @@ export function usePasswordRecoverySession() {
           return;
         }
         ready();
-        window.history.replaceState({}, "", window.location.pathname);
+        cleanRecoveryUrl();
         return;
       }
 
@@ -143,16 +178,19 @@ export function usePasswordRecoverySession() {
 
       if (hasRecoveryHash) {
         const recovered = await waitForRecoveryEvent(RECOVERY_WAIT_MS);
-        if (recovered || (await waitForSession())) {
+        if (
+          recovered &&
+          (await waitForRecoverySession(4, 300))
+        ) {
           ready();
-          window.history.replaceState({}, "", window.location.pathname);
+          cleanRecoveryUrl();
           return;
         }
         invalid("This reset link is invalid or has expired.");
         return;
       }
 
-      if (await waitForSession(3, 300)) {
+      if (await waitForRecoverySession(3, 300)) {
         ready();
         return;
       }

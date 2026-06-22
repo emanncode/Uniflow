@@ -173,8 +173,12 @@ export function ResetPasswordForm({
       setSuccess(true);
       setTimeout(() => router.push(loginHref), 2500);
     } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update password.";
       setError(
-        err instanceof Error ? err.message : "Failed to update password.",
+        /current password|reauthenticate|recovery/i.test(message)
+          ? "Your reset link was not verified. Open the link from your email again and tap Continue to reset password before choosing a new one."
+          : message,
       );
     } finally {
       setLoading(false);

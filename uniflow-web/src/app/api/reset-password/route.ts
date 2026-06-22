@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase-admin'
 import { NextResponse } from 'next/server'
 import { validateAndNormalizeEmail } from '@/lib/email'
 import { canManageUniversity, isSuperAdmin } from '@/lib/auth'
-import { passwordResetUrlFromRequest } from '@/lib/password-reset'
+import { passwordResetUrlForProfile } from '@/lib/password-reset'
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     // 1. Find user by email in profiles table to get their ID
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, university_id')
+      .select('id, university_id, role, universities(short_name)')
       .eq('email', lookupEmail)
       .single()
 
@@ -41,7 +41,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const redirectTo = passwordResetUrlFromRequest(req)
+    const universityShortName = (
+      profile.universities as { short_name?: string } | null
+    )?.short_name
+    const redirectTo = passwordResetUrlForProfile(
+      profile.role,
+      universityShortName,
+      req.headers.get('host') || '',
+    )
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       lookupEmail,
       { redirectTo },

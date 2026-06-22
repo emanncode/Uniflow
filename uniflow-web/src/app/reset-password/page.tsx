@@ -1,10 +1,14 @@
 "use client";
 
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { UniversityResetBadge } from "@/components/auth/UniversityResetBadge";
+import { useUniversityResetContext } from "@/hooks/useUniversityResetContext";
 
 export const dynamic = "force-dynamic";
 
 export default function ResetPasswordPage() {
+  const { university, loginHref, loginLabel } = useUniversityResetContext();
+
   return (
     <main
       style={{ backgroundColor: "var(--bg-primary)" }}
@@ -18,18 +22,16 @@ export default function ResetPasswordPage() {
             uni<span className="text-brand">flow</span>
           </h1>
           <p className="mt-2! text-xs text-muted tracking-widest uppercase">
-            Set New Password
+            {university ? "University Portal · Set Password" : "Set New Password"}
           </p>
+          {university ? <UniversityResetBadge name={university.name} /> : null}
         </div>
 
         <div className="card">
           <h2 className="text-xl font-bold text-primary mb-1! text-center">
             Choose a new password
           </h2>
-          <ResetPasswordForm
-            loginHref="/login"
-            loginLabel="Back to sign in"
-          />
+          <ResetPasswordForm loginHref={loginHref} loginLabel={loginLabel} />
         </div>
       </div>
     </main>

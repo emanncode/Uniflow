@@ -1,55 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { GraduationCap } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { getSubdomain } from "@/lib/subdomain";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
+import { UniversityResetBadge } from "@/components/auth/UniversityResetBadge";
+import { useUniversityResetContext } from "@/hooks/useUniversityResetContext";
 
 export default function UniversityResetPasswordPage() {
-  const [university, setUniversity] = useState<{
-    name: string;
-    short_name: string;
-  } | null>(null);
-
-  useEffect(() => {
-    async function detectUniversity() {
-      const subdomain = getSubdomain(window.location.hostname);
-      if (!subdomain) return;
-
-      const shortName = subdomain.replace("-admin", "");
-      const { data } = await supabase
-        .from("universities")
-        .select("name, short_name")
-        .eq("short_name", shortName)
-        .eq("status", "approved")
-        .single();
-
-      if (data) setUniversity(data);
-    }
-    detectUniversity();
-  }, []);
-
-  const badge = university ? (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        background: "rgba(251,191,36,0.1)",
-        border: "1px solid rgba(251,191,36,0.25)",
-        borderRadius: "20px",
-        padding: "5px 14px",
-        margin: "0 auto 12px",
-        width: "fit-content",
-      }}
-    >
-      <GraduationCap size={12} style={{ color: "var(--gold)" }} />
-      <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--gold)" }}>
-        {university.name}
-      </span>
-    </div>
-  ) : null;
+  const { university, loginHref, loginLabel } = useUniversityResetContext();
 
   return (
     <div
@@ -68,19 +24,16 @@ export default function UniversityResetPasswordPage() {
             uni<span className="text-brand">flow</span>
           </h1>
           <p className="mt-2! text-xs text-muted tracking-widest uppercase">
-            Set New Password
+            University Portal · Set Password
           </p>
+          {university ? <UniversityResetBadge name={university.name} /> : null}
         </div>
 
         <div className="card">
           <h2 className="text-xl font-bold text-primary mb-1! text-center">
             Choose a new password
           </h2>
-          <ResetPasswordForm
-            loginHref="/u/login"
-            loginLabel="Back to portal sign in"
-            badge={badge}
-          />
+          <ResetPasswordForm loginHref={loginHref} loginLabel={loginLabel} />
         </div>
       </div>
     </div>
