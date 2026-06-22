@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { verifyPortalAccess } from '@/lib/verify-portal-client'
@@ -152,17 +151,7 @@ export default function UniversityLoginPage() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2!">
-                    <label className="label mb-0!">Password</label>
-                    <Link
-                      href="/u/forgot-password"
-                      className={`text-xs text-brand hover:underline${loading ? ' pointer-events-none opacity-50' : ''}`}
-                      aria-disabled={loading}
-                      tabIndex={loading ? -1 : undefined}
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
+                  <label className="label">Password</label>
                   <div className="relative">
                     <Lock
                       size={15}
@@ -196,6 +185,10 @@ export default function UniversityLoginPage() {
                 >
                   {loading ? 'Verifying...' : 'Continue'}
                 </button>
+
+                <p className="text-xs text-muted text-center leading-relaxed">
+                  Need to reset your password? Contact your Uniflow administrator.
+                </p>
               </form>
             </>
           ) : (

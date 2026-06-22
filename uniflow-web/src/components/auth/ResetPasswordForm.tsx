@@ -56,7 +56,7 @@ function RecoveryGate({
   state: RecoveryState;
   error: string;
   loginHref: string;
-  forgotHref: string;
+  forgotHref?: string;
   loginLabel: string;
   onConfirm: () => void;
 }) {
@@ -80,9 +80,15 @@ function RecoveryGate({
         <button type="button" onClick={onConfirm} className="btn-primary w-full mb-3">
           Continue to reset password
         </button>
-        <Link href={forgotHref} className="text-sm text-muted hover:text-primary">
-          Request a new link
-        </Link>
+        {forgotHref ? (
+          <Link href={forgotHref} className="text-sm text-muted hover:text-primary">
+            Request a new link
+          </Link>
+        ) : (
+          <p className="text-xs text-muted leading-relaxed">
+            Link expired? Contact your Uniflow administrator for a new reset link.
+          </p>
+        )}
       </div>
     );
   }
@@ -103,12 +109,15 @@ function RecoveryGate({
         <h2 className="text-xl font-bold text-primary mb-2">Link expired</h2>
         <p className="text-secondary text-sm leading-relaxed mb-6">{error}</p>
         <p className="text-secondary text-xs leading-relaxed mb-6">
-          Reset links work once and expire after 1 hour. Request a fresh link,
-          then open it on the same device you want to use.
+          {forgotHref
+            ? "Reset links work once and expire after 1 hour. Request a fresh link, then open it on the same device you want to use."
+            : "Reset links work once and expire after 1 hour. Contact your Uniflow administrator to request a new link."}
         </p>
-        <Link href={forgotHref} className="btn-primary inline-block mb-3">
-          Request a new link
-        </Link>
+        {forgotHref ? (
+          <Link href={forgotHref} className="btn-primary inline-block mb-3">
+            Request a new link
+          </Link>
+        ) : null}
         <br />
         <Link href={loginHref} className="text-sm text-muted hover:text-primary">
           {loginLabel}

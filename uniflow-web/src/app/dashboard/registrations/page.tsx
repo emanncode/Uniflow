@@ -165,8 +165,8 @@ export default function RegistrationsPage() {
                 </>
               ) : (
                 <>
-                  {' '}The approval email could not be sent. Ask the university admin to use{' '}
-                  <strong>Forgot password?</strong> on their portal login page.
+                  {' '}The approval email could not be sent. Use the reset-password action
+                  to send them a new set-password link.
                 </>
               )}
             </p>

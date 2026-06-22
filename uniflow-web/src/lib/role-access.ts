@@ -63,7 +63,7 @@ export function hasWebAdminAccess(
  * Whether a password reset may be requested from a given portal.
  * - mobile: student / lecturer / dean / HOD only
  * - uniflow_admin: uniflow admins on uniflowapp.xyz only
- * - university_admin: university admins on uni-admin portals only
+ * - university_admin: self-service disabled; resets are issued by Uniflow admin only
  */
 export function canRequestPasswordReset(
   role: string | null | undefined,
@@ -75,7 +75,7 @@ export function canRequestPasswordReset(
     case "uniflow_admin":
       return role === "uniflow_admin";
     case "university_admin":
-      return role === "university_admin";
+      return false;
     default:
       return false;
   }
@@ -94,7 +94,7 @@ export function getPasswordResetDeniedMessage(
     case "uniflow_admin":
       return "This page is for Uniflow admin accounts only.";
     case "university_admin":
-      return "This page is for university admin accounts only.";
+      return "University admin password resets must be requested through your Uniflow administrator.";
     default:
       return "Password reset is not available for this account here.";
   }

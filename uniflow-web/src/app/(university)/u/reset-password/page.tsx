@@ -78,7 +78,6 @@ export default function UniversityResetPasswordPage() {
           </h2>
           <ResetPasswordForm
             loginHref="/u/login"
-            forgotHref="/u/forgot-password"
             loginLabel="Back to portal sign in"
             badge={badge}
           />

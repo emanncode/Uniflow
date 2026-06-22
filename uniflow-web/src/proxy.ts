@@ -132,13 +132,15 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
+    if (pathname === "/forgot-password") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
     if (!user) {
       if (pathname === "/login") {
         return rewriteWithCookies(request, supabaseResponse, "/u/login");
-      }
-
-      if (pathname === "/forgot-password") {
-        return rewriteWithCookies(request, supabaseResponse, "/u/forgot-password");
       }
 
       if (pathname === "/reset-password") {

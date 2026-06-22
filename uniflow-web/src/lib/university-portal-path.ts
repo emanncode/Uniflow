@@ -1,10 +1,8 @@
 /** Public routes on the university admin portal (with and without /u rewrite). */
 const PUBLIC_UNIVERSITY_PATHS = new Set([
   "/login",
-  "/forgot-password",
   "/reset-password",
   "/u/login",
-  "/u/forgot-password",
   "/u/reset-password",
 ]);
 
