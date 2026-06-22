@@ -625,7 +625,11 @@ export default function StudentsPage() {
       
       setNewName(''); setNewEmail(''); setNewDeptId('');
       setShowModal(false)
-      alert(`Success! ${newName} has been added. They can now generate their login password on the portal using their email.`)
+      alert(
+        data.emailSent === false
+          ? `Success! ${newName} has been added, but the password reset email could not be sent. Ask your admin to resend a reset link.`
+          : `Success! ${newName} has been added. A password reset link was sent to ${data.email || emailResult.normalized}.`,
+      )
       if (contextUniId) await loadData(contextUniId)
     } catch (err: any) {
       setError(err.message)

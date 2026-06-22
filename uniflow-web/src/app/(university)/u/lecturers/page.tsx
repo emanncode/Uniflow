@@ -19,7 +19,6 @@ import {
   ChevronDown,
   AlertCircle,
   Key,
-  Copy,
   Check,
   AlertTriangle,
   ArrowLeft
@@ -234,11 +233,9 @@ export default function LecturersPage() {
   const [newDeptId, setNewDeptId] = useState("");
   const [newRole, setNewRole] = useState<'lecturer' | 'dean' | 'hod'>('lecturer')
 
-  const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
   const [confirmReset, setConfirmReset] = useState<Lecturer | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [successModal, setSuccessModal] = useState<{ title: string; message: string } | null>(null);
-  const [copied, setCopied] = useState(false)
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -376,7 +373,9 @@ export default function LecturersPage() {
       setShowModal(false)
       setSuccessModal({
         title: "Staff Added",
-        message: `${name} has been added successfully.`
+        message: data.emailSent === false
+          ? `${name} has been added, but the password reset email could not be sent. Use Reset Password from the staff list.`
+          : `${name} has been added. A password reset link was sent to ${data.email || emailResult.normalized}.`,
       });
       if (contextUniId) await loadData(contextUniId)
     } catch (err: any) {
@@ -527,12 +526,6 @@ export default function LecturersPage() {
     URL.revokeObjectURL(url);
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   // ── Derived Data ─────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     return lecturers.filter((l) => {
@@ -593,24 +586,6 @@ export default function LecturersPage() {
         isLoading={saving}
         icon={Trash2}
       />
-
-      {tempPassword && (
-        <Modal title="Temporary Credentials" onClose={() => setTempPassword(null)} maxWidth="400px">
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)', marginLeft: 'auto', marginRight: 'auto' }}>
-            <Key size={24} color="#22c55e" />
-          </div>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '20px', textAlign: 'center' }}>
-            A temporary password has been generated for <strong>{tempPassword.name}</strong>.
-          </p>
-          <div style={{ padding: '16px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '20px' }}>
-            <code style={{ fontSize: '16px', fontWeight: 700, color: 'var(--brand)', letterSpacing: '0.05em' }}>{tempPassword.password}</code>
-            <button onClick={() => copyToClipboard(tempPassword.password)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}>
-              {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
-            </button>
-          </div>
-          <button onClick={() => setTempPassword(null)} style={{ width: '100%', padding: '12px', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--brand)', color: 'white', fontWeight: 700, fontSize: '14px', border: 'none', cursor: 'pointer' }}>Done</button>
-        </Modal>
-      )}
 
       <div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "24px", gap: "16px", flexWrap: "wrap" }}>
