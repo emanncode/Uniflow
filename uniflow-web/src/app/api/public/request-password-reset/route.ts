@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase-admin";
 import { validateAndNormalizeEmail } from "@/lib/email";
 import { passwordResetUrlFromRequest } from "@/lib/password-reset";
+import { passwordResetPortalFromRequest } from "@/lib/password-reset-context";
+import { canRequestPasswordReset } from "@/lib/role-access";
 import { NextResponse } from "next/server";
 
 const GENERIC_SUCCESS =
@@ -8,7 +10,8 @@ const GENERIC_SUCCESS =
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const body = await req.json();
+    const { email, portal: bodyPortal } = body ?? {};
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -23,15 +26,17 @@ export async function POST(req: Request) {
     }
 
     const lookupEmail = emailCheck.normalized;
+    const host = req.headers.get("host") || "";
+    const resetPortal = passwordResetPortalFromRequest(host, bodyPortal);
     const supabase = createAdminClient();
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id")
+      .select("id, role")
       .eq("email", lookupEmail)
       .maybeSingle();
 
-    if (!profile) {
+    if (!profile || !canRequestPasswordReset(profile.role, resetPortal)) {
       return NextResponse.json({ success: true, message: GENERIC_SUCCESS });
     }
 
