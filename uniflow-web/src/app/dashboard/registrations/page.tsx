@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import RejectModal from '@/components/registrations/RejectModal'
 import RegistrationRow from '@/components/registrations/RegistrationRow'
-import { Building2, Key, X, Copy, Check, Loader2, AlertTriangle } from 'lucide-react'
+import { Building2, Mail, Loader2, AlertTriangle } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
@@ -37,8 +37,11 @@ export default function RegistrationsPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [rejectTarget, setRejectTarget] = useState<string | null>(null)
   const [confirmApprove, setConfirmApprove] = useState<Registration | null>(null)
-  const [tempPassword, setTempPassword] = useState<{ password: string, email: string, name: string } | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [approvalNotice, setApprovalNotice] = useState<{
+    email: string
+    name: string
+    emailSent: boolean
+  } | null>(null)
 
   const fetchRegistrations = useCallback(async () => {
     const { data } = await supabase
@@ -76,10 +79,10 @@ export default function RegistrationsPage() {
         throw new Error(result.error || 'Failed to approve university')
       }
 
-      setTempPassword({ 
-        password: result.tempPassword, 
-        email: reg.official_email,
-        name: reg.university_name
+      setApprovalNotice({
+        email: result.email || reg.official_email,
+        name: result.universityName || reg.university_name,
+        emailSent: result.emailSent !== false,
       })
       await fetchRegistrations()
     } catch (error) {
@@ -101,12 +104,6 @@ export default function RegistrationsPage() {
     setRejectTarget(null)
     await fetchRegistrations()
     setActionLoading(false)
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
   }
 
   const filtered = filter === 'all'
@@ -143,10 +140,10 @@ export default function RegistrationsPage() {
         icon={Building2}
       />
 
-      {tempPassword && (
+      {approvalNotice && (
         <Modal
           title="University Approved"
-          onClose={() => setTempPassword(null)}
+          onClose={() => setApprovalNotice(null)}
           maxWidth="400px"
         >
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '20px' }}>
@@ -156,41 +153,26 @@ export default function RegistrationsPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid rgba(34,197,94,0.2)',
             }}>
-              <Key size={24} color="#22c55e" />
+              <Mail size={24} color="#22c55e" />
             </div>
 
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
-              <strong>{tempPassword.name}</strong> has been approved. 
-              A temporary password has been generated for <strong>{tempPassword.email}</strong>.
+              <strong>{approvalNotice.name}</strong> has been approved.
+              {approvalNotice.emailSent ? (
+                <>
+                  {' '}A set-password email was sent to{' '}
+                  <strong>{approvalNotice.email}</strong>.
+                </>
+              ) : (
+                <>
+                  {' '}The approval email could not be sent. Ask the university admin to use{' '}
+                  <strong>Forgot password?</strong> on their portal login page.
+                </>
+              )}
             </p>
 
-            <div style={{
-              width: '100%',
-              padding: '16px', borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-primary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              gap: '12px',
-            }}>
-              <code style={{
-                fontSize: '16px', fontWeight: 700, color: 'var(--brand)',
-                letterSpacing: '0.05em',
-              }}>
-                {tempPassword.password}
-              </code>
-              <button
-                onClick={() => copyToClipboard(tempPassword.password)}
-                style={{
-                  background: 'none', border: 'none', color: 'var(--text-muted)',
-                  cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
-                }}
-              >
-                {copied ? <Check size={16} color="#22c55e" /> : <Copy size={16} />}
-              </button>
-            </div>
-
             <button
-              onClick={() => setTempPassword(null)}
+              onClick={() => setApprovalNotice(null)}
               className="btn-primary"
               style={{ width: '100%', padding: '12px' }}
             >
