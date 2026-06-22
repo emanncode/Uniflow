@@ -17,6 +17,7 @@ import {
   usePasswordRecoverySession,
   type RecoveryState,
 } from "@/hooks/usePasswordRecoverySession";
+import { isInAppBrowser } from "@/lib/detect-in-app-browser";
 
 interface ResetPasswordFormProps {
   loginHref: string;
@@ -25,18 +26,39 @@ interface ResetPasswordFormProps {
   badge?: React.ReactNode;
 }
 
+function MobileBrowserTip() {
+  if (!isInAppBrowser()) return null;
+
+  return (
+    <div
+      className="mb-5 rounded-lg px-4 py-3 text-left text-sm leading-relaxed"
+      style={{
+        background: "rgba(255, 92, 26, 0.08)",
+        border: "1px solid rgba(255, 92, 26, 0.2)",
+        color: "var(--text-secondary)",
+      }}
+    >
+      Open this page in <strong className="text-primary">Chrome</strong> or{" "}
+      <strong className="text-primary">Safari</strong> if the reset link does not
+      work inside your email app.
+    </div>
+  );
+}
+
 function RecoveryGate({
   state,
   error,
   loginHref,
   forgotHref,
   loginLabel,
+  onConfirm,
 }: {
   state: RecoveryState;
   error: string;
   loginHref: string;
   forgotHref: string;
   loginLabel: string;
+  onConfirm: () => void;
 }) {
   if (state === "loading") {
     return (
@@ -47,9 +69,28 @@ function RecoveryGate({
     );
   }
 
+  if (state === "confirm") {
+    return (
+      <div className="text-center">
+        <MobileBrowserTip />
+        <h2 className="text-xl font-bold text-primary mb-2">Continue reset</h2>
+        <p className="text-secondary text-sm leading-relaxed mb-6">
+          Tap below to verify your reset link and choose a new password.
+        </p>
+        <button type="button" onClick={onConfirm} className="btn-primary w-full mb-3">
+          Continue to reset password
+        </button>
+        <Link href={forgotHref} className="text-sm text-muted hover:text-primary">
+          Request a new link
+        </Link>
+      </div>
+    );
+  }
+
   if (state === "invalid") {
     return (
       <div className="text-center">
+        <MobileBrowserTip />
         <div
           className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full"
           style={{
@@ -61,6 +102,10 @@ function RecoveryGate({
         </div>
         <h2 className="text-xl font-bold text-primary mb-2">Link expired</h2>
         <p className="text-secondary text-sm leading-relaxed mb-6">{error}</p>
+        <p className="text-secondary text-xs leading-relaxed mb-6">
+          Reset links work once and expire after 1 hour. Request a fresh link,
+          then open it on the same device you want to use.
+        </p>
         <Link href={forgotHref} className="btn-primary inline-block mb-3">
           Request a new link
         </Link>
@@ -82,7 +127,8 @@ export function ResetPasswordForm({
   badge,
 }: ResetPasswordFormProps) {
   const router = useRouter();
-  const { state, error: recoveryError } = usePasswordRecoverySession();
+  const { state, error: recoveryError, confirmToken } =
+    usePasswordRecoverySession();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -134,6 +180,7 @@ export function ResetPasswordForm({
         loginHref={loginHref}
         forgotHref={forgotHref}
         loginLabel={loginLabel}
+        onConfirm={confirmToken}
       />
     );
   }
