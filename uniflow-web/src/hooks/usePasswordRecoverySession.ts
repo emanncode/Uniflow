@@ -28,8 +28,37 @@ export function usePasswordRecoverySession() {
       if (event === "PASSWORD_RECOVERY") ready();
     });
 
+    const parseAuthError = (params: URLSearchParams): string | null => {
+      const errorCode = params.get("error_code");
+      const error = params.get("error");
+      if (!error && !errorCode) return null;
+      return (
+        params.get("error_description")?.replace(/\+/g, " ") ||
+        "This reset link is invalid or has expired."
+      );
+    };
+
     const init = async () => {
-      const code = new URLSearchParams(window.location.search).get("code");
+      const searchParams = new URLSearchParams(window.location.search);
+      const searchError = parseAuthError(searchParams);
+      if (searchError) {
+        invalid(searchError);
+        window.history.replaceState({}, "", window.location.pathname);
+        return;
+      }
+
+      const hash = window.location.hash.startsWith("#")
+        ? window.location.hash.slice(1)
+        : "";
+      const hashParams = new URLSearchParams(hash);
+      const hashError = parseAuthError(hashParams);
+      if (hashError) {
+        invalid(hashError);
+        window.history.replaceState({}, "", window.location.pathname);
+        return;
+      }
+
+      const code = searchParams.get("code");
 
       if (code) {
         const { error: exchangeError } =

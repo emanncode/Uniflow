@@ -7,7 +7,14 @@ import {
 } from "@/lib/subdomain";
 import { getProfileForUser } from "@/lib/profile-server";
 
-const publicRoutes = ["/", "/register", "/login"];
+const publicRoutes = [
+  "/",
+  "/register",
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+];
 const authRoutes = ["/login", "/register"];
 
 /** Share auth cookies across localhost and *.localhost in local dev. */
@@ -128,6 +135,18 @@ export async function proxy(request: NextRequest) {
     if (!user) {
       if (pathname === "/login") {
         return rewriteWithCookies(request, supabaseResponse, "/u/login");
+      }
+
+      if (pathname === "/forgot-password") {
+        return rewriteWithCookies(request, supabaseResponse, "/u/forgot-password");
+      }
+
+      if (pathname === "/reset-password") {
+        return rewriteWithCookies(request, supabaseResponse, "/u/reset-password");
+      }
+
+      if (pathname === "/auth/callback") {
+        return supabaseResponse;
       }
 
       const url = request.nextUrl.clone();
