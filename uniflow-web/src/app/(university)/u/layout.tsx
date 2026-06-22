@@ -8,6 +8,11 @@ import { supabase } from "@/lib/supabase";
 import { UniversityProvider } from "@/context/UniversityContext";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import {
+  isUniversityNavActive,
+  isUniversityPublicPath,
+  universityPortalLoginPath,
+} from "@/lib/university-portal-path";
+import {
   LayoutDashboard,
   BookOpen,
   LogOut,
@@ -17,12 +22,6 @@ import {
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
-
-const PUBLIC_PATHS = new Set([
-  "/u/login",
-  "/u/forgot-password",
-  "/u/reset-password",
-]);
 
 // ─── Role-based nav config ───────────────────────────────────────────────────
 
@@ -97,7 +96,7 @@ const SidebarContent = ({
       >
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = pathname === item.href;
+          const active = isUniversityNavActive(pathname, item.href);
           return (
             <Link
               key={item.href}
@@ -248,7 +247,11 @@ export default function UniversityPortalLayout({
 
   useEffect(() => {
     async function loadSession() {
-      if (PUBLIC_PATHS.has(pathname)) {
+      if (isUniversityPublicPath(pathname)) {
+        setUser(null);
+        setUniversity(null);
+        setUniversityId(null);
+        setSidebarOpen(false);
         setLoading(false);
         return;
       }
@@ -260,7 +263,10 @@ export default function UniversityPortalLayout({
         } = await supabase.auth.getSession();
 
         if (sessionError || !session) {
-          router.push("/u/login");
+          setUser(null);
+          setUniversity(null);
+          setUniversityId(null);
+          router.push(universityPortalLoginPath());
           return;
         }
 
@@ -276,7 +282,10 @@ export default function UniversityPortalLayout({
           profile.role !== "university_admin"
         ) {
           await supabase.auth.signOut();
-          router.push("/u/login");
+          setUser(null);
+          setUniversity(null);
+          setUniversityId(null);
+          router.push(universityPortalLoginPath());
           return;
         }
 
@@ -304,7 +313,12 @@ export default function UniversityPortalLayout({
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.push("/u/login");
+    setUser(null);
+    setUniversity(null);
+    setUniversityId(null);
+    setSidebarOpen(false);
+    setLoading(false);
+    router.push(universityPortalLoginPath());
   }
 
   if (loading)
@@ -325,7 +339,7 @@ export default function UniversityPortalLayout({
       </div>
     );
 
-  if (PUBLIC_PATHS.has(pathname)) {
+  if (isUniversityPublicPath(pathname)) {
     return (
       <UniversityProvider
         value={{
