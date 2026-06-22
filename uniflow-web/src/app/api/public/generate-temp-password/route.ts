@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { generateTempPassword } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { validateAndNormalizeEmail } from "@/lib/email";
+import { hasMobileAppAccess } from "@/lib/role-access";
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       .eq("email", lookupEmail)
       .single();
 
-    if (profileError || !profile) {
+    if (profileError || !profile || !hasMobileAppAccess(profile.role)) {
       return NextResponse.json(
         {
           error:
