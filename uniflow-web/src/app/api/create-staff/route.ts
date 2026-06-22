@@ -9,30 +9,25 @@ export async function POST(req: Request) {
   try {
     const { full_name, email, role, department_id, university_id, level } = await req.json()
 
-    // ── Security: Authorization Check ──────────────────────────────────────
     if (!university_id) {
       return NextResponse.json({ error: 'University ID is required' }, { status: 400 })
     }
-    
+
     const isAuthorized = await canManageUniversity(university_id)
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized: You do not have permission to create staff for this university.' }, { status: 403 })
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     const normalizedRole = (role || 'lecturer').toLowerCase();
 
-    // Server-side domain typo correction + validation.
-    // Uses normalizeOrThrow so invalid/misspelled domains (not correctable) result in error before any profile creation.
     let finalEmail: string
     try {
       finalEmail = normalizeOrThrow(email)
-    } catch (e: any) {
-      return NextResponse.json({ error: e.message || 'Invalid email address' }, { status: 400 })
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Invalid email address'
+      return NextResponse.json({ error: message }, { status: 400 })
     }
 
-    // Note: normalizeOrThrow already applies corrections for known typos.
-    // If you need to know if it was corrected, you can call validateAndNormalizeEmail separately.
     if (finalEmail.toLowerCase() !== (email || '').trim().toLowerCase()) {
       console.log(`API Create Staff: Corrected email domain ${email} -> ${finalEmail}`)
     }
@@ -57,11 +52,10 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient()
 
-    // 1. create auth user with temp password
-    const tempPassword = generateTempPassword()
+    const bootstrapPassword = generateTempPassword()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: finalEmail,
-      password: tempPassword,
+      password: bootstrapPassword,
       email_confirm: true,
     })
 
@@ -72,7 +66,6 @@ export async function POST(req: Request) {
 
     console.log(`API Create Staff: Auth user created with ID ${authData.user.id}`);
 
-    // 2. create profile
     const { error: profileError } = await supabase.from('profiles').insert({
       id: authData.user.id,
       full_name,
@@ -92,17 +85,23 @@ export async function POST(req: Request) {
 
     console.log(`API Create Staff: Profile created successfully for ${finalEmail}`);
 
-    // 3. send password reset so they set their own password
-    // NOTE: This might fail if SMTP is not configured, but we proceed anyway as we return tempPassword
+    let emailSent = false
     try {
-      await supabase.auth.resetPasswordForEmail(finalEmail, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(finalEmail, {
         redirectTo: defaultPasswordResetUrl(),
       })
+      if (resetError) throw resetError
+      emailSent = true
     } catch (e: unknown) {
-      console.warn("API Create Staff: Failed to send reset email, but user was created.")
+      console.warn("API Create Staff: Failed to send reset email:", e)
     }
 
-    return NextResponse.json({ success: true, tempPassword })
+    return NextResponse.json({
+      success: true,
+      emailSent,
+      email: finalEmail,
+      name: full_name,
+    })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'An unknown error occurred'
     console.error("API Create Staff: Internal error:", message);
