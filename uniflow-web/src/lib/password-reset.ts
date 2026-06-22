@@ -1,4 +1,9 @@
-import { APP_URL, resolveBaseDomainFromRequestHost, resolveProtocolFromRequestHost } from "@/lib/domain";
+import {
+  APP_URL,
+  resolveBaseDomainFromRequestHost,
+  resolveProtocolFromRequestHost,
+  universityPortalUrl,
+} from "@/lib/domain";
 import { getSubdomain } from "@/lib/subdomain";
 
 /**
@@ -7,6 +12,11 @@ import { getSubdomain } from "@/lib/subdomain";
  */
 export function defaultPasswordResetUrl(): string {
   return `${APP_URL}/reset-password`;
+}
+
+/** Password reset landing page for a university admin portal. */
+export function universityAdminPasswordResetUrl(shortName: string): string {
+  return universityPortalUrl(shortName, "/reset-password");
 }
 
 /** Reset URL that matches the portal the user is on (university subdomain vs apex). */

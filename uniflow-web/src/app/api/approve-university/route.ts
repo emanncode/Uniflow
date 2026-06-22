@@ -7,20 +7,18 @@ import {
   universityApprovedEmail,
 } from '@/lib/email'
 import { isSuperAdmin } from '@/lib/auth'
+import { universityAdminPasswordResetUrl } from '@/lib/password-reset'
 
 export async function POST(request: Request) {
   try {
-    // ── Security: SuperAdmin Authorization Check ───────────────────────────
     const authorized = await isSuperAdmin()
     if (!authorized) {
       return NextResponse.json({ error: 'Unauthorized: Only Uniflow Admins can approve universities.' }, { status: 403 })
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     const { registrationId } = await request.json()
     const supabase = createAdminClient()
 
-    // 1. Get registration details
     const { data: reg, error: regError } = await supabase
       .from('university_registrations')
       .select('*')
@@ -31,24 +29,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Registration not found' }, { status: 404 })
     }
 
-    // Validate and normalize email (defense-in-depth for profile creation).
-    // normalizeOrThrow will error on invalid or uncorrectable misspelled domains.
     let finalEmail: string
     try {
       finalEmail = normalizeOrThrow(reg.official_email)
-    } catch (e: any) {
-      return NextResponse.json({ error: e.message || 'Invalid email address in registration' }, { status: 400 })
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Invalid email address in registration'
+      return NextResponse.json({ error: message }, { status: 400 })
     }
 
     if (finalEmail.toLowerCase() !== (reg.official_email || '').trim().toLowerCase()) {
       console.log(`Approve University: Corrected email domain ${reg.official_email} -> ${finalEmail}`)
     }
 
-    // 2. Create auth user
-    const tempPassword = generateTempPassword()
+    const bootstrapPassword = generateTempPassword()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: finalEmail,
-      password: tempPassword,
+      password: bootstrapPassword,
       email_confirm: true,
     })
 
@@ -56,7 +52,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: authError.message }, { status: 500 })
     }
 
-    // 3. Create university record
     const { data: uniData, error: uniError } = await supabase
       .from('universities')
       .insert({
@@ -71,12 +66,10 @@ export async function POST(request: Request) {
       .single()
 
     if (uniError) {
-      // Cleanup auth user if university creation fails
       await supabase.auth.admin.deleteUser(authData.user.id)
       return NextResponse.json({ error: uniError.message }, { status: 500 })
     }
 
-    // 4. Create profile
     const { error: profileError } = await supabase.from('profiles').insert({
       id: authData.user.id,
       university_id: uniData.id,
@@ -86,37 +79,44 @@ export async function POST(request: Request) {
     })
 
     if (profileError) {
-       return NextResponse.json({ error: profileError.message }, { status: 500 })
+      return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
 
-    // 5. Update registration status
     await supabase
       .from('university_registrations')
       .update({ status: 'approved', reviewed_at: new Date().toISOString() })
       .eq('id', registrationId)
 
-    // Generate reset link and send approval email
+    const resetRedirect = universityAdminPasswordResetUrl(reg.short_name)
     const { data: linkData } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: finalEmail,
+      options: { redirectTo: resetRedirect },
     })
 
+    let emailSent = false
     try {
       await sendEmail(
-        reg.official_email,
+        finalEmail,
         'Your university is approved on Uniflow 🎉',
         universityApprovedEmail(
           reg.university_name,
           reg.short_name,
-          reg.official_email,
-          linkData?.properties?.action_link ?? '',
+          finalEmail,
+          linkData?.properties?.action_link ?? resetRedirect,
         ),
       )
+      emailSent = true
     } catch (emailError) {
       console.error('Approve University: failed to send approval email:', emailError)
     }
 
-    return NextResponse.json({ success: true, tempPassword })
+    return NextResponse.json({
+      success: true,
+      emailSent,
+      email: finalEmail,
+      universityName: reg.university_name,
+    })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'An unknown error occurred'
     return NextResponse.json({ error: message }, { status: 500 })
