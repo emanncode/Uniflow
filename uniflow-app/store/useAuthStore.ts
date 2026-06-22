@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
 import { enrichProfile } from "@/lib/enrichProfile";
-import type { AuthUser, Profile, MobileRole } from "@/types";
+import {
+  getMobileAppAccessDeniedMessage,
+  hasMobileAppAccess,
+} from "@/lib/role-access";
+import type { AuthUser, Profile } from "@/types";
 
 // ─── State Shape ───────────────────────────────────────────────────────────
 
@@ -64,12 +68,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     const enrichedProfile = await enrichProfile(profile as Profile);
 
-    // Block web-only roles from accessing the mobile app
-    const allowedRoles: MobileRole[] = ["lecturer", "student", "dean", "hod"];
-    if (!allowedRoles.includes(enrichedProfile.role as MobileRole)) {
+    if (!hasMobileAppAccess(enrichedProfile.role)) {
       await supabase.auth.signOut();
       set({ isLoading: false });
-      return { error: "This app is for lecturers, students, deans, and HODs only." };
+      return { error: getMobileAppAccessDeniedMessage() };
     }
 
     // Block inactive accounts
@@ -126,11 +128,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
     const enrichedProfile = await enrichProfile(profile as Profile);
 
-    const allowedRoles: MobileRole[] = ["lecturer", "student", "dean", "hod"];
-    if (
-      !allowedRoles.includes(enrichedProfile.role as MobileRole) ||
-      !enrichedProfile.is_active
-    ) {
+    if (!hasMobileAppAccess(enrichedProfile.role) || !enrichedProfile.is_active) {
       await supabase.auth.signOut();
       set({ isHydrated: true });
       return;
