@@ -6,19 +6,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { verifyPortalAccess } from '@/lib/verify-portal-client'
 import { getSubdomain } from '@/lib/subdomain'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail,
   Lock,
-  Loader2,
   GraduationCap,
   Eye,
   EyeOff,
-  Key,
-  X,
-  Copy,
-  Check,
-  Info,
 } from 'lucide-react'
 import UniflowLogo from '@/components/ui/UniflowLogo'
 
@@ -34,12 +27,6 @@ export default function UniversityLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null)
-
-  const [showPassGen, setShowPassGen] = useState(false)
-  const [genEmail, setPassGenEmail] = useState('')
-  const [genLoading, setGenLoading] = useState(false)
-  const [tempPassword, setTempPassword] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function detectUniversity() {
@@ -99,33 +86,6 @@ export default function UniversityLoginPage() {
     }
   }
 
-  async function handleGenerateTempPass(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setGenLoading(true)
-    try {
-      const res = await fetch('/api/public/generate-temp-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: genEmail }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-
-      setTempPassword(data.tempPassword)
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to generate password')
-    } finally {
-      setGenLoading(false)
-    }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   return (
     <main
       style={{ backgroundColor: 'var(--bg-primary)' }}
@@ -166,9 +126,9 @@ export default function UniversityLoginPage() {
                 Sign in to manage your university
               </p>
 
-              {error && !showPassGen && (
+              {error ? (
                 <div className="alert-error mb-6!">{error}</div>
-              )}
+              ) : null}
 
               <form onSubmit={handleCredentials} className="space-y-5" aria-busy={loading}>
                 <div>
@@ -259,151 +219,6 @@ export default function UniversityLoginPage() {
           Uniflow © {new Date().getFullYear()}
         </p>
       </div>
-
-      <AnimatePresence>
-        {showPassGen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-5!"
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              backdropFilter: 'blur(4px)',
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="card w-full max-w-md relative"
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPassGen(false)
-                  setTempPassword(null)
-                  setError('')
-                }}
-                className="absolute right-4 top-4 text-muted hover:text-primary transition-colors"
-              >
-                <X size={18} />
-              </button>
-
-              {!tempPassword ? (
-                <>
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-5!"
-                    style={{
-                      backgroundColor: 'var(--brand-muted)',
-                      border: '1px solid var(--border-brand)',
-                    }}
-                  >
-                    <Key size={24} color="var(--brand)" />
-                  </div>
-
-                  <h3 className="text-lg font-bold text-primary mb-2!">
-                    Generate Temporary Password
-                  </h3>
-                  <p className="text-secondary text-sm mb-6! leading-relaxed">
-                    If you haven&apos;t set a password or can&apos;t access your email, enter your
-                    registered email below to get a temporary login password.
-                  </p>
-
-                  <form onSubmit={handleGenerateTempPass} className="space-y-4">
-                    <div>
-                      <label className="label">Registered Email</label>
-                      <input
-                        type="email"
-                        required
-                        value={genEmail}
-                        onChange={(e) => setPassGenEmail(e.target.value)}
-                        placeholder="yourname@university.edu"
-                        className="input"
-                      />
-                    </div>
-
-                    {error && <div className="alert-error">{error}</div>}
-
-                    <button
-                      type="submit"
-                      disabled={genLoading}
-                      className="btn-primary w-full flex items-center justify-center gap-2"
-                    >
-                      {genLoading ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        'Generate Password'
-                      )}
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <>
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-5!"
-                    style={{
-                      backgroundColor: 'var(--success-muted)',
-                      border: '1px solid var(--success-muted)',
-                    }}
-                  >
-                    <Check size={24} color="var(--success)" />
-                  </div>
-
-                  <h3 className="text-lg font-bold text-primary mb-2!">
-                    Password Generated
-                  </h3>
-
-                  <div
-                    className="flex gap-2.5 p-3! rounded-md mb-5!"
-                    style={{
-                      backgroundColor: 'var(--info-muted)',
-                      border: '1px solid var(--info-muted)',
-                    }}
-                  >
-                    <Info size={16} color="var(--info)" className="shrink-0 mt-0.5" />
-                    <p className="text-xs leading-relaxed m-0!" style={{ color: 'var(--info)' }}>
-                      <strong>Security Note:</strong> This temporary password will be invalidated
-                      immediately after your first successful login.
-                    </p>
-                  </div>
-
-                  <div
-                    className="flex items-center justify-between gap-3 p-4! rounded-md mb-6!"
-                    style={{
-                      backgroundColor: 'rgba(0,0,0,0.2)',
-                      border: '1px solid var(--border-primary)',
-                    }}
-                  >
-                    <code
-                      className="text-lg font-bold tracking-wide"
-                      style={{ color: 'var(--brand)' }}
-                    >
-                      {tempPassword}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(tempPassword)}
-                      className="text-muted hover:text-primary transition-colors"
-                    >
-                      {copied ? <Check size={16} color="var(--success)" /> : <Copy size={16} />}
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail(genEmail)
-                      setShowPassGen(false)
-                      setTempPassword(null)
-                    }}
-                    className="btn-primary w-full"
-                  >
-                    Done, Proceed to Login
-                  </button>
-                </>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </main>
   )
 }
