@@ -59,7 +59,7 @@ export default function SettingsPage() {
   }
 
   const handleChangePassword = async () => {
-    if (!passwords.new || !passwords.confirm) {
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
       setError('Please fill in all password fields.')
       return
     }
@@ -74,6 +74,24 @@ export default function SettingsPage() {
 
     setSaving(true)
     setError('')
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) {
+      setError('Session expired. Please sign in again.')
+      setSaving(false)
+      return
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: passwords.current,
+    })
+
+    if (signInError) {
+      setError('Current password is incorrect.')
+      setSaving(false)
+      return
+    }
 
     const { error: passError } = await supabase.auth.updateUser({
       password: passwords.new,
@@ -282,6 +300,7 @@ export default function SettingsPage() {
             style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}
           >
             {[
+              { key: 'current', label: 'Current Password' },
               { key: 'new', label: 'New Password' },
               { key: 'confirm', label: 'Confirm New Password' },
             ].map(field => (

@@ -131,7 +131,7 @@ function RecoveryGate({
 
 export function ResetPasswordForm({
   loginHref,
-  forgotHref = "/forgot-password",
+  forgotHref,
   loginLabel = "Back to sign in",
   badge,
 }: ResetPasswordFormProps) {

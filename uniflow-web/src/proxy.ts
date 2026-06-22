@@ -11,7 +11,6 @@ const publicRoutes = [
   "/",
   "/register",
   "/login",
-  "/forgot-password",
   "/reset-password",
   "/auth/callback",
 ];
@@ -55,6 +54,12 @@ export async function proxy(request: NextRequest) {
   // always let API routes through
   if (pathname.startsWith("/api/")) {
     return supabaseResponse;
+  }
+
+  if (pathname === "/forgot-password") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
   }
 
   const supabase = createServerClient(
@@ -129,12 +134,6 @@ export async function proxy(request: NextRequest) {
     if (pathname === "/u" || pathname.startsWith("/u/")) {
       const url = request.nextUrl.clone();
       url.pathname = pathname === "/u" ? "/" : pathname.replace(/^\/u/, "");
-      return NextResponse.redirect(url);
-    }
-
-    if (pathname === "/forgot-password") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
       return NextResponse.redirect(url);
     }
 

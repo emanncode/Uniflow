@@ -26,7 +26,10 @@ export default function ResetPasswordPage() {
           <h2 className="text-xl font-bold text-primary mb-1! text-center">
             Choose a new password
           </h2>
-          <ResetPasswordForm loginHref="/login" loginLabel="Back to sign in" />
+          <ResetPasswordForm
+            loginHref="/login"
+            loginLabel="Back to sign in"
+          />
         </div>
       </div>
     </main>

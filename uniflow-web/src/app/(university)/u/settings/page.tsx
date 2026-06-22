@@ -11,9 +11,12 @@ export default function UniversitySettingsPage() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [showPasswordSection, setShowPasswordSection] = useState(false);
-  const [passwords, setPasswords] = useState({ new: "", confirm: "" });
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -57,6 +60,10 @@ export default function UniversitySettingsPage() {
   }
 
   async function handleChangePassword() {
+    if (!passwords.current || !passwords.new || !passwords.confirm) {
+      setError("Please fill in all password fields.");
+      return;
+    }
     if (passwords.new !== passwords.confirm) {
       setError("Passwords do not match.");
       return;
@@ -67,6 +74,26 @@ export default function UniversitySettingsPage() {
     }
     setSaving(true);
     setError("");
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.email) {
+      setError("Session expired. Please sign in again.");
+      setSaving(false);
+      return;
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: passwords.current,
+    });
+    if (signInError) {
+      setError("Current password is incorrect.");
+      setSaving(false);
+      return;
+    }
+
     const { error: err } = await supabase.auth.updateUser({
       password: passwords.new,
     });
@@ -74,7 +101,7 @@ export default function UniversitySettingsPage() {
       setError(err.message);
     } else {
       setSuccess("Password changed.");
-      setPasswords({ new: "", confirm: "" });
+      setPasswords({ current: "", new: "", confirm: "" });
       setShowPasswordSection(false);
       setTimeout(() => setSuccess(""), 3000);
     }
@@ -353,27 +380,22 @@ export default function UniversitySettingsPage() {
             }}
           >
             {[
-              {
-                key: "new",
-                label: "New Password",
-                show: showNew,
-                toggle: () => setShowNew(!showNew),
-              },
-              {
-                key: "confirm",
-                label: "Confirm Password",
-                show: showConfirm,
-                toggle: () => setShowConfirm(!showConfirm),
-              },
+              { key: "current", label: "Current Password" },
+              { key: "new", label: "New Password" },
+              { key: "confirm", label: "Confirm New Password" },
             ].map((field) => (
               <div key={field.key}>
                 <label className="label">{field.label}</label>
                 <div style={{ position: "relative" }}>
                   <input
-                    type={field.show ? "text" : "password"}
+                    type={
+                      showPasswords[field.key as keyof typeof showPasswords]
+                        ? "text"
+                        : "password"
+                    }
                     className="input"
                     placeholder="••••••••"
-                    value={passwords[field.key as "new" | "confirm"]}
+                    value={passwords[field.key as keyof typeof passwords]}
                     onChange={(e) =>
                       setPasswords((p) => ({
                         ...p,
@@ -384,7 +406,12 @@ export default function UniversitySettingsPage() {
                   />
                   <button
                     type="button"
-                    onClick={field.toggle}
+                    onClick={() =>
+                      setShowPasswords((p) => ({
+                        ...p,
+                        [field.key]: !p[field.key as keyof typeof p],
+                      }))
+                    }
                     style={{
                       position: "absolute",
                       right: "12px",
@@ -395,7 +422,7 @@ export default function UniversitySettingsPage() {
                       cursor: "pointer",
                     }}
                   >
-                    {field.show ? (
+                    {showPasswords[field.key as keyof typeof showPasswords] ? (
                       <EyeOff
                         size={15}
                         style={{ color: "var(--text-muted)" }}
