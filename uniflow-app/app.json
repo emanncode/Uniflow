@@ -18,16 +18,13 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0a0a0b",
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundImage": "./assets/images/icon.png",
-        "monochromeImage": "./assets/images/icon.png"
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.emanncode.Uniflow",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "package": "com.emanncode.Uniflow"
     },
     "web": {
       "output": "static",
@@ -54,7 +51,8 @@
         {
           "photosPermission": "Allow Uniflow to access your photos to set your profile picture."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

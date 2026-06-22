@@ -1,6 +1,9 @@
 function requireEnv(name: string, value: string | undefined): string {
   if (!value) {
-    throw new Error(`Missing ${name}. Add it to uniflow-app/.env.local`);
+    throw new Error(
+      `Missing ${name}. For local dev add it to uniflow-app/.env.local. ` +
+        "For EAS builds set it with: eas env:create --environment development --environment preview --environment production",
+    );
   }
   return value;
 }
