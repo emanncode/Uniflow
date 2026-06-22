@@ -83,6 +83,8 @@ export default function UniversityForgotPasswordPage() {
           <ForgotPasswordForm
             loginHref="/u/login"
             loginLabel="Back to portal sign in"
+            portal="university_admin"
+            subtitle="Enter your university admin email and we'll send you a reset link."
           />
         </div>
       </div>

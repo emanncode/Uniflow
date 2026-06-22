@@ -24,7 +24,12 @@ export default function ForgotPasswordPage() {
 
         <div className="card">
           <h2 className="text-xl font-bold text-primary mb-1!">Forgot password?</h2>
-          <ForgotPasswordForm loginHref="/login" loginLabel="Back to sign in" />
+          <ForgotPasswordForm
+            loginHref="/login"
+            loginLabel="Back to sign in"
+            portal="uniflow_admin"
+            subtitle="Enter your Uniflow admin email and we'll send you a reset link."
+          />
         </div>
       </div>
     </main>

@@ -3,18 +3,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Loader2, Mail, ShieldCheck } from "lucide-react";
+import type { PasswordResetPortal } from "@/lib/role-access";
 
 interface ForgotPasswordFormProps {
   loginHref: string;
   subtitle?: string;
   /** When set, shows a back link label (e.g. university portal). */
   loginLabel?: string;
+  /** Limits which account roles can receive a reset email from this form. */
+  portal: PasswordResetPortal;
 }
 
 export function ForgotPasswordForm({
   loginHref,
   subtitle = "Enter your registered email and we'll send you a reset link.",
   loginLabel = "Back to sign in",
+  portal,
 }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +34,7 @@ export function ForgotPasswordForm({
       const res = await fetch("/api/public/request-password-reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), portal }),
       });
 
       const data = await res.json();

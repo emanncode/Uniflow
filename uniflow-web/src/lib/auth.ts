@@ -1,7 +1,8 @@
 import { createSupabaseServer } from "./supabase-server";
 import { getProfileForUser } from "./profile-server";
+import type { UserRole } from "@/lib/role-access";
 
-export type UserRole = "uniflow_admin" | "university_admin" | "dean" | "hod" | "lecturer" | "student";
+export type { UserRole } from "@/lib/role-access";
 
 export async function getSession() {
   const supabase = await createSupabaseServer();
