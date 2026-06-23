@@ -87,37 +87,14 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // ── Root domain (uniflowapp.xyz / localhost:3000) ──────────────────────────
-  // Only the landing page lives here: "/" and "/register".
-  // Everything else (login, dashboard, reset-password) belongs on the admin
-  // subdomain: admin.uniflowapp.xyz (prod) | admin.localhost:3000 (dev).
+  // Only the landing page and university registration live here.
+  // Everything else returns a 404 — no redirects to the admin subdomain.
   if (!subdomain) {
-    const rootHost = hostname.split(":")[0].toLowerCase();
-    const isLocalhost = rootHost === "localhost";
-
-    // Build the admin subdomain host for redirects
-    const adminHost = isLocalhost
-      ? `admin.localhost:3000`
-      : `admin.${rootHost.split(".").slice(-2).join(".")}`;  // e.g. admin.uniflowapp.xyz
-    const adminProto = isLocalhost ? "http" : "https";
-
-    // Admin-only paths that must redirect to the admin subdomain
-    const adminPaths = ["/login", "/dashboard", "/reset-password", "/auth/callback", "/forgot-password", "/unauthorized"];
-    const isAdminPath =
-      adminPaths.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
-      pathname.startsWith("/dashboard");
-
-    if (isAdminPath) {
-      const adminUrl = new URL(`${adminProto}://${adminHost}${pathname}${request.nextUrl.search}`);
-      return NextResponse.redirect(adminUrl);
-    }
-
-    // Root-domain public routes: / and /register only
     const rootPublicRoutes = ["/", "/register"];
     if (!rootPublicRoutes.includes(pathname)) {
-      // Unknown path on root domain → back to landing page
       const url = request.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
+      url.pathname = "/not-found-page";
+      return NextResponse.rewrite(url);
     }
 
     return supabaseResponse;
