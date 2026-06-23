@@ -199,7 +199,7 @@ export default function StudentResources() {
   const fetchData = useCallback(async () => {
     if (!profile) return
     try {
-      const courseIds = await refreshEnrollments(true)
+      const { courseIds } = await refreshEnrollments(true)
 
       if (courseIds.length === 0) {
         setResources([])

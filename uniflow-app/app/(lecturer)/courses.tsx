@@ -234,37 +234,37 @@ export default function LecturerCourses() {
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      const courseIds = await refreshCourseIds(true);
+      const { courseIds, offeringIds } = await refreshCourseIds(true);
 
       if (courseIds.length === 0) {
         setCourses([]);
         return;
       }
 
-      const [courseRes, slotsRes, enrollmentsRes] = await Promise.all([
+      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+
+      const [courseRes, slots, enrollmentsRes] = await Promise.all([
         supabase
           .from("courses")
           .select("*")
           .in("id", courseIds)
           .eq("is_active", true)
           .order("code"),
-        supabase
-          .from("timetable")
-          .select("*")
-          .eq("lecturer_id", profile.id)
-          .in("course_id", courseIds)
-          .eq("is_active", true)
-          .order("day_of_week")
-          .order("start_time"),
-        supabase
-          .from("enrollments")
-          .select("course_id")
-          .in("course_id", courseIds)
-          .eq("is_active", true),
+        fetchTimetableSlots({ offeringIds, courseIds, lecturerId: profile.id }),
+        offeringIds.length > 0
+          ? supabase
+              .from("enrollments")
+              .select("course_id, course_offering_id")
+              .in("course_offering_id", offeringIds)
+              .eq("is_active", true)
+          : supabase
+              .from("enrollments")
+              .select("course_id")
+              .in("course_id", courseIds)
+              .eq("is_active", true),
       ]);
 
       const courseData = courseRes.data;
-      const slots = slotsRes.data;
       const enrollmentCounts = countByCourseId(enrollmentsRes.data ?? []);
 
       if (!courseData) return;

@@ -511,7 +511,7 @@ export default function LecturerResources() {
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      const courseIds = await refreshCourseIds(true);
+      const { courseIds } = await refreshCourseIds(true);
 
       if (courseIds.length === 0) {
         setCourses([]);

@@ -120,9 +120,24 @@ export interface Course {
 
 // ─── Timetable ─────────────────────────────────────────────────────────────
 
+export interface CourseOffering {
+  id: string;
+  course_id: string;
+  lecturer_id: string;
+  department_id: string;
+  university_id: string;
+  academic_session: string;
+  semester: 1 | 2;
+  is_active: boolean;
+  created_at: string;
+  courses?: Course;
+  profiles?: Pick<Profile, "id" | "full_name" | "email">;
+}
+
 export interface TimetableSlot {
   id: string;
   course_id: string;
+  course_offering_id?: string | null;
   lecturer_id: string;
   university_id: string;
   day_of_week: DayOfWeek;
@@ -179,6 +194,7 @@ export interface Enrollment {
   id: string;
   student_id: string;
   course_id: string;
+  course_offering_id?: string | null;
   university_id: string;
   academic_session: string;
   semester: 1 | 2;

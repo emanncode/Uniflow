@@ -347,7 +347,7 @@ export default function StudentTimetable() {
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      const courseIds = await refreshEnrollments(true);
+      const { courseIds, offeringIds } = await refreshEnrollments(true);
 
       if (courseIds.length === 0) {
         setAllSlots([]);
@@ -355,17 +355,8 @@ export default function StudentTimetable() {
         return;
       }
 
-      const { data: slots } = await supabase
-        .from("timetable")
-        .select(
-          "*, courses(id, title, code, credit_units), profiles(full_name)",
-        )
-        .in("course_id", courseIds)
-        .eq("is_active", true)
-        .order("day_of_week")
-        .order("start_time");
-
-      const loadedSlots = slots ?? [];
+      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+      const loadedSlots = await fetchTimetableSlots({ offeringIds, courseIds });
       setAllSlots(loadedSlots);
 
       const slotIds = loadedSlots.map((s) => s.id);

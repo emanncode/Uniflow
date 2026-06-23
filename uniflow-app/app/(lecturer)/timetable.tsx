@@ -306,21 +306,10 @@ export default function LecturerTimetable() {
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      const { data: slots, error: slotsError } = await supabase
-        .from("timetable")
-        .select("*, courses(id, title, code, credit_units)")
-        .eq("lecturer_id", profile.id)
-        .eq("is_active", true)
-        .order("day_of_week")
-        .order("start_time");
-
-      if (slotsError) {
-        console.error("Lecturer timetable fetch error:", slotsError.message);
-        setAllSlots([]);
-        return;
-      }
-
-      const loadedSlots = slots ?? [];
+      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+      const loadedSlots = await fetchTimetableSlots({
+        lecturerId: profile.id,
+      });
       setAllSlots(loadedSlots);
 
       const slotIds = loadedSlots.map((s) => s.id);

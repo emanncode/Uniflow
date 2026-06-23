@@ -1,31 +1,77 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getAcademicContext } from "@/lib/academic";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const CACHE_TTL_MS = 60_000;
 
+export type LecturerTeachingContext = {
+  courseIds: string[];
+  offeringIds: string[];
+};
+
 let cachedLecturerId: string | null = null;
-let cachedCourseIds: string[] = [];
+let cachedContext: LecturerTeachingContext = { courseIds: [], offeringIds: [] };
 let cachedAt = 0;
-let inflight: Promise<string[]> | null = null;
+let inflight: Promise<LecturerTeachingContext> | null = null;
 
 export function invalidateLecturerCourseIds() {
   cachedLecturerId = null;
-  cachedCourseIds = [];
+  cachedContext = { courseIds: [], offeringIds: [] };
   cachedAt = 0;
   inflight = null;
 }
 
-export async function fetchLecturerCourseIds(
+async function loadFromOfferings(
+  lecturerId: string,
+): Promise<LecturerTeachingContext> {
+  const { academic_session, semester } = getAcademicContext();
+
+  const { data, error } = await supabase
+    .from("course_offerings")
+    .select("id, course_id")
+    .eq("lecturer_id", lecturerId)
+    .eq("is_active", true)
+    .eq("academic_session", academic_session)
+    .eq("semester", semester);
+
+  if (error) throw error;
+
+  return {
+    courseIds: [...new Set((data ?? []).map((r) => r.course_id))],
+    offeringIds: (data ?? []).map((r) => r.id),
+  };
+}
+
+async function loadFromLegacy(
+  lecturerId: string,
+): Promise<LecturerTeachingContext> {
+  const { academic_session, semester } = getAcademicContext();
+
+  const { data, error } = await supabase
+    .from("lecturer_courses")
+    .select("course_id")
+    .eq("lecturer_id", lecturerId)
+    .eq("is_active", true)
+    .eq("academic_session", academic_session)
+    .eq("semester", semester);
+
+  if (error) throw error;
+
+  const courseIds = (data ?? []).map((row) => row.course_id);
+  return { courseIds, offeringIds: [] };
+}
+
+export async function fetchLecturerTeachingContext(
   lecturerId: string,
   force = false,
-): Promise<string[]> {
+): Promise<LecturerTeachingContext> {
   if (
     !force &&
     cachedLecturerId === lecturerId &&
     Date.now() - cachedAt < CACHE_TTL_MS
   ) {
-    return cachedCourseIds;
+    return cachedContext;
   }
 
   if (!force && inflight) {
@@ -33,20 +79,21 @@ export async function fetchLecturerCourseIds(
   }
 
   inflight = (async () => {
-    const { data, error } = await supabase
-      .from("lecturer_courses")
-      .select("course_id")
-      .eq("lecturer_id", lecturerId)
-      .eq("is_active", true);
+    let next: LecturerTeachingContext;
+    try {
+      next = await loadFromOfferings(lecturerId);
+      if (next.courseIds.length === 0) {
+        next = await loadFromLegacy(lecturerId);
+      }
+    } catch {
+      next = await loadFromLegacy(lecturerId);
+    }
 
-    if (error) throw error;
-
-    const courseIds = (data ?? []).map((row) => row.course_id);
     cachedLecturerId = lecturerId;
-    cachedCourseIds = courseIds;
+    cachedContext = next;
     cachedAt = Date.now();
     inflight = null;
-    return courseIds;
+    return next;
   })();
 
   try {
@@ -57,16 +104,27 @@ export async function fetchLecturerCourseIds(
   }
 }
 
+/** @deprecated use fetchLecturerTeachingContext */
+export async function fetchLecturerCourseIds(
+  lecturerId: string,
+  force = false,
+): Promise<string[]> {
+  const ctx = await fetchLecturerTeachingContext(lecturerId, force);
+  return ctx.courseIds;
+}
+
 export function prefetchLecturerCourseIds(lecturerId: string) {
-  void fetchLecturerCourseIds(lecturerId);
+  void fetchLecturerTeachingContext(lecturerId);
 }
 
 export function useLecturerCourseIds() {
   const profile = useAuthStore((s) => s.profile);
   const lecturerId = profile?.id;
 
-  const [courseIds, setCourseIds] = useState<string[]>(() =>
-    lecturerId && cachedLecturerId === lecturerId ? cachedCourseIds : [],
+  const [context, setContext] = useState<LecturerTeachingContext>(() =>
+    lecturerId && cachedLecturerId === lecturerId
+      ? cachedContext
+      : { courseIds: [], offeringIds: [] },
   );
   const [isLoading, setIsLoading] = useState(
     () => !(lecturerId && cachedLecturerId === lecturerId),
@@ -75,19 +133,19 @@ export function useLecturerCourseIds() {
   const refresh = useCallback(
     async (force = true) => {
       if (!lecturerId) {
-        setCourseIds([]);
-        return [];
+        setContext({ courseIds: [], offeringIds: [] });
+        return { courseIds: [], offeringIds: [] };
       }
-      const ids = await fetchLecturerCourseIds(lecturerId, force);
-      setCourseIds(ids);
-      return ids;
+      const next = await fetchLecturerTeachingContext(lecturerId, force);
+      setContext(next);
+      return next;
     },
     [lecturerId],
   );
 
   useEffect(() => {
     if (!lecturerId) {
-      setCourseIds([]);
+      setContext({ courseIds: [], offeringIds: [] });
       setIsLoading(false);
       return;
     }
@@ -95,11 +153,11 @@ export function useLecturerCourseIds() {
     let cancelled = false;
     setIsLoading(true);
 
-    fetchLecturerCourseIds(lecturerId)
-      .then((ids) => {
-        if (!cancelled) setCourseIds(ids);
+    fetchLecturerTeachingContext(lecturerId)
+      .then((next) => {
+        if (!cancelled) setContext(next);
       })
-      .catch((e) => console.error("Lecturer courses fetch error:", e))
+      .catch((e) => console.error("Lecturer offerings fetch error:", e))
       .finally(() => {
         if (!cancelled) setIsLoading(false);
       });
@@ -109,5 +167,10 @@ export function useLecturerCourseIds() {
     };
   }, [lecturerId]);
 
-  return { courseIds, isLoading, refresh };
+  return {
+    courseIds: context.courseIds,
+    offeringIds: context.offeringIds,
+    isLoading,
+    refresh,
+  };
 }

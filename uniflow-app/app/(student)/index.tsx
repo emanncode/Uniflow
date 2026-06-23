@@ -187,7 +187,7 @@ export default function StudentDashboard() {
   const fetchData = useCallback(async () => {
     if (!profile) return
     try {
-      const courseIds = await refreshEnrollments(true)
+      const { courseIds, offeringIds } = await refreshEnrollments(true)
 
       if (courseIds.length === 0) {
         setTodaySlots([])
@@ -199,14 +199,15 @@ export default function StudentDashboard() {
 
       setTotalCourses(courseIds.length)
 
-      const { data: allSlots } = await supabase
-        .from('timetable')
-        .select('*, courses(id, title, code, credit_units), profiles(full_name)')
-        .in('course_id', courseIds)
-        .eq('is_active', true)
-        .order('start_time')
+      const { fetchTimetableSlots } = await import('@/lib/timetable-query')
+      const allSlots = await fetchTimetableSlots({ offeringIds, courseIds })
 
-      if (!allSlots) return
+      if (!allSlots.length) {
+        setTodaySlots([])
+        setUpcomingSlots([])
+        setTodayUpdates({})
+        return
+      }
 
       const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME)
       const upcoming = allSlots

@@ -1,31 +1,37 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getAcademicContext } from "@/lib/academic";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const CACHE_TTL_MS = 60_000;
 
+export type StudentEnrollmentContext = {
+  courseIds: string[];
+  offeringIds: string[];
+};
+
 let cachedStudentId: string | null = null;
-let cachedCourseIds: string[] = [];
+let cachedContext: StudentEnrollmentContext = { courseIds: [], offeringIds: [] };
 let cachedAt = 0;
-let inflight: Promise<string[]> | null = null;
+let inflight: Promise<StudentEnrollmentContext> | null = null;
 
 export function invalidateStudentEnrollments() {
   cachedStudentId = null;
-  cachedCourseIds = [];
+  cachedContext = { courseIds: [], offeringIds: [] };
   cachedAt = 0;
   inflight = null;
 }
 
-export async function fetchStudentCourseIds(
+export async function fetchStudentEnrollmentContext(
   studentId: string,
   force = false,
-): Promise<string[]> {
+): Promise<StudentEnrollmentContext> {
   if (
     !force &&
     cachedStudentId === studentId &&
     Date.now() - cachedAt < CACHE_TTL_MS
   ) {
-    return cachedCourseIds;
+    return cachedContext;
   }
 
   if (!force && inflight) {
@@ -33,20 +39,34 @@ export async function fetchStudentCourseIds(
   }
 
   inflight = (async () => {
+    const { academic_session, semester } = getAcademicContext();
+
     const { data, error } = await supabase
       .from("enrollments")
-      .select("course_id")
+      .select("course_id, course_offering_id")
       .eq("student_id", studentId)
-      .eq("is_active", true);
+      .eq("is_active", true)
+      .eq("academic_session", academic_session)
+      .eq("semester", semester);
 
     if (error) throw error;
 
-    const courseIds = (data ?? []).map((row) => row.course_id);
+    const courseIds = [
+      ...new Set((data ?? []).map((row) => row.course_id).filter(Boolean)),
+    ] as string[];
+    const offeringIds = [
+      ...new Set(
+        (data ?? [])
+          .map((row) => row.course_offering_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
     cachedStudentId = studentId;
-    cachedCourseIds = courseIds;
+    cachedContext = { courseIds, offeringIds };
     cachedAt = Date.now();
     inflight = null;
-    return courseIds;
+    return cachedContext;
   })();
 
   try {
@@ -58,7 +78,7 @@ export async function fetchStudentCourseIds(
 }
 
 export function prefetchStudentEnrollments(studentId: string) {
-  void fetchStudentCourseIds(studentId);
+  void fetchStudentEnrollmentContext(studentId);
 }
 
 export function useStudentEnrollments() {
@@ -66,8 +86,10 @@ export function useStudentEnrollments() {
   const studentId =
     profile?.role === "student" ? profile.id : undefined;
 
-  const [courseIds, setCourseIds] = useState<string[]>(() =>
-    studentId && cachedStudentId === studentId ? cachedCourseIds : [],
+  const [context, setContext] = useState<StudentEnrollmentContext>(() =>
+    studentId && cachedStudentId === studentId
+      ? cachedContext
+      : { courseIds: [], offeringIds: [] },
   );
   const [isLoading, setIsLoading] = useState(
     () => !(studentId && cachedStudentId === studentId),
@@ -76,19 +98,19 @@ export function useStudentEnrollments() {
   const refresh = useCallback(
     async (force = true) => {
       if (!studentId) {
-        setCourseIds([]);
-        return [];
+        setContext({ courseIds: [], offeringIds: [] });
+        return { courseIds: [], offeringIds: [] };
       }
-      const ids = await fetchStudentCourseIds(studentId, force);
-      setCourseIds(ids);
-      return ids;
+      const next = await fetchStudentEnrollmentContext(studentId, force);
+      setContext(next);
+      return next;
     },
     [studentId],
   );
 
   useEffect(() => {
     if (!studentId) {
-      setCourseIds([]);
+      setContext({ courseIds: [], offeringIds: [] });
       setIsLoading(false);
       return;
     }
@@ -96,9 +118,9 @@ export function useStudentEnrollments() {
     let cancelled = false;
     setIsLoading(true);
 
-    fetchStudentCourseIds(studentId)
-      .then((ids) => {
-        if (!cancelled) setCourseIds(ids);
+    fetchStudentEnrollmentContext(studentId)
+      .then((next) => {
+        if (!cancelled) setContext(next);
       })
       .catch((e) => console.error("Student enrollments fetch error:", e))
       .finally(() => {
@@ -110,5 +132,10 @@ export function useStudentEnrollments() {
     };
   }, [studentId]);
 
-  return { courseIds, isLoading, refresh };
+  return {
+    courseIds: context.courseIds,
+    offeringIds: context.offeringIds,
+    isLoading,
+    refresh,
+  };
 }
