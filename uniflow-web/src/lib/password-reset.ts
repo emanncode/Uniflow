@@ -16,13 +16,12 @@ export function defaultPasswordResetUrl(): string {
 
 /**
  * Password reset landing for university admins.
- * Uses the apex domain with a university query param so Supabase redirect
- * allowlists (which often only include the main site URL) still route correctly.
+ * Uses the university subdomain directly so university admins never see the
+ * uniflow-admin domain. Requires `https://*-admin.{BASE_DOMAIN}/reset-password`
+ * (or similar wildcard) to be in Supabase's Redirect URL allowlist.
  */
 export function universityAdminPasswordResetUrl(shortName: string): string {
-  const url = new URL(`${APP_URL}/reset-password`);
-  url.searchParams.set("university", shortName);
-  return url.toString();
+  return universityPortalUrl(shortName, "/reset-password");
 }
 
 /** Reset URL that matches the portal the user is on (university subdomain vs apex). */
