@@ -92,7 +92,24 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Bare localhost or the primary app host uses normal top-level routing.
+  // Admin-only routes (/login on root host → admin, /dashboard*) must be
+  // served from admin.localhost:3000 (dev) or admin.uniflow.xyz (prod).
   if (!subdomain) {
+    const isLocalhost = hostname.split(":")[0].toLowerCase() === "localhost";
+
+    // In local dev, redirect admin paths to admin.localhost:3000
+    if (isLocalhost) {
+      const adminPaths = ["/dashboard", "/login"];
+      const isDashboard = pathname.startsWith("/dashboard");
+      // Only redirect /login if no subdomain AND it looks like an admin login attempt
+      // (i.e. they are already authed as uniflow_admin or going to /dashboard)
+      if (isDashboard) {
+        const adminUrl = new URL(request.url);
+        adminUrl.host = `admin.localhost:3000`;
+        return NextResponse.redirect(adminUrl);
+      }
+    }
+
     if (user && authRoutes.includes(pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
