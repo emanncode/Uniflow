@@ -4,13 +4,12 @@ function extractPortalKey(host: string): string | null {
   return null;
 }
 
-
 export function getSubdomain(hostname: string): string | null {
   // localhost:3000              -> no subdomain (marketing site)
-  // admin.localhost:3000        -> "super"  (super-admin, mirrors admin.uniflow.xyz)
+  // admin.localhost:3000        -> "super"  (super-admin, mirrors admin.uniflowapp.xyz)
   // uni-admin.localhost:3000    -> "uni"    (university portal)
-  // uni-admin.uniflow.xyz       -> "uni"
-  // admin.uniflow.xyz           -> "super"
+  // uni-admin.uniflowapp.xyz       -> "uni"
+  // admin.uniflowapp.xyz           -> "super"
 
   const host = hostname.split(":")[0].toLowerCase();
   if (!host) return null;
@@ -24,7 +23,7 @@ export function getSubdomain(hostname: string): string | null {
   const parts = host.split(".");
   if (parts.length < 2) return null;
 
-  // For production domains with two parts (e.g. sub.uniflow.xyz),
+  // For production domains with two parts (e.g. sub.uniflowapp.xyz),
   // only treat the first part as a subdomain key.
   return extractPortalKey(parts[0]);
 }

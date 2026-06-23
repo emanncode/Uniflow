@@ -93,7 +93,7 @@ export async function proxy(request: NextRequest) {
 
   // Bare localhost or the primary app host uses normal top-level routing.
   // Admin-only routes (/login on root host → admin, /dashboard*) must be
-  // served from admin.localhost:3000 (dev) or admin.uniflow.xyz (prod).
+  // served from admin.localhost:3000 (dev) or admin.uniflowapp.xyz (prod).
   if (!subdomain) {
     const isLocalhost = hostname.split(":")[0].toLowerCase() === "localhost";
 
@@ -160,7 +160,11 @@ export async function proxy(request: NextRequest) {
       }
 
       if (pathname === "/reset-password") {
-        return rewriteWithCookies(request, supabaseResponse, "/u/reset-password");
+        return rewriteWithCookies(
+          request,
+          supabaseResponse,
+          "/u/reset-password",
+        );
       }
 
       if (pathname === "/auth/callback") {
