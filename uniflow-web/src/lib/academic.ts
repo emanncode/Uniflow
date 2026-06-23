@@ -29,6 +29,20 @@ export function getCurrentAcademicSession(date = new Date()): string {
   return `${year - 1}/${year}`;
 }
 
+/** First sem: Aug–Jan; second sem: Feb–Jul (Nigerian academic calendar default). */
+export function getCurrentSemester(date = new Date()): 1 | 2 {
+  const month = date.getMonth();
+  if (month === 0 || month >= 7) return 1;
+  return 2;
+}
+
+export function getAcademicContext(date = new Date()) {
+  return {
+    academic_session: getCurrentAcademicSession(date),
+    semester: getCurrentSemester(date),
+  };
+}
+
 export function displayDayToDb(day: string): string {
   return day.toLowerCase();
 }

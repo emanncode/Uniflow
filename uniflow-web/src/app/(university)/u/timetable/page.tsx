@@ -11,9 +11,11 @@ import {
   type DisplayDay,
   dbDayToDisplay,
   displayDayToDb,
+  getAcademicContext,
   getCurrentAcademicSession,
   getDefaultDisplayDay,
 } from "@/lib/academic";
+import { CombinedTimetableImport } from "@/components/university/CombinedTimetableImport";
 import { fetchCourseAssignments } from "@/lib/lecturer-courses";
 import {
   buildTimetableDraftRows,
@@ -546,7 +548,8 @@ export default function TimetablePage() {
         return;
       }
 
-      const sessionYear = getCurrentAcademicSession();
+      const { academic_session: sessionYear, semester: currentSemester } =
+        getAcademicContext();
       const departmentName =
         deptRes?.find((d) => d.id === departmentId)?.name ?? "—";
 
@@ -558,6 +561,8 @@ export default function TimetablePage() {
           )
           .eq("university_id", contextUniId)
           .eq("department_id", departmentId)
+          .eq("academic_session", sessionYear)
+          .eq("semester", currentSemester)
           .order("day_of_week")
           .order("start_time"),
         supabase
@@ -1076,6 +1081,15 @@ export default function TimetablePage() {
           </button>
         </div>
       </div>
+
+      {activeDept && contextUniId ? (
+        <CombinedTimetableImport
+          universityId={contextUniId}
+          departmentId={activeDept.id}
+          departmentLabel={activeDept.short_name}
+          onComplete={loadData}
+        />
+      ) : null}
 
       {generateMessage && (
         <div
