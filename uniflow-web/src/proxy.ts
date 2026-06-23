@@ -56,11 +56,6 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
-  if (pathname === "/forgot-password") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,34 +86,37 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Bare localhost or the primary app host uses normal top-level routing.
-  // Admin-only routes (/login on root host → admin, /dashboard*) must be
-  // served from admin.localhost:3000 (dev) or admin.uniflowapp.xyz (prod).
+  // ── Root domain (uniflowapp.xyz / localhost:3000) ──────────────────────────
+  // Only the landing page lives here: "/" and "/register".
+  // Everything else (login, dashboard, reset-password) belongs on the admin
+  // subdomain: admin.uniflowapp.xyz (prod) | admin.localhost:3000 (dev).
   if (!subdomain) {
-    const isLocalhost = hostname.split(":")[0].toLowerCase() === "localhost";
+    const rootHost = hostname.split(":")[0].toLowerCase();
+    const isLocalhost = rootHost === "localhost";
 
-    // In local dev, redirect admin paths to admin.localhost:3000
-    if (isLocalhost) {
-      const adminPaths = ["/dashboard", "/login"];
-      const isDashboard = pathname.startsWith("/dashboard");
-      // Only redirect /login if no subdomain AND it looks like an admin login attempt
-      // (i.e. they are already authed as uniflow_admin or going to /dashboard)
-      if (isDashboard) {
-        const adminUrl = new URL(request.url);
-        adminUrl.host = `admin.localhost:3000`;
-        return NextResponse.redirect(adminUrl);
-      }
+    // Build the admin subdomain host for redirects
+    const adminHost = isLocalhost
+      ? `admin.localhost:3000`
+      : `admin.${rootHost.split(".").slice(-2).join(".")}`;  // e.g. admin.uniflowapp.xyz
+    const adminProto = isLocalhost ? "http" : "https";
+
+    // Admin-only paths that must redirect to the admin subdomain
+    const adminPaths = ["/login", "/dashboard", "/reset-password", "/auth/callback", "/forgot-password", "/unauthorized"];
+    const isAdminPath =
+      adminPaths.some((p) => pathname === p || pathname.startsWith(p + "/")) ||
+      pathname.startsWith("/dashboard");
+
+    if (isAdminPath) {
+      const adminUrl = new URL(`${adminProto}://${adminHost}${pathname}${request.nextUrl.search}`);
+      return NextResponse.redirect(adminUrl);
     }
 
-    if (user && authRoutes.includes(pathname)) {
+    // Root-domain public routes: / and /register only
+    const rootPublicRoutes = ["/", "/register"];
+    if (!rootPublicRoutes.includes(pathname)) {
+      // Unknown path on root domain → back to landing page
       const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
-    }
-
-    if (!user && !publicRoutes.includes(pathname)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
+      url.pathname = "/";
       return NextResponse.redirect(url);
     }
 
