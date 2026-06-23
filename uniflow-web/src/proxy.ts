@@ -125,6 +125,10 @@ export async function proxy(request: NextRequest) {
 
   if (isSuperAdmin(hostname)) {
     if (!user) {
+      const publicPaths = ["/login", "/reset-password", "/auth/callback"];
+      if (publicPaths.includes(pathname)) {
+        return supabaseResponse;
+      }
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       return NextResponse.redirect(url);
