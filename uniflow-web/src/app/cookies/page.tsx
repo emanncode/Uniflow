@@ -5,7 +5,7 @@ import { getMarketingMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = getMarketingMetadata({
   title: "Cookie Policy",
-  alternates: { canonical: "/cookie-policy" },
+  alternates: { canonical: "/cookies" },
 });
 
 export default function CookiePolicyPage() {

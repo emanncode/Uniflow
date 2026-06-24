@@ -5,7 +5,7 @@ import { getMarketingMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = getMarketingMetadata({
   title: "Privacy Policy",
-  alternates: { canonical: "/privacy-policy" },
+  alternates: { canonical: "/privacy" },
 });
 
 export default function PrivacyPolicyPage() {
@@ -117,7 +117,7 @@ export default function PrivacyPolicyPage() {
             <Section title="8. Cookies">
               <p>
                 We use cookies and similar tracking technologies to enhance your experience. Please refer to our
-                <a href="/cookie-policy" style={{ color: "var(--brand)", textDecoration: "none" }}> Cookie Policy</a> for detailed information.
+                <a href="/cookies" style={{ color: "var(--brand)", textDecoration: "none" }}> Cookie Policy</a> for detailed information.
               </p>
             </Section>
 

@@ -662,11 +662,11 @@ export default function RegisterPage() {
                     <span style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
                       I confirm that I am authorized to register this university on Uniflow
                       and agree to the{' '}
-                      <Link href="/terms-of-service" style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+                      <Link href="/terms" style={{ color: 'var(--brand)', textDecoration: 'none' }}>
                         Terms of Service
                       </Link>
                       {' '}and{' '}
-                      <Link href="/privacy-policy" style={{ color: 'var(--brand)', textDecoration: 'none' }}>
+                      <Link href="/privacy" style={{ color: 'var(--brand)', textDecoration: 'none' }}>
                         Privacy Policy
                       </Link>.
                     </span>

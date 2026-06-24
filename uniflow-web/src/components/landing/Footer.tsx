@@ -25,9 +25,9 @@ const links = {
     { label: "Contact", href: "/contact" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "/privacy-policy" },
-    { label: "Terms of Service", href: "/terms-of-service" },
-    { label: "Cookie Policy", href: "/cookie-policy" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Cookie Policy", href: "/cookies" },
     { label: "Security", href: "/security" },
   ],
 };
@@ -94,7 +94,8 @@ export default function Footer() {
               </p>
 
               {/* socials */}
-              <div className="flex items-center justify-center gap-2 mt-6">
+              <div className="flex flex-col items-start gap-4 mt-6">
+                <div className="flex items-center justify-center gap-2">
                 {socials.map((social) => {
                   const Icon = social.icon;
                   return (
@@ -124,6 +125,7 @@ export default function Footer() {
                     </motion.a>
                   );
                 })}
+                </div>
                 <a
                   href="https://www.producthunt.com/products/uniflow-2?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-uniflow-1b790008-44cb-4ab9-8c37-a886df1180cd"
                   target="_blank"

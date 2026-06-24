@@ -5,7 +5,7 @@ import { getMarketingMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = getMarketingMetadata({
   title: "Terms of Service",
-  alternates: { canonical: "/terms-of-service" },
+  alternates: { canonical: "/terms" },
 });
 
 export default function TermsOfServicePage() {
