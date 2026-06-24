@@ -27,9 +27,19 @@ export const dynamic = "force-dynamic";
 
 type Role = "university_admin";
 
-const NAV_ITEMS: { label: string; href: string; icon: React.ElementType }[] = [
+const NAV_ITEMS: {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  matchPaths?: string[];
+}[] = [
   { label: "Overview", href: "/u", icon: LayoutDashboard },
-  { label: "Faculties", href: "/u/faculties", icon: BookOpen },
+  {
+    label: "Faculties",
+    href: "/u/faculties",
+    icon: BookOpen,
+    matchPaths: ["/u/departments", "/u/lecturers"],
+  },
   { label: "Notifications", href: "/u/notifications", icon: Bell },
   { label: "Settings", href: "/u/settings", icon: Settings },
 ];
@@ -96,7 +106,7 @@ const SidebarContent = ({
       >
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = isUniversityNavActive(pathname, item.href);
+          const active = isUniversityNavActive(pathname, item.href, item.matchPaths);
           return (
             <Link
               key={item.href}

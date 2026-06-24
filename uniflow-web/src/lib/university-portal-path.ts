@@ -21,8 +21,16 @@ export function isUniversityPublicPath(pathname: string): boolean {
 }
 
 /** Match sidebar nav item against the current route (supports nested pages). */
-export function isUniversityNavActive(pathname: string, href: string): boolean {
+export function isUniversityNavActive(
+  pathname: string,
+  href: string,
+  matchPaths?: string[],
+): boolean {
   const normalized = normalizeUniversityPortalPath(pathname);
+
+  if (matchPaths?.some((p) => normalized === p || normalized.startsWith(`${p}/`))) {
+    return true;
+  }
 
   if (href === "/u") {
     return normalized === "/u";
