@@ -42,18 +42,17 @@ const UI_COLORS = {
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
 function StatCard({
-  icon: Icon, label, value, sub, colorKey, href
+  icon: Icon, label, value, sub, colorKey
 }: {
   icon: React.ElementType
   label: string
   value: number | string
   sub?: string
   colorKey: keyof typeof UI_COLORS
-  href?: string
 }) {
   const color = UI_COLORS[colorKey]
 
-  const content = (
+  return (
     <div style={{
       background: 'var(--bg-card)',
       border: '1px solid var(--border-primary)',
@@ -63,19 +62,17 @@ function StatCard({
       flexDirection: 'column',
       gap: '12px',
       transition: 'all var(--transition)',
-      cursor: href ? 'pointer' : 'default',
-      textDecoration: 'none',
+      cursor: 'default',
     }}
       onMouseEnter={e => {
-        if (!href) return
-          ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-secondary)'
-          ; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'
-          ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'
+        ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-secondary)'
+        ; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'
+        ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-hover)'
       }}
       onMouseLeave={e => {
         ; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-primary)'
-          ; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
-          ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-card)'
+        ; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
+        ; (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-card)'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -87,7 +84,6 @@ function StatCard({
         }}>
           <Icon size={18} style={{ color: color.main }} />
         </div>
-        {href && <ArrowUpRight size={14} style={{ color: 'var(--text-muted)' }} />}
       </div>
       <div>
         <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
@@ -98,8 +94,6 @@ function StatCard({
       </div>
     </div>
   )
-
-  return href ? <Link href={href} style={{ textDecoration: 'none' }}>{content}</Link> : content
 }
 
 // ─── Activity Row ─────────────────────────────────────────────────────────────
@@ -226,11 +220,11 @@ export default function UniversityOverviewPage() {
     return 'Good evening'
   }
 
-  const STAT_CARDS: { icon: React.ElementType; label: string; value: number; colorKey: keyof typeof UI_COLORS; href: string; sub: string }[] = [
-    { icon: BookOpen, label: 'Faculties', value: stats.faculties, colorKey: 'blue', href: '/u/faculties', sub: 'active faculties' },
-    { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', href: '/u/departments', sub: 'across all faculties' },
-    { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', href: '/u/lecturers', sub: 'onboarded lecturers' },
-    { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', href: '/u/faculties', sub: 'scheduled classes' },
+  const STAT_CARDS: { icon: React.ElementType; label: string; value: number; colorKey: keyof typeof UI_COLORS; sub: string }[] = [
+    { icon: BookOpen, label: 'Faculties', value: stats.faculties, colorKey: 'blue', sub: 'active faculties' },
+    { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', sub: 'across all faculties' },
+    { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', sub: 'onboarded lecturers' },
+    { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', sub: 'scheduled classes' },
   ]
 
   const visibleCards = STAT_CARDS
