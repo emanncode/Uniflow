@@ -93,7 +93,7 @@ export default function UniversityLoginPage() {
       <div className="absolute inset-0 bg-[linear-gradient(var(--bg-hover)_1px,transparent_1px),linear-gradient(90deg,var(--bg-hover)_1px,transparent_1px)] bg-size-[64px_64px]" />
 
       <div className="relative w-full max-w-md">
-        <div className="mb-10! flex flex-col items-center text-center">
+        <div className="mb-10! flex flex-col items-center">
           <UniflowLogo size={40} />
           <p className="mt-3! text-xs text-muted tracking-widest uppercase">
             University Portal

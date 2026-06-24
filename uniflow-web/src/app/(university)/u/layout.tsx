@@ -451,7 +451,7 @@ export default function UniversityPortalLayout({
             <Menu size={20} />
           </button>
           <UniflowLogo size={22} />
-          <span className="mobile-top-bar-title capitalize">
+          <span className="mobile-top-bar-title uppercase">
             {university?.short_name || "University Portal"}
           </span>
         </header>

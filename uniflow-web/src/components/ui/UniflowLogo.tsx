@@ -11,7 +11,7 @@ export default function UniflowLogo({
   color = 'var(--brand)',
 }: UniflowLogoProps) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
       {/* ── icon mark ── */}
       <svg
         width={size}

@@ -119,7 +119,7 @@ export function CombinedTimetableImport({
         offerings only; repeat course_code + lecturer_email for multiple slots (lecture + lab).
       </p>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: preview ? "12px" : 0 }}>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: preview ? "12px" : 0 }}>
         <button type="button" onClick={downloadTemplate} className="btn-secondary" style={{ fontSize: "13px" }}>
           <Download size={13} /> Template
         </button>
