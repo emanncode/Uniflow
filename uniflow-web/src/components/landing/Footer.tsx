@@ -18,8 +18,6 @@ const links = {
   ],
   Universities: [
     { label: "Register", href: "/register" },
-    { label: "Documentation", href: "#" },
-    { label: "Support", href: "#" },
   ],
   Company: [
     { label: "About", href: "#" },
@@ -36,10 +34,9 @@ const links = {
 };
 
 const socials = [
-  { icon: TwitterIcon, href: "#", label: "Twitter" },
-  { icon: GithubIcon, href: "#", label: "GitHub" },
-  { icon: LinkedinIcon, href: "#", label: "LinkedIn" },
-  { icon: MailboxIcon, href: "#", label: "Email" },
+  { icon: TwitterIcon, href: "https://x.com/emanncode", label: "Twitter" },
+  { icon: GithubIcon, href: "https://github.com/emanncode", label: "GitHub" },
+  { icon: MailboxIcon, href: "mailto:contact@olajubajeifeoluwa93@gmail.com", label: "Email" },
 ];
 
 export default function Footer() {
