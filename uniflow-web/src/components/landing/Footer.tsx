@@ -5,7 +5,6 @@ import Link from "next/link";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import Image from "next/image";
 import { TwitterIcon } from "@/components/ui/Twitter";
-import { LinkedinIcon } from "@/components/ui/Linkedin";
 import { GithubIcon } from "@/components/ui/Github";
 import { MailboxIcon } from "@/components/ui/MailBox";
 
@@ -20,16 +19,16 @@ const links = {
     { label: "Register", href: "/register" },
   ],
   Company: [
-    { label: "About", href: "#" },
+    { label: "About", href: "/about" },
     { label: "Blog", href: "#" },
     { label: "Careers", href: "#" },
-    { label: "Contact", href: "#" },
+    { label: "Contact", href: "/contact" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-    { label: "Security", href: "#" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms of Service", href: "/terms-of-service" },
+    { label: "Cookie Policy", href: "/cookie-policy" },
+    { label: "Security", href: "/security" },
   ],
 };
 
@@ -95,13 +94,7 @@ export default function Footer() {
               </p>
 
               {/* socials */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  marginTop: "24px",
-                }}
-              >
+              <div className="flex items-center justify-center gap-2 mt-6">
                 {socials.map((social) => {
                   const Icon = social.icon;
                   return (

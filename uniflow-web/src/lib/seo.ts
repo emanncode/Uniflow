@@ -165,6 +165,6 @@ export const softwareJsonLd = {
   ],
 };
 
-export const publicSitemapPaths = ["/", "/register"] as const;
+export const publicSitemapPaths = ["/", "/register", "/about", "/contact", "/privacy-policy", "/terms-of-service", "/cookie-policy", "/security"] as const;
 
 export { BASE_DOMAIN };
