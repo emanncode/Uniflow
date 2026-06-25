@@ -79,7 +79,19 @@ export async function POST(request: Request) {
     })
 
     if (profileError) {
+      await supabase.auth.admin.deleteUser(authData.user.id)
       return NextResponse.json({ error: profileError.message }, { status: 500 })
+    }
+
+    const { error: adminError } = await supabase.from('university_admins').insert({
+      user_id: authData.user.id,
+      university_id: uniData.id,
+    })
+
+    if (adminError) {
+      await supabase.from('profiles').delete().eq('id', authData.user.id)
+      await supabase.auth.admin.deleteUser(authData.user.id)
+      return NextResponse.json({ error: adminError.message }, { status: 500 })
     }
 
     await supabase
