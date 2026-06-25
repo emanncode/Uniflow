@@ -33,8 +33,8 @@ import {
   getCourseLevels,
   isValidCourseLevel,
   parseCourseLevel,
+  formatLevelTab,
 } from "@/lib/course-levels";
-import LevelTabs from "@/components/ui/LevelTabs";
 
 interface Student {
   id: string
@@ -933,13 +933,19 @@ export default function StudentsPage() {
         )}
 
         {isDeptScoped && departmentConfigured && (
-          <div style={{ marginBottom: "16px" }}>
-            <LevelTabs
-              levels={levelTabs}
-              activeLevel={activeLevel}
-              onChange={(level) => setActiveLevel(level as CourseLevel)}
-              counts={levelCounts}
-            />
+          <div style={{ marginBottom: "16px", display: "flex", gap: "12px", alignItems: "center" }}>
+            <select
+              value={activeLevel}
+              onChange={(e) => setActiveLevel(Number(e.target.value) as CourseLevel)}
+              className="input"
+              style={{ width: "auto", minWidth: "140px" }}
+            >
+              {levelTabs.map((level) => (
+                <option key={level} value={level}>
+                  {formatLevelTab(level)} ({levelCounts[level] ?? 0})
+                </option>
+              ))}
+            </select>
           </div>
         )}
 
@@ -1298,18 +1304,24 @@ export default function StudentsPage() {
                   <div>
                     <label
                       className="label"
-                      style={{ display: "block", marginBottom: "8px" }}
+                      style={{ display: "block", marginBottom: "6px" }}
                     >
                       Level
                     </label>
-                    <LevelTabs
-                      levels={levelTabs}
-                      activeLevel={activeLevel}
-                      onChange={(level) =>
-                        setActiveLevel(level as CourseLevel)
+                    <select
+                      value={activeLevel}
+                      onChange={(e) =>
+                        setActiveLevel(Number(e.target.value) as CourseLevel)
                       }
-                      size="sm"
-                    />
+                      className="select"
+                      style={{ width: "100%", boxSizing: "border-box" }}
+                    >
+                      {levelTabs.map((level) => (
+                        <option key={level} value={level}>
+                          {formatLevelTab(level)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label
