@@ -55,6 +55,7 @@ export default function TimetablePage() {
   const facultyParam = searchParams.get("faculty");
 
   const [entries, setEntries] = useState<TimetableEntry[]>([]);
+  const [deptId, setDeptId] = useState<string | null>(null);
   const [deptName, setDeptName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,31 +70,54 @@ export default function TimetablePage() {
     setLoading(true);
     setError("");
 
-    const sessionYear = getCurrentAcademicSession();
+    (async () => {
+      let dept: { id: string; name: string } | null = null;
 
-    Promise.all([
-      supabase
+      const { data: byId } = await supabase
         .from("departments")
-        .select("name")
+        .select("id, name")
         .eq("id", deptParam)
-        .single(),
-      supabase
+        .eq("university_id", universityId)
+        .maybeSingle();
+
+      if (byId) {
+        dept = byId;
+      } else {
+        const { data: byShort } = await supabase
+          .from("departments")
+          .select("id, name")
+          .eq("short_name", deptParam)
+          .eq("university_id", universityId)
+          .maybeSingle();
+        dept = byShort ?? null;
+      }
+
+      if (!dept) {
+        setError("Department not found");
+        setLoading(false);
+        return;
+      }
+
+      setDeptId(dept.id);
+      setDeptName(dept.name);
+
+      const sessionYear = getCurrentAcademicSession();
+      const { data: ttData, error: ttError } = await supabase
         .from("timetable")
         .select("*, courses!inner(code, title, level)")
         .eq("university_id", universityId)
-        .eq("department_id", deptParam)
+        .eq("department_id", dept.id)
         .eq("is_active", true)
         .eq("academic_session", sessionYear)
-        .order("day_of_week"),
-    ]).then(([deptRes, ttRes]) => {
-      if (deptRes.data) setDeptName(deptRes.data.name);
-      if (ttRes.error) {
-        setError(ttRes.error.message);
+        .order("day_of_week");
+
+      if (ttError) {
+        setError(ttError.message);
       } else {
-        setEntries((ttRes.data as unknown as TimetableEntry[]) || []);
+        setEntries((ttData as unknown as TimetableEntry[]) || []);
       }
       setLoading(false);
-    });
+    })();
   }, [isReady, universityId, deptParam]);
 
   useEffect(() => {
@@ -169,7 +193,7 @@ export default function TimetablePage() {
             {deptName ? `${deptName} Timetable` : "Timetable"}
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {getCurrentAcademicSession()} · {formatLevelTab(activeLevel)} · {slotsForDay.length} slot{slotsForDay.length !== 1 ? "s" : ""}
+            {getCurrentAcademicSession()} · {facultyParam ? `${facultyParam} Faculty` : ""} · {formatLevelTab(activeLevel)} · {slotsForDay.length} slot{slotsForDay.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
@@ -185,9 +209,9 @@ export default function TimetablePage() {
               </option>
             ))}
           </select>
-          {deptParam && (
+          {deptId && (
             <Link
-              href={`/u/courses?department=${deptParam}&faculty=${facultyParam || ""}`}
+              href={`/u/courses?department=${deptId}&faculty=${facultyParam || ""}`}
               className="btn-secondary"
               style={{
                 display: "inline-flex",

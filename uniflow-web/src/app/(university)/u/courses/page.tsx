@@ -617,7 +617,7 @@ export default function CoursesPage() {
             {activeDept ? `${activeDept.name} Courses` : "Courses"}
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {courses.length} course{courses.length !== 1 ? "s" : ""} · manage courses, lecturers and schedule together
+            {courses.length} course{courses.length !== 1 ? "s" : ""} · {activeDept?.faculty ?? facultyParam ?? ""} Faculty · manage courses, lecturers and schedule together
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>

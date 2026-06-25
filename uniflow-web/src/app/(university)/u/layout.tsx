@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -39,7 +39,7 @@ const NAV_ITEMS: {
     label: "Faculties",
     href: "/u/faculties",
     icon: BookOpen,
-    matchPaths: ["/u/departments", "/u/lecturers"],
+    matchPaths: ["/u/departments", "/u/lecturers", "/u/courses", "/u/timetable"],
   },
   { label: "Resources", href: "/u/resources", icon: FolderOpen },
   { label: "Notifications", href: "/u/notifications", icon: Bell },
@@ -54,6 +54,7 @@ interface SidebarProps {
   user: { name: string; email: string; role: Role };
   university: { name: string; short_name: string } | null;
   pathname: string;
+  activeFaculty: string | null;
   setSidebarOpen: (open: boolean) => void;
   onSignOut: () => void;
 }
@@ -62,6 +63,7 @@ const SidebarContent = ({
   user,
   university,
   pathname,
+  activeFaculty,
   setSidebarOpen,
   onSignOut,
 }: SidebarProps) => {
@@ -165,6 +167,26 @@ const SidebarContent = ({
             </Link>
           );
         })}
+
+        {/* Active Faculty Indicator */}
+        {activeFaculty && (
+          <div
+            style={{
+              marginLeft: "12px",
+              marginTop: "4px",
+              padding: "6px 12px",
+              borderRadius: "var(--radius-sm)",
+              backgroundColor: "var(--brand-subtle)",
+              border: "1px solid var(--border-brand)",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "var(--brand)",
+              letterSpacing: "0.03em",
+            }}
+          >
+            {activeFaculty} Faculty
+          </div>
+        )}
       </nav>
 
       {/* User + Sign Out */}
