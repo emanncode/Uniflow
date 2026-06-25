@@ -1,75 +1,951 @@
 {
-  "version": "2.13",
-  "name": "Project Starter",
+  "version": "2.14",
   "children": [
     {
       "type": "frame",
-      "id": "canvas",
-      "x": 0,
+      "id": "GeM5G",
+      "x": 470,
       "y": 0,
-      "name": "Design Canvas",
+      "name": "Courses + Timetable Page",
       "clip": true,
-      "width": 390,
-      "height": 844,
-      "fill": "#0a0a0b",
-      "layout": "vertical",
-      "gap": 16,
-      "padding": [48, 24],
-      "alignItems": "center",
+      "width": 1200,
+      "height": "fit_content(0)",
       "children": [
         {
-          "type": "text",
-          "id": "title",
-          "fill": "#ffffff",
-          "content": "Design here first",
-          "fontFamily": "Inter",
-          "fontSize": 28,
-          "fontWeight": "700",
-          "textAlign": "center"
-        },
+          "type": "rectangle",
+          "id": "CDi7H",
+          "name": "Background",
+          "fill": "$bg-primary",
+          "width": "fill_container",
+          "height": "fill_container"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Hzv2T",
+      "x": 1750,
+      "y": 0,
+      "name": "Courses + Timetable Page",
+      "clip": true,
+      "width": 1200,
+      "height": 1580,
+      "fill": "$bg-primary",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 40,
+      "children": [
         {
-          "type": "text",
-          "id": "subtitle",
-          "fill": "#a1a1a1",
-          "content": "Ask your agent to create screens in Pencil.\nApprove the design before any code is written.",
-          "fontFamily": "Inter",
-          "fontSize": 14,
-          "fontWeight": "400",
-          "lineHeight": 1.5,
-          "textAlign": "center",
-          "textGrowth": "fixed-width",
-          "width": 320
+          "type": "frame",
+          "id": "Pi2or",
+          "name": "Header",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 6,
+          "children": [
+            {
+              "type": "frame",
+              "id": "udk4p",
+              "name": "Back Row",
+              "width": "fill_container",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "XyGQz",
+                  "name": "Back Arrow",
+                  "fill": "$text-muted",
+                  "content": "← Back to Departments",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "x1XIBz",
+              "name": "Title Row",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZY4Np",
+                  "name": "Title Group",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Dxt7V",
+                      "name": "Page Title",
+                      "fill": "$text-primary",
+                      "content": "CSC — Computer Science Courses",
+                      "fontFamily": "Inter",
+                      "fontSize": 20,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Z5k5y9",
+                      "name": "Subtitle",
+                      "fill": "$text-muted",
+                      "content": "12 courses · Manage courses, lecturers and schedule together",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "M2VGQ",
+                  "name": "Actions",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "FMr6H",
+                      "name": "Add Course Btn",
+                      "fill": "$brand",
+                      "cornerRadius": 8,
+                      "padding": [
+                        10,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "NbNkL",
+                          "name": "Add Course",
+                          "fill": "#ffffff",
+                          "content": "+ Add Course",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "HQaUw",
+                      "name": "CSV Btn",
+                      "cornerRadius": 8,
+                      "stroke": "$border-primary",
+                      "strokeWidth": 1,
+                      "padding": [
+                        10,
+                        14
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "JACRF",
+                          "name": "CSV Import",
+                          "fill": "$text-secondary",
+                          "content": "↑ Import CSV",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "500"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         {
           "type": "frame",
-          "id": "placeholderCard",
-          "name": "Placeholder Screen",
+          "id": "YU5mh",
+          "name": "Filters Row",
           "width": "fill_container",
-          "layout": "vertical",
           "gap": 12,
-          "padding": 20,
-          "cornerRadius": 16,
-          "fill": "#0f1011",
-          "stroke": "#ffffff0d",
-          "strokeWidth": 1,
           "children": [
             {
-              "type": "text",
-              "id": "cardTitle",
-              "fill": "#ff5c1a",
-              "content": "Screen 1",
-              "fontFamily": "Inter",
-              "fontSize": 16,
-              "fontWeight": "700"
+              "type": "frame",
+              "id": "gMP0n",
+              "name": "Level Tabs Row",
+              "width": "fill_container",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "FXFWH",
+                  "name": "Tab 100",
+                  "fill": "$brand-muted",
+                  "cornerRadius": 8,
+                  "stroke": "$border-brand",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "JY6BK",
+                      "name": "TabText 100",
+                      "fill": "$brand",
+                      "content": "100L",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YT1Jh",
+                  "name": "Tab 200",
+                  "cornerRadius": 8,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PnpWb",
+                      "name": "TabText 200",
+                      "fill": "$text-muted",
+                      "content": "200L",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vjqmO",
+                  "name": "Tab 300",
+                  "cornerRadius": 8,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "m8GWYN",
+                      "name": "TabText 300",
+                      "fill": "$text-muted",
+                      "content": "300L",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FZG3h",
+                  "name": "Tab 400",
+                  "cornerRadius": 8,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mWpnN",
+                      "name": "TabText 400",
+                      "fill": "$text-muted",
+                      "content": "400L",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "YK8GC",
+                  "name": "Tab 500",
+                  "cornerRadius": 8,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uATnb",
+                      "name": "TabText 500",
+                      "fill": "$text-muted",
+                      "content": "500L",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ohDGF",
+          "name": "Course Grid",
+          "width": "fill_container",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "swFRe",
+              "name": "Col 1",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "nJTrt",
+                  "type": "ref",
+                  "ref": "X3sH7",
+                  "name": "CSC301 Card",
+                  "descendants": {
+                    "D4UKz7": {
+                      "content": "CSC301"
+                    },
+                    "mEokp": {
+                      "content": "Data Structures"
+                    },
+                    "zZjDG": {
+                      "content": "300L · Sem 1 · 3 CU"
+                    },
+                    "RgTOb": {
+                      "content": "Dr. John Adeyemi"
+                    },
+                    "i0vR1x": {
+                      "content": "Mon"
+                    },
+                    "jKR6J": {
+                      "content": "08:00–10:00"
+                    },
+                    "CZAFr": {
+                      "content": "LT-101"
+                    },
+                    "ppmHz": {
+                      "content": "Wed"
+                    },
+                    "zUfMz": {
+                      "content": "14:00–16:00"
+                    },
+                    "FIlXM": {
+                      "content": "LAB-3"
+                    }
+                  }
+                },
+                {
+                  "id": "qcYwg",
+                  "type": "ref",
+                  "ref": "X3sH7",
+                  "name": "GEG101 Card",
+                  "descendants": {
+                    "D4UKz7": {
+                      "content": "GEG101"
+                    },
+                    "mEokp": {
+                      "content": "Intro to Geology"
+                    },
+                    "zZjDG": {
+                      "content": "100L · Sem 2 · 2 CU"
+                    },
+                    "RgTOb": {
+                      "content": "Dr. Sarah Kalu"
+                    },
+                    "i0vR1x": {
+                      "content": "Mon"
+                    },
+                    "jKR6J": {
+                      "content": "14:00–16:00"
+                    },
+                    "CZAFr": {
+                      "content": "GH-101"
+                    },
+                    "ppmHz": {
+                      "content": "Thu"
+                    },
+                    "zUfMz": {
+                      "content": "10:00–12:00"
+                    },
+                    "FIlXM": {
+                      "content": "LAB-4"
+                    }
+                  }
+                }
+              ]
             },
             {
-              "type": "text",
-              "id": "cardBody",
-              "fill": "#666666",
-              "content": "Replace this frame with your first approved UI.",
-              "fontFamily": "Inter",
-              "fontSize": 13,
-              "fontWeight": "400"
+              "type": "frame",
+              "id": "bNtfh",
+              "name": "Col 2",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "UhwMv",
+                  "type": "ref",
+                  "ref": "X3sH7",
+                  "name": "CSC302 Card",
+                  "descendants": {
+                    "D4UKz7": {
+                      "content": "CSC302"
+                    },
+                    "mEokp": {
+                      "content": "Algorithms & Complx"
+                    },
+                    "zZjDG": {
+                      "content": "300L · Sem 1 · 4 CU"
+                    },
+                    "RgTOb": {
+                      "content": "Prof. Jane Smith"
+                    },
+                    "i0vR1x": {
+                      "content": "Tue"
+                    },
+                    "jKR6J": {
+                      "content": "10:00–12:00"
+                    },
+                    "CZAFr": {
+                      "content": "LT-202"
+                    },
+                    "ppmHz": {
+                      "content": "Fri"
+                    },
+                    "zUfMz": {
+                      "content": "08:00–10:00"
+                    },
+                    "FIlXM": {
+                      "content": "LAB-1"
+                    }
+                  }
+                },
+                {
+                  "id": "C3Y01y",
+                  "type": "ref",
+                  "ref": "X3sH7",
+                  "name": "PHY202 Card",
+                  "descendants": {
+                    "D4UKz7": {
+                      "content": "PHY202"
+                    },
+                    "mEokp": {
+                      "content": "Electromagnetism"
+                    },
+                    "zZjDG": {
+                      "content": "200L · Sem 1 · 3 CU"
+                    },
+                    "RgTOb": {
+                      "content": "Dr. Emeka Okafor"
+                    },
+                    "i0vR1x": {
+                      "content": "Wed"
+                    },
+                    "jKR6J": {
+                      "content": "09:00–11:00"
+                    },
+                    "CZAFr": {
+                      "content": "PHY-LAB"
+                    },
+                    "Uu02r": {
+                      "enabled": false
+                    },
+                    "ppmHz": {
+                      "content": "—"
+                    },
+                    "zUfMz": {
+                      "content": ""
+                    },
+                    "FIlXM": {
+                      "content": ""
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IBmZJ",
+              "name": "Col 3",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "rCx89",
+                  "type": "ref",
+                  "ref": "X3sH7",
+                  "name": "MTH201 Card",
+                  "descendants": {
+                    "D4UKz7": {
+                      "content": "MTH201"
+                    },
+                    "mEokp": {
+                      "content": "Calculus II"
+                    },
+                    "zZjDG": {
+                      "content": "200L · Sem 2 · 3 CU"
+                    },
+                    "RgTOb": {
+                      "content": "Dr. Michael Ade"
+                    },
+                    "x9Yrjo": {
+                      "enabled": false
+                    },
+                    "i0vR1x": {
+                      "content": "—"
+                    },
+                    "jKR6J": {
+                      "content": ""
+                    },
+                    "CZAFr": {
+                      "content": ""
+                    },
+                    "Uu02r": {
+                      "enabled": false
+                    },
+                    "ppmHz": {
+                      "content": "—"
+                    },
+                    "zUfMz": {
+                      "content": ""
+                    },
+                    "FIlXM": {
+                      "content": ""
+                    },
+                    "zoy8D": {
+                      "content": "+ Add First Slot"
+                    }
+                  }
+                },
+                {
+                  "id": "F4v7TA",
+                  "type": "ref",
+                  "ref": "X3sH7",
+                  "name": "CSC303 Card",
+                  "descendants": {
+                    "D4UKz7": {
+                      "content": "CSC303"
+                    },
+                    "mEokp": {
+                      "content": "Software Eng."
+                    },
+                    "zZjDG": {
+                      "content": "400L · Sem 1 · 3 CU"
+                    },
+                    "RgTOb": {
+                      "content": "Engr. Paul Musa"
+                    },
+                    "i0vR1x": {
+                      "content": "Tue"
+                    },
+                    "jKR6J": {
+                      "content": "08:00–10:00"
+                    },
+                    "CZAFr": {
+                      "content": "CS-HALL"
+                    },
+                    "Uu02r": {
+                      "enabled": false
+                    },
+                    "ppmHz": {
+                      "content": "—"
+                    },
+                    "zUfMz": {
+                      "content": ""
+                    },
+                    "FIlXM": {
+                      "content": ""
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "X3sH7",
+      "x": 256,
+      "y": 114,
+      "name": "Course Card",
+      "reusable": true,
+      "width": 360,
+      "children": [
+        {
+          "type": "frame",
+          "id": "FhVsa",
+          "name": "Card Inner",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 10,
+          "stroke": "$border-primary",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "SqwHU",
+              "name": "Card Head",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                16,
+                16,
+                0,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ED6Mw",
+                  "name": "Code Row",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "D4UKz7",
+                      "name": "Code",
+                      "fill": "$text-primary",
+                      "content": "CSC301",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mEokp",
+                      "name": "Title",
+                      "fill": "$text-secondary",
+                      "content": "Data Structures",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yz14W",
+                  "name": "Meta Row",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zZjDG",
+                      "name": "Meta",
+                      "fill": "$text-muted",
+                      "content": "300L · Sem 1 · 3 CU",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OSMNf",
+              "name": "Lect Row",
+              "width": "fill_container",
+              "gap": 6,
+              "padding": [
+                16,
+                10
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jNi2d",
+                  "name": "Lect 1",
+                  "fill": "$brand-muted",
+                  "cornerRadius": 4,
+                  "stroke": "$border-brand",
+                  "strokeWidth": 1,
+                  "padding": [
+                    6,
+                    4
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RgTOb",
+                      "name": "Lect 1 Text",
+                      "fill": "$brand",
+                      "content": "Dr. John Adeyemi",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HDNJ1",
+                  "name": "Assign Btn",
+                  "cornerRadius": 4,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    6,
+                    4
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zl2WS",
+                      "name": "Assign Text",
+                      "fill": "$text-muted",
+                      "content": "+ Assign",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mkHTz",
+              "name": "Sched Head",
+              "width": "fill_container",
+              "gap": 4,
+              "padding": [
+                16,
+                8
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "guRP3",
+                  "name": "Sched Label",
+                  "fill": "$text-muted",
+                  "content": "Schedule",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PG7xs",
+              "name": "Slots",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 6,
+              "padding": [
+                16,
+                0,
+                0,
+                16
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "x9Yrjo",
+                  "name": "Slot 1",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "K5Z8Tj",
+                      "name": "Day 1",
+                      "fill": "$brand-muted",
+                      "cornerRadius": 4,
+                      "padding": [
+                        5,
+                        4
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "i0vR1x",
+                          "name": "Day 1 Text",
+                          "fill": "$brand",
+                          "content": "Mon",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "jKR6J",
+                      "name": "Time 1",
+                      "fill": "$text-primary",
+                      "content": "08:00–10:00",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CZAFr",
+                      "name": "Venue 1",
+                      "fill": "$text-secondary",
+                      "content": "LT-101",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wDnI1",
+                      "name": "Del 1",
+                      "fill": "$text-muted",
+                      "content": "✕",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Uu02r",
+                  "name": "Slot 2",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YLJqS",
+                      "name": "Day 2",
+                      "fill": "#3b82f626",
+                      "cornerRadius": 4,
+                      "padding": [
+                        5,
+                        4
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ppmHz",
+                          "name": "Day 2 Text",
+                          "fill": "$info",
+                          "content": "Wed",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "zUfMz",
+                      "name": "Time 2",
+                      "fill": "$text-primary",
+                      "content": "14:00–16:00",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "FIlXM",
+                      "name": "Venue 2",
+                      "fill": "$text-secondary",
+                      "content": "LAB-3",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "lWSOE",
+                      "name": "Del 2",
+                      "fill": "$text-muted",
+                      "content": "✕",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Zt4E6",
+              "name": "Card Foot",
+              "width": "fill_container",
+              "gap": 8,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QlrlY",
+                  "name": "Add Slot Btn",
+                  "cornerRadius": 6,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zoy8D",
+                      "name": "Add Slot Text",
+                      "fill": "$text-muted",
+                      "content": "+ Add Slot",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "aEJEo",
+                  "name": "Edit Btn",
+                  "cornerRadius": 6,
+                  "stroke": "$border-primary",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tCzNn",
+                      "name": "Edit Btn Text",
+                      "fill": "$text-muted",
+                      "content": "✎ Edit",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -77,10 +953,94 @@
     }
   ],
   "variables": {
-    "--bg-primary": { "type": "color", "value": "#0a0a0b" },
-    "--bg-secondary": { "type": "color", "value": "#0f1011" },
-    "--text-primary": { "type": "color", "value": "#ffffff" },
-    "--text-secondary": { "type": "color", "value": "#a1a1a1" },
-    "--brand": { "type": "color", "value": "#ff5c1a" }
-  }
+    "--bg-primary": {
+      "type": "color",
+      "value": "#0a0a0b"
+    },
+    "--bg-secondary": {
+      "type": "color",
+      "value": "#0f1011"
+    },
+    "--text-primary": {
+      "type": "color",
+      "value": "#ffffff"
+    },
+    "--text-secondary": {
+      "type": "color",
+      "value": "#a1a1a1"
+    },
+    "--brand": {
+      "type": "color",
+      "value": "#ff5c1a"
+    },
+    "bg-primary": {
+      "type": "color",
+      "value": "#0a0a0b"
+    },
+    "bg-secondary": {
+      "type": "color",
+      "value": "#0f1011"
+    },
+    "bg-tertiary": {
+      "type": "color",
+      "value": "#161719"
+    },
+    "bg-card": {
+      "type": "color",
+      "value": "#0f1011"
+    },
+    "bg-hover": {
+      "type": "color",
+      "value": "#1a1a1c"
+    },
+    "brand": {
+      "type": "color",
+      "value": "#ff5c1a"
+    },
+    "brand-muted": {
+      "type": "color",
+      "value": "rgba(255,92,26,0.1)"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#ffffff"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#a1a1a1"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#666666"
+    },
+    "border-primary": {
+      "type": "color",
+      "value": "rgba(255,255,255,0.06)"
+    },
+    "border-brand": {
+      "type": "color",
+      "value": "rgba(255,92,26,0.3)"
+    },
+    "success": {
+      "type": "color",
+      "value": "#22c55e"
+    },
+    "warning": {
+      "type": "color",
+      "value": "#f59e0b"
+    },
+    "danger": {
+      "type": "color",
+      "value": "#ef4444"
+    },
+    "info": {
+      "type": "color",
+      "value": "#3b82f6"
+    },
+    "radius-md": {
+      "type": "number",
+      "value": 10
+    }
+  },
+  "fileToken": "8c4d647c-3eca-4d3e-8f45-e8a34893005f"
 }
