@@ -19,6 +19,7 @@ import {
   Menu,
   Bell,
   Settings,
+  FolderOpen,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ const NAV_ITEMS: {
     icon: BookOpen,
     matchPaths: ["/u/departments", "/u/lecturers"],
   },
+  { label: "Resources", href: "/u/resources", icon: FolderOpen },
   { label: "Notifications", href: "/u/notifications", icon: Bell },
   { label: "Settings", href: "/u/settings", icon: Settings },
 ];
@@ -280,17 +282,14 @@ export default function UniversityPortalLayout({
           return;
         }
 
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("full_name, role, university_id")
-          .eq("id", session.user.id)
+        // Check university_admins table (source of truth for admin authorization)
+        const { data: adminRecord, error: adminError } = await supabase
+          .from("university_admins")
+          .select("university_id")
+          .eq("user_id", session.user.id)
           .single();
 
-        if (
-          profileError ||
-          !profile ||
-          profile.role !== "university_admin"
-        ) {
+        if (adminError || !adminRecord) {
           await supabase.auth.signOut();
           setUser(null);
           setUniversity(null);
@@ -299,18 +298,24 @@ export default function UniversityPortalLayout({
           return;
         }
 
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, role")
+          .eq("id", session.user.id)
+          .single();
+
         const { data: uni } = await supabase
           .from("universities")
           .select("name, short_name")
-          .eq("id", profile.university_id)
+          .eq("id", adminRecord.university_id)
           .maybeSingle();
 
         setUser({
-          name: profile.full_name,
+          name: profile?.full_name || "",
           email: session.user.email!,
-          role: profile.role as Role,
+          role: "university_admin",
         });
-        setUniversityId(profile.university_id);
+        setUniversityId(adminRecord.university_id);
         setUniversity(uni);
       } catch (err) {
         console.error("Critical error in UniversityPortalLayout:", err);

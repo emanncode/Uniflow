@@ -14,6 +14,7 @@ import {
   Clock,
   CheckCircle2,
   ArrowUpRight,
+  FolderOpen,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -23,6 +24,7 @@ interface Stats {
   lecturers: number
   students: number
   timetableSlots: number
+  resources: number
 }
 
 interface RecentActivity {
@@ -153,7 +155,7 @@ function formatTime(iso: string) {
 
 export default function UniversityOverviewPage() {
   const { universityId, universityName, isReady } = useUniversity()
-  const [stats, setStats] = useState<Stats>({ faculties: 0, departments: 0, lecturers: 0, students: 0, timetableSlots: 0 })
+  const [stats, setStats] = useState<Stats>({ faculties: 0, departments: 0, lecturers: 0, students: 0, timetableSlots: 0, resources: 0 })
   const [activity, setActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -164,7 +166,7 @@ export default function UniversityOverviewPage() {
     async function load() {
       setLoading(true)
 
-      const [facRes, deptRes, ttRes, staffCountsRes, recentLecRes, recentFac, recentDept] = await Promise.all([
+      const [facRes, deptRes, ttRes, staffCountsRes, recentLecRes, recentFac, recentDept, resRes] = await Promise.all([
         supabase.from('faculties').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
         supabase.from('departments').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
         supabase.from('timetable').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
@@ -172,6 +174,7 @@ export default function UniversityOverviewPage() {
         fetch(staffApiUrl(currentUniId, { roles: ['lecturer', 'dean', 'hod'], limit: 3 })).then(res => res.json()),
         supabase.from('faculties').select('name, created_at').eq('university_id', currentUniId).order('created_at', { ascending: false }).limit(3),
         supabase.from('departments').select('name, created_at').eq('university_id', currentUniId).order('created_at', { ascending: false }).limit(3),
+        supabase.from('resources').select('id', { count: 'exact', head: true }).eq('university_id', currentUniId),
       ])
 
       setStats({
@@ -180,6 +183,7 @@ export default function UniversityOverviewPage() {
         lecturers: staffCountsRes.counts?.lecturers ?? 0,
         students: staffCountsRes.counts?.students ?? 0,
         timetableSlots: ttRes.count ?? 0,
+        resources: resRes.count ?? 0,
       })
 
       const recentLec = (recentLecRes.data || []) as { full_name: string; created_at: string }[];
@@ -225,6 +229,7 @@ export default function UniversityOverviewPage() {
     { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', sub: 'across all faculties' },
     { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', sub: 'onboarded lecturers' },
     { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', sub: 'scheduled classes' },
+    { icon: FolderOpen, label: 'Resources', value: stats.resources, colorKey: 'blue', sub: 'uploaded materials' },
   ]
 
   const visibleCards = STAT_CARDS
