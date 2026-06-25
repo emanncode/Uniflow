@@ -15,8 +15,8 @@ import {
   type CourseLevel,
   type MaxCourseLevel,
   getCourseLevels,
+  formatLevelTab,
 } from "@/lib/course-levels";
-import LevelTabs from "@/components/ui/LevelTabs";
 import {
   BookOpen, Plus, Search, Loader2, Trash2, ArrowLeft, AlertCircle, UserCheck, X,
 } from "lucide-react";
@@ -803,13 +803,19 @@ export default function CoursesPage() {
         </div>
       )}
 
-      <div style={{ marginBottom: "16px" }}>
-        <LevelTabs
-          levels={levelTabs}
-          activeLevel={activeLevel}
-          onChange={(level) => setActiveLevel(level as CourseLevel)}
-          counts={levelCounts}
-        />
+      <div style={{ marginBottom: "16px", display: "flex", gap: "12px", alignItems: "center" }}>
+        <select
+          value={activeLevel}
+          onChange={(e) => setActiveLevel(Number(e.target.value) as CourseLevel)}
+          className="input"
+          style={{ width: "auto", minWidth: "140px" }}
+        >
+          {levelTabs.map((level) => (
+            <option key={level} value={level}>
+              {formatLevelTab(level)} ({levelCounts[level] ?? 0})
+            </option>
+          ))}
+        </select>
       </div>
 
       <div style={{ position: "relative", marginBottom: "20px" }}>
@@ -1252,15 +1258,21 @@ export default function CoursesPage() {
               />
             </div>
             <div>
-              <label className="label" style={{ display: "block", marginBottom: "8px" }}>
+              <label className="label" style={{ display: "block", marginBottom: "6px" }}>
                 Level
               </label>
-              <LevelTabs
-                levels={levelTabs}
-                activeLevel={newLevel}
-                onChange={(level) => setNewLevel(level as CourseLevel)}
-                size="sm"
-              />
+              <select
+                value={newLevel}
+                onChange={(e) => setNewLevel(Number(e.target.value) as CourseLevel)}
+                className="select"
+                style={{ width: "100%", boxSizing: "border-box" }}
+              >
+                {levelTabs.map((level) => (
+                  <option key={level} value={level}>
+                    {formatLevelTab(level)}
+                  </option>
+                ))}
+              </select>
             </div>
             <div
               style={{
