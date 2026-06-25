@@ -93,6 +93,11 @@ export default function CoursesPage() {
   const [newCreditUnits, setNewCreditUnits] = useState("3");
   const [newDescription, setNewDescription] = useState("");
   const [selectedLecturerIds, setSelectedLecturerIds] = useState<string[]>([]);
+  const [newLecturerIds, setNewLecturerIds] = useState<string[]>([]);
+  const [newSlotDay, setNewSlotDay] = useState("Monday");
+  const [newSlotStart, setNewSlotStart] = useState("08:00");
+  const [newSlotEnd, setNewSlotEnd] = useState("10:00");
+  const [newSlotVenue, setNewSlotVenue] = useState("");
 
   const [slotsByCourse, setSlotsByCourse] = useState<Record<string, TimetableSlot[]>>({});
   const [expandedSlotCourseId, setExpandedSlotCourseId] = useState<string | null>(null);
@@ -366,12 +371,47 @@ export default function CoursesPage() {
         throw new Error(createData.error || "Failed to create course");
       }
 
+      const courseId = createData.course.id;
+
+      // Assign lecturers if selected
+      if (newLecturerIds.length > 0) {
+        await syncLecturerCourseAssignments({
+          courseId,
+          universityId: uniId,
+          semester: parseInt(newSemester, 10) as 1 | 2,
+          lecturerIds: newLecturerIds,
+        });
+      }
+
+      // Create timetable slot if venue and lecturers provided
+      if (newSlotVenue.trim() && newLecturerIds.length > 0) {
+        if (newSlotStart >= newSlotEnd) {
+          throw new Error("End time must be after start time");
+        }
+        const { error: slotError } = await supabase.from("timetable").insert({
+          course_id: courseId,
+          lecturer_id: newLecturerIds[0],
+          department_id: activeDept.id,
+          university_id: uniId,
+          venue: newSlotVenue.trim(),
+          day_of_week: displayDayToDb(newSlotDay),
+          start_time: newSlotStart,
+          end_time: newSlotEnd,
+          academic_session: academicCtx.academic_session,
+          semester: parseInt(newSemester, 10),
+          is_active: true,
+        });
+        if (slotError) throw new Error(slotError.message);
+      }
+
       setNewTitle("");
       setNewCode("");
       setNewLevel(100);
       setNewSemester("1");
       setNewCreditUnits("3");
       setNewDescription("");
+      setNewLecturerIds([]);
+      setNewSlotVenue("");
       setActiveLevel(newLevel);
       setShowCreateModal(false);
       loadData();
@@ -1222,6 +1262,8 @@ export default function CoursesPage() {
           title="Add Course"
           onClose={() => {
             setShowCreateModal(false);
+            setNewLecturerIds([]);
+            setNewSlotVenue("");
             setError("");
           }}
         >
@@ -1338,10 +1380,135 @@ export default function CoursesPage() {
                 style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }}
               />
             </div>
+            {/* Lecturer selection */}
+            <div>
+              <label className="label" style={{ display: "block", marginBottom: "6px" }}>
+                Lecturers
+              </label>
+              <div
+                style={{
+                  maxHeight: "180px",
+                  overflowY: "auto",
+                  border: "1px solid var(--border-primary)",
+                  borderRadius: "8px",
+                }}
+              >
+                {facultyLecturers.length === 0 ? (
+                  <p style={{ padding: "12px", fontSize: "12px", color: "var(--text-muted)" }}>
+                    No lecturers found in this faculty.
+                  </p>
+                ) : (
+                  facultyLecturers.map((l) => {
+                    const checked = newLecturerIds.includes(l.id);
+                    return (
+                      <label
+                        key={l.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "8px 12px",
+                          borderBottom: "1px solid var(--border-primary)",
+                          cursor: "pointer",
+                          background: checked ? "var(--brand-muted)" : "transparent",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() =>
+                            setNewLecturerIds((prev) =>
+                              prev.includes(l.id)
+                                ? prev.filter((id) => id !== l.id)
+                                : [...prev, l.id],
+                            )
+                          }
+                        />
+                        <div>
+                          <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
+                            {l.full_name}
+                          </span>
+                          <span style={{ color: "var(--text-muted)", marginLeft: "6px" }}>
+                            {l.email}
+                          </span>
+                        </div>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+              {newLecturerIds.length > 0 && (
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "4px" }}>
+                  {newLecturerIds.length} lecturer{newLecturerIds.length !== 1 ? "s" : ""} selected
+                </p>
+              )}
+            </div>
+
+            {/* Timetable slot (optional, shown when a lecturer is selected) */}
+            {newLecturerIds.length > 0 && (
+              <div
+                style={{
+                  border: "1px solid var(--border-brand)",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  background: "var(--brand-muted)",
+                }}
+              >
+                <label className="label" style={{ display: "block", marginBottom: "8px", fontSize: "12px" }}>
+                  Schedule slot (optional)
+                </label>
+                <select
+                  value={newSlotDay}
+                  onChange={(e) => setNewSlotDay(e.target.value)}
+                  className="select"
+                  style={{ width: "100%", fontSize: "12px", marginBottom: "6px", boxSizing: "border-box" }}
+                >
+                  {DAYS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", marginBottom: "6px" }}>
+                  <select
+                    value={newSlotStart}
+                    onChange={(e) => setNewSlotStart(e.target.value)}
+                    className="select"
+                    style={{ fontSize: "12px", boxSizing: "border-box" }}
+                  >
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={newSlotEnd}
+                    onChange={(e) => setNewSlotEnd(e.target.value)}
+                    className="select"
+                    style={{ fontSize: "12px", boxSizing: "border-box" }}
+                  >
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                </div>
+                <input
+                  type="text"
+                  value={newSlotVenue}
+                  onChange={(e) => setNewSlotVenue(e.target.value)}
+                  placeholder="Venue (e.g., LT-101)"
+                  className="input"
+                  style={{ width: "100%", fontSize: "12px", boxSizing: "border-box" }}
+                />
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: "10px" }}>
               <button
                 type="button"
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setNewLecturerIds([]);
+                  setNewSlotVenue("");
+                }}
                 className="btn-secondary"
                 style={{ flex: 1 }}
               >

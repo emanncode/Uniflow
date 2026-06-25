@@ -256,6 +256,14 @@ const SidebarContent = ({
   );
 };
 
+// ─── Sidebar with faculty from URL ──────────────────────────────────────────
+
+function SidebarWithFaculty(props: Omit<SidebarProps, "activeFaculty">) {
+  const searchParams = useSearchParams();
+  const faculty = searchParams.get("faculty");
+  return <SidebarContent {...props} activeFaculty={faculty} />;
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function UniversityPortalLayout({
@@ -416,13 +424,15 @@ export default function UniversityPortalLayout({
         style={{ flexShrink: 0, display: "flex" }}
         className="desktop-sidebar"
       >
-        <SidebarContent
-          user={user}
-          university={university}
-          pathname={pathname}
-          setSidebarOpen={setSidebarOpen}
-          onSignOut={handleSignOut}
-        />
+        <Suspense fallback={null}>
+          <SidebarWithFaculty
+            user={user}
+            university={university}
+            pathname={pathname}
+            setSidebarOpen={setSidebarOpen}
+            onSignOut={handleSignOut}
+          />
+        </Suspense>
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -456,13 +466,15 @@ export default function UniversityPortalLayout({
                 display: "flex",
               }}
             >
-              <SidebarContent
-                user={user}
-                university={university}
-                pathname={pathname}
-                setSidebarOpen={setSidebarOpen}
-                onSignOut={handleSignOut}
-              />
+              <Suspense fallback={null}>
+                <SidebarWithFaculty
+                  user={user}
+                  university={university}
+                  pathname={pathname}
+                  setSidebarOpen={setSidebarOpen}
+                  onSignOut={handleSignOut}
+                />
+              </Suspense>
             </motion.div>
           </>
         )}
