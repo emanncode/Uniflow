@@ -20,6 +20,7 @@ import {
   Bell,
   Settings,
   FolderOpen,
+  CalendarDays,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ const NAV_ITEMS: {
   matchPaths?: string[];
 }[] = [
   { label: "Overview", href: "/u", icon: LayoutDashboard },
+  { label: "Timetable", href: "/u/timetable", icon: CalendarDays },
   {
     label: "Faculties",
     href: "/u/faculties",
