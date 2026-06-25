@@ -20,7 +20,6 @@ import {
   GraduationCap,
   LayoutGrid,
   List,
-  CalendarDays,
 } from "lucide-react";
 
 interface Department {
@@ -124,9 +123,6 @@ function DeptCard({
         </Link>
         <Link href={`/u/courses?department=${dept.id}&faculty=${dept.faculty_id}`} style={{ fontSize: "12px", color: "var(--brand)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 10px", background: "var(--bg-hover)", borderRadius: "6px", border: "1px solid var(--border-primary)", fontWeight: 500 }}>
           <BookOpen size={13} /> Courses
-        </Link>
-        <Link href={`/u/timetable?department=${dept.id}&faculty=${dept.faculty_id}`} style={{ fontSize: "12px", color: "var(--brand)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 10px", background: "var(--bg-hover)", borderRadius: "6px", border: "1px solid var(--border-primary)", fontWeight: 500 }}>
-          <CalendarDays size={13} /> Timetable
         </Link>
       </div>
     </div>

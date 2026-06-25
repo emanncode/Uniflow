@@ -68,7 +68,7 @@ export function normalizeCombinedRow(
   const semester = Number(raw.semester) as 1 | 2;
   const credit = Number(raw.credit_units) || 3;
 
-  if (!code || !title || !email || !level || !(semester === 1 || semester === 2)) {
+  if (!code || !title || !level || !(semester === 1 || semester === 2)) {
     return null;
   }
 
@@ -78,7 +78,7 @@ export function normalizeCombinedRow(
     level,
     semester,
     credit_units: credit,
-    lecturer_email: email,
+    lecturer_email: email ?? "",
     day: raw.day?.trim() ?? "",
     start_time: raw.start_time?.trim() ?? "",
     end_time: raw.end_time?.trim() ?? "",

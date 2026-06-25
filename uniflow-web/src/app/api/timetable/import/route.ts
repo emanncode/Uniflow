@@ -27,6 +27,13 @@ type PreviewRow = {
   message?: string;
 };
 
+type SkippedLecturer = {
+  line: number;
+  course_code: string;
+  course_title: string;
+  lecturer_email: string;
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -86,10 +93,12 @@ export async function POST(req: Request) {
     const preview: PreviewRow[] = [];
     let okCount = 0;
     let errorCount = 0;
+    let warningCount = 0;
 
     const parsedRows: {
       line: number;
       row: NonNullable<ReturnType<typeof normalizeCombinedRow>>;
+      lecturerId: string | null;
     }[] = [];
 
     for (let i = 0; i < rawRows.length; i += 1) {
@@ -110,32 +119,28 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const emailCheck = validateAndNormalizeEmail(normalized.lecturer_email);
-      if (!emailCheck.valid) {
-        errorCount += 1;
-        preview.push({
-          line,
-          course_code: normalized.course_code,
-          lecturer_email: normalized.lecturer_email,
-          has_schedule: Boolean(normalized.day),
-          status: "error",
-          message: emailCheck.error ?? "Invalid lecturer email",
-        });
-        continue;
-      }
+      let lecturerId: string | null = null;
+      let lecturerEmail = "";
 
-      const lecturer = lecturerByEmail.get(emailCheck.normalized);
-      if (!lecturer) {
-        errorCount += 1;
-        preview.push({
-          line,
-          course_code: normalized.course_code,
-          lecturer_email: normalized.lecturer_email,
-          has_schedule: Boolean(normalized.day),
-          status: "error",
-          message: "Lecturer not found in this department",
-        });
-        continue;
+      if (normalized.lecturer_email) {
+        const emailCheck = validateAndNormalizeEmail(normalized.lecturer_email);
+        if (!emailCheck.valid) {
+          errorCount += 1;
+          preview.push({
+            line,
+            course_code: normalized.course_code,
+            lecturer_email: normalized.lecturer_email,
+            has_schedule: Boolean(normalized.day),
+            status: "error",
+            message: emailCheck.error ?? "Invalid lecturer email",
+          });
+          continue;
+        }
+        lecturerEmail = emailCheck.normalized;
+        const lecturer = lecturerByEmail.get(lecturerEmail);
+        if (lecturer) {
+          lecturerId = lecturer.id;
+        }
       }
 
       const scheduleError = validateCombinedScheduleRow(normalized);
@@ -156,6 +161,34 @@ export async function POST(req: Request) {
         normalized.day && normalized.start_time && normalized.end_time && normalized.venue,
       );
 
+      if (!lecturerId && normalized.lecturer_email) {
+        warningCount += 1;
+        preview.push({
+          line,
+          course_code: normalized.course_code,
+          lecturer_email: normalized.lecturer_email,
+          has_schedule: hasSchedule,
+          status: "warning",
+          message: "Lecturer not found — course will be created without lecturer assignment",
+        });
+        parsedRows.push({ line, row: normalized, lecturerId: null });
+        continue;
+      }
+
+      if (!lecturerId && !normalized.lecturer_email) {
+        warningCount += 1;
+        preview.push({
+          line,
+          course_code: normalized.course_code,
+          lecturer_email: "",
+          has_schedule: false,
+          status: "warning",
+          message: "No lecturer email — course created without lecturer assignment",
+        });
+        parsedRows.push({ line, row: normalized, lecturerId: null });
+        continue;
+      }
+
       okCount += 1;
       preview.push({
         line,
@@ -168,26 +201,26 @@ export async function POST(req: Request) {
           : "Course + offering only (no schedule on this row)",
       });
 
-      parsedRows.push({ line, row: normalized });
+      parsedRows.push({ line, row: normalized, lecturerId });
     }
 
     if (mode === "preview" || errorCount > 0) {
       return NextResponse.json({
         preview: true,
         ok_count: okCount,
+        warning_count: warningCount,
         error_count: errorCount,
         rows: preview,
-        can_commit: errorCount === 0 && okCount > 0,
+        can_commit: errorCount === 0 && (okCount > 0 || warningCount > 0),
       });
     }
 
     let coursesUpserted = 0;
     let offeringsUpserted = 0;
     let slotsUpserted = 0;
+    const skippedLecturers: SkippedLecturer[] = [];
 
-    for (const { row } of parsedRows) {
-      const lecturer = lecturerByEmail.get(row.lecturer_email)!;
-
+    for (const { line, row, lecturerId } of parsedRows) {
       const courseId = await findOrCreateCourse(supabase, {
         university_id,
         department_id,
@@ -199,9 +232,21 @@ export async function POST(req: Request) {
       });
       coursesUpserted += 1;
 
+      if (!lecturerId) {
+        if (row.lecturer_email) {
+          skippedLecturers.push({
+            line,
+            course_code: row.course_code,
+            course_title: row.course_title,
+            lecturer_email: row.lecturer_email,
+          });
+        }
+        continue;
+      }
+
       const offeringId = await upsertCourseOffering(supabase, {
         course_id: courseId,
-        lecturer_id: lecturer.id,
+        lecturer_id: lecturerId,
         department_id,
         university_id,
         academic_session,
@@ -211,7 +256,7 @@ export async function POST(req: Request) {
 
       await syncLegacyLecturerCourse(supabase, {
         course_id: courseId,
-        lecturer_id: lecturer.id,
+        lecturer_id: lecturerId,
         university_id,
         academic_session,
         semester: row.semester,
@@ -242,7 +287,7 @@ export async function POST(req: Request) {
 
       const { error: slotError } = await supabase.from("timetable").insert({
         course_id: courseId,
-        lecturer_id: lecturer.id,
+        lecturer_id: lecturerId,
         course_offering_id: offeringId,
         department_id,
         university_id,
@@ -273,6 +318,7 @@ export async function POST(req: Request) {
       courses_upserted: coursesUpserted,
       offerings_upserted: offeringsUpserted,
       slots_upserted: slotsUpserted,
+      skipped_lecturers: skippedLecturers,
       auto_enroll: enrollResult,
       academic_session,
       semester,

@@ -6,31 +6,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
 import { LECTURER_ROLES, staffApiUrl } from "@/lib/staff-api";
-import { getCurrentAcademicSession } from "@/lib/academic";
+import { getCurrentAcademicSession, getAcademicContext, displayDayToDb, dbDayToDisplay } from "@/lib/academic";
 import {
   fetchCourseAssignments,
   syncLecturerCourseAssignments,
-  upsertLecturerCourseAssignment,
 } from "@/lib/lecturer-courses";
-import { validateAndNormalizeEmail } from "@/lib/email";
 import {
   type CourseLevel,
   type MaxCourseLevel,
   getCourseLevels,
-  isValidCourseLevel,
-  parseCourseLevel,
 } from "@/lib/course-levels";
 import LevelTabs from "@/components/ui/LevelTabs";
 import {
-  BookOpen,
-  Plus,
-  Search,
-  Loader2,
-  Trash2,
-  ArrowLeft,
-  AlertCircle,
-  UserCheck,
-  X,
+  BookOpen, Plus, Search, Loader2, Trash2, ArrowLeft, AlertCircle, UserCheck, X,
 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -62,6 +50,23 @@ interface CourseRow {
   assignedLecturers: { id: string; full_name: string }[];
 }
 
+interface TimetableSlot {
+  id: string;
+  day: string;
+  start_time: string;
+  end_time: string;
+  venue: string;
+}
+
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
+const HOURS = Array.from({ length: 11 }, (_, i) => `${String(i + 8).padStart(2, "0")}:00`);
+
+const COMBINED_CSV_TEMPLATE = `course_code,course_title,level,semester,credit_units,lecturer_email,day,start_time,end_time,venue
+CSC301,Data Structures,300,1,3,lecturer@uni.edu,Monday,08:00,10:00,LT1
+CSC301,Data Structures,300,1,3,lecturer@uni.edu,Wednesday,14:00,16:00,Lab2
+MTH201,Calculus II,200,2,3,other@uni.edu,,,,
+GEG101,Intro to Geology,100,1,2,,Thursday,10:00,12:00,GH-101`;
+
 export default function CoursesPage() {
   const { universityId: contextUniId, isReady } = useUniversity();
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -74,10 +79,6 @@ export default function CoursesPage() {
   const [uniId, setUniId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
-  const [importing, setImporting] = useState(false);
-  const [importErrors, setImportErrors] = useState<string[]>([]);
-  const [importSuccess, setImportSuccess] = useState(0);
-  const [importCorrected, setImportCorrected] = useState(0);
   const [assignSuccess, setAssignSuccess] = useState("");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -91,13 +92,27 @@ export default function CoursesPage() {
   const [newSemester, setNewSemester] = useState<"1" | "2">("1");
   const [newCreditUnits, setNewCreditUnits] = useState("3");
   const [newDescription, setNewDescription] = useState("");
-
   const [selectedLecturerIds, setSelectedLecturerIds] = useState<string[]>([]);
+
+  const [slotsByCourse, setSlotsByCourse] = useState<Record<string, TimetableSlot[]>>({});
+  const [expandedSlotCourseId, setExpandedSlotCourseId] = useState<string | null>(null);
+  const [slotDay, setSlotDay] = useState("Monday");
+  const [slotStart, setSlotStart] = useState("08:00");
+  const [slotEnd, setSlotEnd] = useState("10:00");
+  const [slotVenue, setSlotVenue] = useState("");
+
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [importSuccess, setImportSuccess] = useState(0);
+  const [importSummary, setImportSummary] = useState("");
+  const [skippedLecturers, setSkippedLecturers] = useState<{ course_code: string; course_title: string; lecturer_email: string }[]>([]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const deptParam = searchParams.get("department");
   const facultyParam = searchParams.get("faculty");
+
+  const academicCtx = useMemo(() => getAcademicContext(), []);
 
   const activeDept = useMemo(() => {
     if (!deptParam || departments.length === 0) return null;
@@ -250,6 +265,29 @@ export default function CoursesPage() {
         })),
       );
 
+      const { data: slotData } = await supabase
+        .from("timetable")
+        .select("id, course_id, day_of_week, start_time, end_time, venue")
+        .eq("department_id", departmentId)
+        .eq("is_active", true)
+        .eq("academic_session", sessionYear)
+        .order("day_of_week");
+
+      if (!cancelled && slotData) {
+        const grouped: Record<string, TimetableSlot[]> = {};
+        for (const s of slotData) {
+          if (!grouped[s.course_id]) grouped[s.course_id] = [];
+          grouped[s.course_id].push({
+            id: s.id,
+            day: dbDayToDisplay(s.day_of_week),
+            start_time: s.start_time.slice(0, 5),
+            end_time: s.end_time.slice(0, 5),
+            venue: s.venue,
+          });
+        }
+        setSlotsByCourse(grouped);
+      }
+
       const staffData = await staffRes.json();
       const lecturerProfiles = staffRes.ok ? (staffData.data ?? []) : [];
       const facData = facRes.data ?? [];
@@ -390,23 +428,25 @@ export default function CoursesPage() {
     }
   }
 
-  async function handleDeactivate(course: CourseRow) {
+  async function handleDelete(course: CourseRow) {
     if (!uniId) return;
+    setSaving(true);
     const res = await fetch("/api/courses", {
-      method: "PATCH",
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         university_id: uniId,
         course_id: course.id,
-        is_active: false,
       }),
     });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || "Failed to deactivate course");
+      alert(data.error || "Failed to delete course");
+      setSaving(false);
       return;
     }
     setConfirmDelete(null);
+    setSaving(false);
     loadData();
   }
 
@@ -425,219 +465,110 @@ export default function CoursesPage() {
     );
   }
 
-  const CSV_TEMPLATE = `code,title,level,semester,credit_units,description,lecturer_emails
-CSC301,Data Structures,300,1,3,Introduction to data structures,lecturer@email.xyz
-MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
+  async function handleAddSlot(courseId: string) {
+    if (!activeDept || !uniId || !slotVenue.trim()) return;
+    setSaving(true);
+    try {
+      if (slotStart >= slotEnd) throw new Error("End time must be after start time");
+      const course = courses.find((c) => c.id === courseId);
+      if (!course) throw new Error("Course not found");
+      const assigned = course.assignedLecturers;
+      if (assigned.length === 0) {
+        throw new Error("Assign a lecturer to this course first");
+      }
+      const lecturerId = assigned[0].id;
 
-  function downloadTemplate() {
-    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
+      const { error: err } = await supabase.from("timetable").insert({
+        course_id: courseId,
+        lecturer_id: lecturerId,
+        department_id: activeDept.id,
+        university_id: uniId,
+        venue: slotVenue.trim(),
+        day_of_week: displayDayToDb(slotDay),
+        start_time: slotStart,
+        end_time: slotEnd,
+        academic_session: academicCtx.academic_session,
+        semester: course.semester,
+        is_active: true,
+      });
+      if (err) throw new Error(err.message);
+      setExpandedSlotCourseId(null);
+      setSlotVenue("");
+      loadData();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to add slot");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteSlot(slotId: string) {
+    if (!confirm("Remove this timetable slot?")) return;
+    await supabase.from("timetable").delete().eq("id", slotId);
+    loadData();
+  }
+
+  function downloadCombinedTemplate() {
+    const blob = new Blob([COMBINED_CSV_TEMPLATE], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "courses_template.csv";
+    a.download = "combined_import_template.csv";
     a.click();
     URL.revokeObjectURL(url);
   }
 
-  async function resolveLecturerIds(
-    emailsRaw: string,
-    lineNum: number,
-    errors: string[],
-    correctedCount: { value: number },
-  ): Promise<string[]> {
-    const emails = emailsRaw
-      .split(";")
-      .map((e) => e.trim())
-      .filter(Boolean);
-    if (emails.length === 0) return [];
-
-    const ids: string[] = [];
-    for (const rawEmail of emails) {
-      const emailCheck = validateAndNormalizeEmail(rawEmail);
-      if (!emailCheck.valid) {
-        errors.push(`Row ${lineNum}: Invalid lecturer email "${rawEmail}"`);
-        continue;
-      }
-      if (emailCheck.wasCorrected) correctedCount.value++;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", emailCheck.normalized)
-        .eq("university_id", uniId)
-        .single();
-
-      if (!profile) {
-        errors.push(
-          `Row ${lineNum}: Lecturer "${emailCheck.normalized}" not found`,
-        );
-        continue;
-      }
-      ids.push(profile.id);
-    }
-    return ids;
-  }
-
-  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleCombinedCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !activeDept || !uniId) return;
-
     setImporting(true);
     setImportErrors([]);
     setImportSuccess(0);
-    setImportCorrected(0);
+    setImportSummary("");
+    setSkippedLecturers([]);
 
     const text = await file.text();
-    const lines = text
-      .trim()
-      .split("\n")
-      .filter((l) => l.trim());
-    const headers = lines[0]
-      .toLowerCase()
-      .split(",")
-      .map((h) => h.trim());
-    const rows = lines.slice(1);
 
-    const errors: string[] = [];
-    let successCount = 0;
-    const correctedCount = { value: 0 };
-
-    const existingByCode = new Map(
-      courses.map((c) => [c.code.toLowerCase(), c]),
-    );
-
-    for (let i = 0; i < rows.length; i++) {
-      const vals = rows[i].split(",").map((v) => v.trim());
-      const row: Record<string, string> = {};
-      headers.forEach((h, idx) => {
-        row[h] = vals[idx] ?? "";
+    try {
+      const res = await fetch("/api/timetable/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          university_id: uniId,
+          department_id: activeDept.id,
+          csv_text: text,
+          mode: "commit",
+          auto_enroll: false,
+        }),
       });
-      const lineNum = i + 2;
 
-      const code = row.code?.trim();
-      const title = row.title?.trim();
-      if (!code) {
-        errors.push(`Row ${lineNum}: Missing course code`);
-        continue;
-      }
-      if (!title) {
-        errors.push(`Row ${lineNum}: Missing title`);
-        continue;
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Import failed");
 
-      const level = parseCourseLevel(row.level || "");
-      const semester = parseInt(row.semester || "", 10);
-      const creditUnits = parseInt(row.credit_units || "", 10);
-
-      if (!level) {
-        errors.push(
-          `Row ${lineNum}: Invalid level "${row.level}" — use 100, 200, 300, 400${maxCourseLevel === 500 ? ", or 500" : ""}`,
-        );
-        continue;
-      }
-      if (!isValidCourseLevel(level, maxCourseLevel)) {
-        errors.push(
-          `Row ${lineNum}: Level ${level} is not enabled — set up this department via Students to allow 500 level`,
-        );
-        continue;
-      }
-      if (semester !== 1 && semester !== 2) {
-        errors.push(
-          `Row ${lineNum}: Invalid semester "${row.semester}" — must be 1 or 2`,
-        );
-        continue;
-      }
-      if (!creditUnits || creditUnits < 1 || creditUnits > 10) {
-        errors.push(
-          `Row ${lineNum}: Invalid credit_units "${row.credit_units}" — must be 1–10`,
-        );
-        continue;
-      }
-
-      let courseId: string;
-      let courseSemester = semester as 1 | 2;
-      const existing = existingByCode.get(code.toLowerCase());
-
-      if (existing) {
-        courseId = existing.id;
-        courseSemester = existing.semester;
-      } else {
-        const createRes = await fetch("/api/courses", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            university_id: uniId,
-            department_id: activeDept.id,
-            title,
-            code: code.toUpperCase(),
-            level,
-            semester: courseSemester,
-            credit_units: creditUnits,
-            description: row.description?.trim() || null,
-          }),
-        });
-        const createData = await createRes.json();
-
-        if (!createRes.ok || !createData.course) {
-          errors.push(
-            `Row ${lineNum}: ${createData.error ?? "Failed to create course"}`,
-          );
-          continue;
-        }
-
-        const inserted = createData.course as {
-          id: string;
-          code: string;
-          semester: 1 | 2;
-        };
-        courseId = inserted.id;
-        existingByCode.set(code.toLowerCase(), {
-          id: inserted.id,
-          title,
-          code: inserted.code,
-          level,
-          semester: inserted.semester,
-          credit_units: creditUnits,
-          description: row.description?.trim() || null,
-          is_active: true,
-          assignedLecturers: [],
-        });
-      }
-
-      const lecturerIds = await resolveLecturerIds(
-        row.lecturer_emails || "",
-        lineNum,
-        errors,
-        correctedCount,
+      setImportSuccess(data.courses_upserted ?? 0);
+      setImportSummary(
+        `${data.courses_upserted ?? 0} course(s), ${data.offerings_upserted ?? 0} offering(s), ${data.slots_upserted ?? 0} slot(s) imported`
       );
 
-      if (lecturerIds.length > 0) {
-        for (const lecturerId of lecturerIds) {
-          try {
-            await upsertLecturerCourseAssignment({
-              lecturerId,
-              courseId,
-              universityId: uniId,
-              semester: courseSemester,
-            });
-          } catch (err: unknown) {
-            errors.push(
-              `Row ${lineNum}: ${err instanceof Error ? err.message : "Failed to assign lecturer"}`,
-            );
-          }
-        }
+      const skipped = data.skipped_lecturers ?? [];
+      if (skipped.length > 0) {
+        setSkippedLecturers(skipped);
       }
 
-      successCount++;
+      if (data.courses_upserted > 0 || data.slots_upserted > 0) loadData();
+    } catch (err: unknown) {
+      setImportErrors([err instanceof Error ? err.message : "Import failed"]);
+    } finally {
+      setImporting(false);
     }
-
-    setImportErrors(errors);
-    setImportSuccess(successCount);
-    setImportCorrected(correctedCount.value);
-    if (successCount > 0) loadData();
-    setImporting(false);
     e.target.value = "";
   }
+
+  function courseSlots(courseId: string): TimetableSlot[] {
+    return slotsByCourse[courseId] ?? [];
+  }
+
+  const slotFormOpen = (courseId: string) => expandedSlotCourseId === courseId;
 
   return (
     <div>
@@ -686,28 +617,12 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
             {activeDept ? `${activeDept.name} Courses` : "Courses"}
           </h1>
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-            {courses.length} course{courses.length !== 1 ? "s" : ""} · assign
-            lecturers before building the timetable
+            {courses.length} course{courses.length !== 1 ? "s" : ""} · manage courses, lecturers and schedule together
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          {activeDept && (
-            <Link
-              href={`/u/timetable?department=${activeDept.id}&faculty=${facultyParam || activeDept.faculty}`}
-              className="btn-secondary"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "13px",
-                textDecoration: "none",
-              }}
-            >
-              Timetable
-            </Link>
-          )}
           <button
-            onClick={downloadTemplate}
+            onClick={downloadCombinedTemplate}
             className="btn-secondary"
             style={{
               display: "flex",
@@ -726,7 +641,7 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
             <input
               type="file"
               accept=".csv"
-              onChange={handleCSVImport}
+              onChange={handleCombinedCSVImport}
               style={{ display: "none" }}
               disabled={importing || !activeDept}
             />
@@ -821,18 +736,18 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
             marginBottom: "20px",
           }}
         >
-          <p style={{ fontSize: "13px", color: "var(--success)" }}>
-            ✓ {importSuccess} course{importSuccess !== 1 ? "s" : ""} imported
-            successfully
-            {importCorrected > 0
-              ? ` (${importCorrected} lecturer email domain${importCorrected !== 1 ? "s" : ""} auto-corrected)`
-              : ""}
-          </p>
+          <div>
+            <p style={{ fontSize: "13px", color: "var(--success)" }}>
+              ✓ {importSummary}
+            </p>
+            {skippedLecturers.length > 0 && (
+              <p style={{ fontSize: "12px", color: "var(--warning)", marginTop: "4px" }}>
+                ⚠ {skippedLecturers.length} course{skippedLecturers.length !== 1 ? "s" : ""} without lecturer assignment
+              </p>
+            )}
+          </div>
           <button
-            onClick={() => {
-              setImportSuccess(0);
-              setImportCorrected(0);
-            }}
+            onClick={() => { setImportSuccess(0); setImportSummary(""); setSkippedLecturers([]); }}
             style={{ background: "none", border: "none", cursor: "pointer" }}
           >
             <X size={14} style={{ color: "var(--success)" }} />
@@ -864,15 +779,10 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
                 color: "var(--danger)",
               }}
             >
-              {importSuccess > 0 ? `${importSuccess} imported, ` : ""}
               {importErrors.length} error{importErrors.length !== 1 ? "s" : ""}
             </p>
             <button
-              onClick={() => {
-                setImportErrors([]);
-                setImportSuccess(0);
-                setImportCorrected(0);
-              }}
+              onClick={() => setImportErrors([])}
               style={{ background: "none", border: "none", cursor: "pointer" }}
             >
               <X size={14} style={{ color: "var(--danger)" }} />
@@ -955,83 +865,65 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
       ) : (
         <div
           style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-primary)",
-            borderRadius: "var(--radius-md)",
-            overflow: "hidden",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+            gap: "16px",
           }}
         >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.2fr 2fr 1fr 1.5fr 100px",
-              gap: "12px",
-              padding: "10px 16px",
-              borderBottom: "1px solid var(--border-primary)",
-              fontSize: "11px",
-              fontWeight: 600,
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            <span>Code</span>
-            <span>Title</span>
-            <span>Level / Sem</span>
-            <span>Lecturers</span>
-            <span />
-          </div>
           {filteredCourses.map((course) => (
             <div
               key={course.id}
               style={{
-                display: "grid",
-                gridTemplateColumns: "1.2fr 2fr 1fr 1.5fr 100px",
-                gap: "12px",
-                padding: "12px 16px",
-                borderBottom: "1px solid var(--border-primary)",
-                alignItems: "center",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-primary)",
+                borderRadius: "var(--radius-md)",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {course.code}
-              </span>
-              <div>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {course.title}
-                </p>
-                <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                  {course.credit_units} credit units
-                </p>
+              <div style={{ padding: "16px 16px 0 16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "15px",
+                      fontWeight: 700,
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    {course.code}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "15px",
+                      color: "var(--text-secondary)",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {course.title}
+                  </span>
+                </div>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                  {course.level}L · Sem {course.semester} · {course.credit_units} CU
+                </span>
               </div>
-              <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-                {course.level}L · Sem {course.semester}
-              </span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+
+              <div style={{ padding: "10px 16px", display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1px solid var(--border-primary)" }}>
                 {course.assignedLecturers.length > 0 ? (
                   course.assignedLecturers.map((l) => (
                     <span
                       key={l.id}
                       style={{
-                        fontSize: "10px",
-                        padding: "2px 6px",
+                        fontSize: "11px",
+                        fontWeight: 500,
+                        padding: "4px 8px",
                         borderRadius: "4px",
-                        background: "var(--bg-tertiary)",
-                        border: "1px solid var(--border-primary)",
-                        color: "var(--text-secondary)",
+                        background: "var(--brand-muted)",
+                        border: "1px solid var(--border-brand)",
+                        color: "var(--brand)",
                       }}
                     >
                       {l.full_name}
@@ -1042,37 +934,265 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
                     No lecturers assigned
                   </span>
                 )}
-              </div>
-              <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
                 <button
                   onClick={() => openAssignModal(course)}
                   title="Assign lecturers"
                   style={{
+                    fontSize: "11px",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    border: "1px solid var(--border-primary)",
                     background: "none",
-                    border: "none",
                     cursor: "pointer",
-                    padding: "4px",
                     color: "var(--text-muted)",
                   }}
                 >
-                  <UserCheck size={14} />
+                  + Assign
                 </button>
-                <button
-                  onClick={() => setConfirmDelete(course)}
-                  title="Deactivate course"
+              </div>
+
+              <div style={{ padding: "12px 16px", flex: 1 }}>
+                <p
                   style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px",
+                    fontSize: "10px",
+                    fontWeight: 600,
                     color: "var(--text-muted)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    marginBottom: "8px",
                   }}
                 >
-                  <Trash2 size={14} />
-                </button>
+                  Schedule
+                </p>
+                {courseSlots(course.id).length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {courseSlots(course.id).map((slot) => (
+                      <div
+                        key={slot.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding: "3px 6px",
+                            borderRadius: "4px",
+                            background: "var(--brand-muted)",
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            color: "var(--brand)",
+                            minWidth: "36px",
+                            textAlign: "center",
+                          }}
+                        >
+                          {slot.day.slice(0, 3)}
+                        </span>
+                        <span style={{ fontWeight: 500, color: "var(--text-primary)", minWidth: "72px" }}>
+                          {slot.start_time}–{slot.end_time}
+                        </span>
+                        <span style={{ color: "var(--text-secondary)", flex: 1 }}>
+                          {slot.venue}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteSlot(slot.id)}
+                          title="Remove slot"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "var(--text-muted)",
+                            padding: "2px",
+                            fontSize: "11px",
+                            lineHeight: 1,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic" }}>
+                    No schedule slots yet
+                  </p>
+                )}
+
+                {slotFormOpen(course.id) ? (
+                  <div
+                    style={{
+                      marginTop: "10px",
+                      padding: "10px",
+                      border: "1px solid var(--border-primary)",
+                      borderRadius: "8px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
+                    <select
+                      value={slotDay}
+                      onChange={(e) => setSlotDay(e.target.value)}
+                      className="select"
+                      style={{ fontSize: "12px", width: "100%" }}
+                    >
+                      {DAYS.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+                      <select
+                        value={slotStart}
+                        onChange={(e) => setSlotStart(e.target.value)}
+                        className="select"
+                        style={{ fontSize: "12px" }}
+                      >
+                        {HOURS.map((h) => (
+                          <option key={h} value={h}>{h}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={slotEnd}
+                        onChange={(e) => setSlotEnd(e.target.value)}
+                        className="select"
+                        style={{ fontSize: "12px" }}
+                      >
+                        {HOURS.map((h) => (
+                          <option key={h} value={h}>{h}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <input
+                      type="text"
+                      value={slotVenue}
+                      onChange={(e) => setSlotVenue(e.target.value)}
+                      placeholder="Venue (e.g., LT-101)"
+                      className="input"
+                      style={{ fontSize: "12px", width: "100%", boxSizing: "border-box" }}
+                    />
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        type="button"
+                        onClick={() => { setExpandedSlotCourseId(null); setSlotVenue(""); }}
+                        className="btn-secondary"
+                        style={{ flex: 1, fontSize: "11px" }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        disabled={saving || !slotVenue.trim() || course.assignedLecturers.length === 0}
+                        onClick={() => handleAddSlot(course.id)}
+                        className="btn-primary"
+                        style={{
+                          flex: 1,
+                          fontSize: "11px",
+                          opacity: saving || !slotVenue.trim() || course.assignedLecturers.length === 0 ? 0.5 : 1,
+                        }}
+                      >
+                        {saving ? <Loader2 size={12} className="animate-spin" /> : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: "10px", display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => {
+                        setExpandedSlotCourseId(course.id);
+                        setSlotDay("Monday");
+                        setSlotStart("08:00");
+                        setSlotEnd("10:00");
+                        setSlotVenue("");
+                        setError("");
+                      }}
+                      disabled={course.assignedLecturers.length === 0}
+                      title={course.assignedLecturers.length === 0 ? "Assign lecturers first" : "Add schedule slot"}
+                      style={{
+                        fontSize: "11px",
+                        padding: "6px 10px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--border-primary)",
+                        background: "none",
+                        cursor: course.assignedLecturers.length === 0 ? "not-allowed" : "pointer",
+                        color: "var(--text-muted)",
+                        opacity: course.assignedLecturers.length === 0 ? 0.5 : 1,
+                      }}
+                    >
+                      + Add Slot
+                    </button>
+                    <div style={{ flex: 1 }} />
+                      <button
+                      onClick={() => setConfirmDelete(course)}
+                      title="Delete course"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "4px",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {skippedLecturers.length > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            right: "24px",
+            width: "360px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-primary)",
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            padding: "16px",
+            zIndex: 1000,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--warning)" }}>
+              ⚠ Courses without lecturers
+            </p>
+            <button
+              onClick={() => setSkippedLecturers([])}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>
+            These courses were created but no matching lecturer was found. Assign lecturers manually:
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "200px", overflowY: "auto" }}>
+            {skippedLecturers.map((s, i) => (
+              <div
+                key={i}
+                style={{
+                  fontSize: "12px",
+                  padding: "6px 8px",
+                  background: "var(--bg-secondary)",
+                  borderRadius: "6px",
+                  color: "var(--text-primary)",
+                  fontFamily: "monospace",
+                }}
+              >
+                {s.course_code} — {s.course_title}
+                <span style={{ color: "var(--text-muted)", fontSize: "11px", display: "block" }}>
+                  ({s.lecturer_email})
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -1346,14 +1466,14 @@ MTH201,Calculus II,200,2,4,,john@email.xyz;jane@email.xyz`;
 
       <ConfirmationModal
         visible={!!confirmDelete}
-        title="Deactivate Course"
+        title="Delete Course"
         message={
           confirmDelete
-            ? `Deactivate ${confirmDelete.code} — ${confirmDelete.title}? Existing timetable slots may need manual cleanup.`
+            ? `Delete ${confirmDelete.code} — ${confirmDelete.title}? This will permanently remove the course, all timetable slots, and lecturer assignments.`
             : ""
         }
-        confirmText="Deactivate"
-        onConfirm={() => confirmDelete && handleDeactivate(confirmDelete)}
+        confirmText="Delete"
+        onConfirm={() => confirmDelete && handleDelete(confirmDelete)}
         onClose={() => setConfirmDelete(null)}
         isDestructive
       />
