@@ -18,7 +18,7 @@ import {
   formatLevelTab,
 } from "@/lib/course-levels";
 import {
-  BookOpen, Plus, Search, Loader2, Trash2, ArrowLeft, AlertCircle, UserCheck, X,
+  BookOpen, Plus, Search, Loader2, Trash2, ArrowLeft, AlertCircle, UserCheck, X, CalendarDays,
 } from "lucide-react";
 import Modal from "@/components/ui/Modal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -665,6 +665,21 @@ export default function CoursesPage() {
               )}
             </span>
           </label>
+          {activeDept && (
+            <Link
+              href={`/u/timetable?department=${deptParam || activeDept.id}&faculty=${facultyParam || activeDept.faculty}`}
+              className="btn-secondary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "13px",
+                textDecoration: "none",
+              }}
+            >
+              <CalendarDays size={14} /> Timetable
+            </Link>
+          )}
           <button
             onClick={() => {
               setNewLevel(activeLevel);
