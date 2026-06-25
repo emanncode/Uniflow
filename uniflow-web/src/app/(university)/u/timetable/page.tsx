@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
 import { getCurrentAcademicSession } from "@/lib/academic";
 import { type CourseLevel, ALL_COURSE_LEVELS, formatLevelTab } from "@/lib/course-levels";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { CalendarDays, Loader2, ArrowLeft } from "lucide-react";
 
 interface TimetableEntry {
   id: string;
@@ -31,25 +33,21 @@ function toMinutes(time: string) {
   return h * 60 + m;
 }
 
-function slotStyle(start: string, end: string) {
-  const startMin = toMinutes(start);
-  const endMin = toMinutes(end);
-  const dayStart = toMinutes("08:00");
-  const totalMin = 11 * 60;
-  const top = ((startMin - dayStart) / totalMin) * 100;
-  const height = ((endMin - startMin) / totalMin) * 100;
-  return { top: `${top}%`, height: `${height}%` };
-}
-
 export default function TimetablePage() {
   const { universityId, isReady } = useUniversity();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const deptParam = searchParams.get("department");
+  const facultyParam = searchParams.get("faculty");
+
   const [entries, setEntries] = useState<TimetableEntry[]>([]);
+  const [deptName, setDeptName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
 
   useEffect(() => {
-    if (!isReady || !universityId) {
+    if (!isReady || !universityId || !deptParam) {
       setLoading(false);
       return;
     }
@@ -58,22 +56,36 @@ export default function TimetablePage() {
 
     const sessionYear = getCurrentAcademicSession();
 
-    supabase
-      .from("timetable")
-      .select("*, courses!inner(code, title, level)")
-      .eq("university_id", universityId)
-      .eq("is_active", true)
-      .eq("academic_session", sessionYear)
-      .order("day_of_week")
-      .then(({ data, error: err }) => {
-        if (err) {
-          setError(err.message);
-        } else {
-          setEntries((data as unknown as TimetableEntry[]) || []);
-        }
-        setLoading(false);
-      });
-  }, [isReady, universityId]);
+    Promise.all([
+      supabase
+        .from("departments")
+        .select("name")
+        .eq("id", deptParam)
+        .single(),
+      supabase
+        .from("timetable")
+        .select("*, courses!inner(code, title, level)")
+        .eq("university_id", universityId)
+        .eq("department_id", deptParam)
+        .eq("is_active", true)
+        .eq("academic_session", sessionYear)
+        .order("day_of_week"),
+    ]).then(([deptRes, ttRes]) => {
+      if (deptRes.data) setDeptName(deptRes.data.name);
+      if (ttRes.error) {
+        setError(ttRes.error.message);
+      } else {
+        setEntries((ttRes.data as unknown as TimetableEntry[]) || []);
+      }
+      setLoading(false);
+    });
+  }, [isReady, universityId, deptParam]);
+
+  useEffect(() => {
+    if (isReady && !deptParam) {
+      router.replace("/u/faculties");
+    }
+  }, [isReady, deptParam, router]);
 
   const filtered = useMemo(() => {
     return entries.filter((e) => e.courses?.level === activeLevel);
@@ -98,40 +110,81 @@ export default function TimetablePage() {
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
           marginBottom: "20px",
+          gap: "16px",
           flexWrap: "wrap",
-          gap: "12px",
         }}
       >
         <div>
-          <h1
+          <button
+            onClick={() =>
+              router.push(
+                facultyParam
+                  ? `/u/departments?faculty=${facultyParam}`
+                  : "/u/faculties",
+              )
+            }
             style={{
-              fontSize: "22px",
-              fontWeight: 700,
-              color: "var(--text-primary)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              background: "none",
+              border: "none",
+              color: "var(--text-muted)",
+              fontSize: "12px",
+              padding: "0 0 4px 0",
+              cursor: "pointer",
+              marginBottom: "2px",
             }}
           >
-            Timetable
+            <ArrowLeft size={13} /> Back to Departments
+          </button>
+          <h1
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: "4px",
+            }}
+          >
+            {deptName ? `${deptName} Timetable` : "Timetable"}
           </h1>
-          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
-            {getCurrentAcademicSession()} · {filtered.length} slot{filtered.length !== 1 ? "s" : ""}
+          <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+            {getCurrentAcademicSession()} · {filtered.length} slot{filtered.length !== 1 ? "s" : ""} for{" "}
+            {formatLevelTab(activeLevel)}
           </p>
         </div>
-
-        <select
-          value={activeLevel}
-          onChange={(e) => setActiveLevel(Number(e.target.value) as CourseLevel)}
-          className="input"
-          style={{ width: "auto", minWidth: "140px" }}
-        >
-          {ALL_COURSE_LEVELS.map((level) => (
-            <option key={level} value={level}>
-              {formatLevelTab(level)}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "flex-start" }}>
+          <select
+            value={activeLevel}
+            onChange={(e) => setActiveLevel(Number(e.target.value) as CourseLevel)}
+            className="input"
+            style={{ width: "auto", minWidth: "140px" }}
+          >
+            {ALL_COURSE_LEVELS.map((level) => (
+              <option key={level} value={level}>
+                {formatLevelTab(level)}
+              </option>
+            ))}
+          </select>
+          {deptParam && (
+            <Link
+              href={`/u/courses?department=${deptParam}&faculty=${facultyParam || ""}`}
+              className="btn-secondary"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "13px",
+                textDecoration: "none",
+              }}
+            >
+              <CalendarDays size={14} /> Courses
+            </Link>
+          )}
+        </div>
       </div>
 
       {error && (
