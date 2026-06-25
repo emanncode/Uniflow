@@ -1,4 +1,5 @@
 import { createSupabaseServer } from "./supabase-server";
+import { createAdminClient } from "./supabase-admin";
 import { getProfileForUser } from "./profile-server";
 import type { UserRole } from "@/lib/role-access";
 
@@ -18,6 +19,21 @@ export async function getSession() {
 }
 
 /**
+ * Check if a user is a university admin (exists in university_admins table).
+ * If universityId is provided, also checks it matches.
+ */
+export async function isUniversityAdmin(userId: string, universityId?: string) {
+  const supabase = createAdminClient();
+  let query = supabase
+    .from("university_admins")
+    .select("id")
+    .eq("user_id", userId);
+  if (universityId) query = query.eq("university_id", universityId);
+  const { data } = await query.maybeSingle();
+  return !!data;
+}
+
+/**
  * Checks if the current user has permission to manage a specific university.
  * Returns true if the user is a uniflow_admin OR a university_admin for that university.
  */
@@ -25,15 +41,14 @@ export async function canManageUniversity(universityId: string) {
   const session = await getSession();
   if (!session || !session.profile) return false;
 
-  const { profile } = session;
+  const { user, profile } = session;
 
   // Uniflow admins can manage everything
   if (profile.role === "uniflow_admin") return true;
 
-  // Only university admins can manage their portal
-  const allowedRoles: UserRole[] = ["university_admin"];
-  if (profile.university_id === universityId && allowedRoles.includes(profile.role as UserRole)) {
-    return true;
+  // Check university_admins table (source of truth)
+  if (profile.university_id === universityId) {
+    return isUniversityAdmin(user.id, universityId);
   }
 
   return false;

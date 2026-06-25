@@ -6,6 +6,7 @@ import {
   isUniversityPortal,
 } from "@/lib/subdomain";
 import { getProfileForUser } from "@/lib/profile-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 const publicRoutes = [
   "/",
@@ -167,19 +168,26 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    const profile = await getProfileForUser(user.id, {
-      includeUniversity: true,
-    });
+    // Check university_admins table (dedicated admin table, not profiles.role)
+    const adminClient = createAdminClient();
+    const { data: adminRecord } = await adminClient
+      .from("university_admins")
+      .select("id, university_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    const allowedRoles = ["university_admin"];
-    if (!profile || !allowedRoles.includes(profile.role)) {
+    if (!adminRecord) {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";
       return NextResponse.redirect(url);
     }
 
+    // Verify subdomain matches the admin's university
+    const profile = await getProfileForUser(user.id, {
+      includeUniversity: true,
+    });
     const universityShortName = (
-      profile.universities as { short_name?: string } | null
+      profile?.universities as { short_name?: string } | null
     )?.short_name;
     if (!universityShortName || universityShortName !== subdomain) {
       const url = request.nextUrl.clone();

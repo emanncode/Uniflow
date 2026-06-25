@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer } from "@/lib/supabase-server";
-import { getProfileForUser } from "@/lib/profile-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 type Portal = "uniflow_admin" | "university_admin";
 
@@ -30,15 +30,32 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const profile = await getProfileForUser(user.id);
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Could not load profile" },
-        { status: 500 },
-      );
+    if (portal === "university_admin") {
+      // Check university_admins table (dedicated admin table)
+      const adminClient = createAdminClient();
+      const { data: adminRecord } = await adminClient
+        .from("university_admins")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!adminRecord) {
+        await supabase.auth.signOut();
+        return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      }
+
+      return NextResponse.json({ ok: true, role: "university_admin" });
     }
 
-    if (profile.role !== portal) {
+    // uniflow_admin check still uses profiles.role
+    const adminClient = createAdminClient();
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.role !== "uniflow_admin") {
       await supabase.auth.signOut();
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
