@@ -20,10 +20,10 @@ export async function fetchTimetableSlots(params: {
 
   if (params.lecturerId) {
     query = query.eq("lecturer_id", params.lecturerId);
-  } else if (params.offeringIds && params.offeringIds.length > 0) {
-    query = query.in("course_offering_id", params.offeringIds);
   } else if (params.courseIds && params.courseIds.length > 0) {
     query = query.in("course_id", params.courseIds);
+  } else if (params.offeringIds && params.offeringIds.length > 0) {
+    query = query.in("course_offering_id", params.offeringIds);
   } else {
     return [];
   }
