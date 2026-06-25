@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
-import { getCurrentAcademicSession } from "@/lib/academic";
+import { getCurrentAcademicSession, getAcademicContext, displayDayToDb } from "@/lib/academic";
 import { type CourseLevel, ALL_COURSE_LEVELS, formatLevelTab } from "@/lib/course-levels";
-import { CalendarDays, Loader2, ArrowLeft } from "lucide-react";
+import { CalendarDays, Loader2, ArrowLeft, Plus } from "lucide-react";
+import { fetchCourseAssignments } from "@/lib/lecturer-courses";
 
 interface TimetableEntry {
   id: string;
@@ -18,6 +19,15 @@ interface TimetableEntry {
   venue: string;
   semester: number;
   courses?: { code: string; title: string; level: number } | null;
+}
+
+interface UnscheduledCourse {
+  id: string;
+  code: string;
+  title: string;
+  level: number;
+  semester: 1 | 2;
+  assignedLecturers: { id: string; full_name: string }[];
 }
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
@@ -61,6 +71,15 @@ export default function TimetablePage() {
   const [error, setError] = useState("");
   const [activeLevel, setActiveLevel] = useState<CourseLevel>(100);
   const [selectedDay, setSelectedDay] = useState<string>(DEFAULT_DAY);
+  const [unscheduledCourses, setUnscheduledCourses] = useState<UnscheduledCourse[]>([]);
+  const [unscheduledLoading, setUnscheduledLoading] = useState(false);
+  const [quickSlotCourseId, setQuickSlotCourseId] = useState<string | null>(null);
+  const [quickSlotDay, setQuickSlotDay] = useState("Monday");
+  const [quickSlotStart, setQuickSlotStart] = useState("08:00");
+  const [quickSlotEnd, setQuickSlotEnd] = useState("10:00");
+  const [quickSlotVenue, setQuickSlotVenue] = useState("");
+  const [quickSlotSaving, setQuickSlotSaving] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!isReady || !universityId || !deptParam) {
@@ -113,18 +132,104 @@ export default function TimetablePage() {
 
       if (ttError) {
         setError(ttError.message);
-      } else {
-        setEntries((ttData as unknown as TimetableEntry[]) || []);
+        setLoading(false);
+        return;
       }
+      const ttEntries = (ttData as unknown as TimetableEntry[]) || [];
+      setEntries(ttEntries);
+
+      // Fetch unscheduled courses (courses in this dept with no active timetable slot)
+      setUnscheduledLoading(true);
+      const scheduledCourseIds = new Set(ttEntries.map((e) => e.course_id));
+
+      let courseQuery = supabase
+        .from("courses")
+        .select("id, code, title, level, semester")
+        .eq("university_id", universityId)
+        .eq("department_id", dept.id)
+        .eq("is_active", true);
+
+      if (scheduledCourseIds.size > 0) {
+        courseQuery = courseQuery.not("id", "in", `(${Array.from(scheduledCourseIds).join(",")})`);
+      }
+
+      const { data: courseData, error: courseError } = await courseQuery;
+
+      if (!courseError && courseData && courseData.length > 0) {
+        const unscheduledIds = courseData.map((c) => c.id);
+        let assignmentMap: Record<string, { id: string; full_name: string }[]> = {};
+        try {
+          assignmentMap = await fetchCourseAssignments({
+            universityId,
+            courseIds: unscheduledIds,
+            academicSession: sessionYear,
+          });
+        } catch {
+          // proceed without assignments
+        }
+        setUnscheduledCourses(
+          courseData.map((c) => ({
+            id: c.id,
+            code: c.code,
+            title: c.title,
+            level: c.level,
+            semester: c.semester as 1 | 2,
+            assignedLecturers: assignmentMap[c.id] ?? [],
+          })),
+        );
+      } else {
+        setUnscheduledCourses([]);
+      }
+      setUnscheduledLoading(false);
       setLoading(false);
     })();
-  }, [isReady, universityId, deptParam]);
+  }, [isReady, universityId, deptParam, refreshKey]);
 
   useEffect(() => {
     if (isReady && !deptParam) {
       router.replace("/u/faculties");
     }
   }, [isReady, deptParam, router]);
+
+  async function handleQuickAddSlot(courseId: string) {
+    if (!deptId || !universityId || !quickSlotVenue.trim()) return;
+    setQuickSlotSaving(true);
+    setError("");
+    try {
+      if (quickSlotStart >= quickSlotEnd) throw new Error("End time must be after start time");
+      const course = unscheduledCourses.find((c) => c.id === courseId);
+      if (!course) throw new Error("Course not found");
+      if (course.assignedLecturers.length === 0) {
+        throw new Error("Assign a lecturer to this course first");
+      }
+      const ctx = getAcademicContext();
+      const { error: slotError } = await supabase.from("timetable").insert({
+        course_id: courseId,
+        lecturer_id: course.assignedLecturers[0].id,
+        department_id: deptId,
+        university_id: universityId,
+        venue: quickSlotVenue.trim(),
+        day_of_week: displayDayToDb(quickSlotDay),
+        start_time: quickSlotStart,
+        end_time: quickSlotEnd,
+        academic_session: ctx.academic_session,
+        semester: course.semester,
+        is_active: true,
+      });
+      if (slotError) throw new Error(slotError.message);
+      setQuickSlotCourseId(null);
+      setQuickSlotVenue("");
+      loadData();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to add slot");
+    } finally {
+      setQuickSlotSaving(false);
+    }
+  }
+
+  function loadData() {
+    setRefreshKey((k) => k + 1);
+  }
 
   const filtered = useMemo(() => {
     return entries.filter((e) => e.courses?.level === activeLevel);
@@ -144,6 +249,10 @@ export default function TimetablePage() {
     }
     return counts;
   }, [filtered]);
+
+  const unscheduledFiltered = useMemo(() => {
+    return unscheduledCourses.filter((c) => c.level === activeLevel);
+  }, [unscheduledCourses, activeLevel]);
 
   return (
     <div>
@@ -439,6 +548,201 @@ export default function TimetablePage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Unscheduled Courses */}
+      {!loading && !unscheduledLoading && unscheduledFiltered.length > 0 && (
+        <div style={{ marginTop: "32px" }}>
+          <h2
+            style={{
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: "12px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            Unscheduled Courses
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "var(--text-muted)",
+                background: "var(--bg-secondary)",
+                padding: "2px 8px",
+                borderRadius: "10px",
+              }}
+            >
+              {unscheduledFiltered.length}
+            </span>
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {unscheduledFiltered.map((course) => (
+              <div
+                key={course.id}
+                style={{
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-primary)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "12px 14px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {course.code}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "var(--text-secondary)",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {course.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text-muted)",
+                        marginTop: "2px",
+                      }}
+                    >
+                      {formatLevelTab(course.level)} · Sem {course.semester}
+                    </div>
+                  </div>
+
+                  {quickSlotCourseId === course.id ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                        minWidth: "200px",
+                      }}
+                    >
+                      <select
+                        value={quickSlotDay}
+                        onChange={(e) => setQuickSlotDay(e.target.value)}
+                        className="select"
+                        style={{ fontSize: "11px", width: "100%", boxSizing: "border-box" }}
+                      >
+                        {DAYS.map((d) => (
+                          <option key={d} value={d}>{DAY_SHORT[d]}</option>
+                        ))}
+                      </select>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+                        <select
+                          value={quickSlotStart}
+                          onChange={(e) => setQuickSlotStart(e.target.value)}
+                          className="select"
+                          style={{ fontSize: "11px", boxSizing: "border-box" }}
+                        >
+                          {HOURS.map((h) => (
+                            <option key={h} value={h}>{h}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={quickSlotEnd}
+                          onChange={(e) => setQuickSlotEnd(e.target.value)}
+                          className="select"
+                          style={{ fontSize: "11px", boxSizing: "border-box" }}
+                        >
+                          {HOURS.map((h) => (
+                            <option key={h} value={h}>{h}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <input
+                        type="text"
+                        value={quickSlotVenue}
+                        onChange={(e) => setQuickSlotVenue(e.target.value)}
+                        placeholder="Venue"
+                        className="input"
+                        style={{ fontSize: "11px", width: "100%", boxSizing: "border-box" }}
+                      />
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <button
+                          type="button"
+                          onClick={() => { setQuickSlotCourseId(null); setQuickSlotVenue(""); }}
+                          className="btn-secondary"
+                          style={{ flex: 1, fontSize: "11px", padding: "6px 8px" }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          disabled={quickSlotSaving || !quickSlotVenue.trim() || course.assignedLecturers.length === 0}
+                          onClick={() => handleQuickAddSlot(course.id)}
+                          className="btn-primary"
+                          style={{
+                            flex: 1,
+                            fontSize: "11px",
+                            padding: "6px 8px",
+                            opacity: quickSlotSaving || !quickSlotVenue.trim() ? 0.5 : 1,
+                          }}
+                        >
+                          {quickSlotSaving ? <Loader2 size={12} className="animate-spin" /> : "Save"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setQuickSlotCourseId(course.id);
+                        setQuickSlotDay("Monday");
+                        setQuickSlotStart("08:00");
+                        setQuickSlotEnd("10:00");
+                        setQuickSlotVenue("");
+                        setError("");
+                      }}
+                      disabled={course.assignedLecturers.length === 0}
+                      title={
+                        course.assignedLecturers.length === 0
+                          ? "Assign a lecturer on the Courses page first"
+                          : "Add schedule slot"
+                      }
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        padding: "6px 12px",
+                        fontSize: "11px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--border-primary)",
+                        background: "none",
+                        cursor: course.assignedLecturers.length === 0 ? "not-allowed" : "pointer",
+                        color: "var(--text-muted)",
+                        opacity: course.assignedLecturers.length === 0 ? 0.5 : 1,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <Plus size={12} />
+                      {course.assignedLecturers.length === 0 ? "No Lecturer" : "Add Slot"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
