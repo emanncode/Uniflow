@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-} from 'react-native'
-import { useRouter } from 'expo-router'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   CalendarDays,
   BookOpen,
@@ -16,72 +16,77 @@ import {
   Clock,
   MapPin,
   ChevronRight,
-} from 'lucide-react-native'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/useAuthStore'
-import { Theme } from '@/constants/Theme'
-import { DashboardSkeleton } from '@/components/SkeletonLoader'
-import { ScreenHeaderActions } from '@/components/ScreenHeaderActions'
-import { DashboardStatCard } from '@/components/DashboardStatCard'
-import { FadeSlideIn } from '@/components/FadeSlideIn'
-import { ScalePressable } from '@/components/ScalePressable'
-import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
-import { CLASS_STATUS_COLORS, DAY_ORDER } from '@/types'
+} from "lucide-react-native";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Theme } from "@/constants/Theme";
+import { DashboardSkeleton } from "@/components/SkeletonLoader";
+import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
+import { DashboardStatCard } from "@/components/(dashboard)StatCard";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
+import { ScalePressable } from "@/components/ScalePressable";
+import type {
+  TimetableSlot,
+  ClassUpdate,
+  ClassStatus,
+  DayOfWeek,
+} from "@/types";
+import { CLASS_STATUS_COLORS, DAY_ORDER } from "@/types";
 
-const C = Theme.colors
-const R = Theme.radius
+const C = Theme.colors;
+const R = Theme.radius;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 const TODAY_NAME = new Date()
-  .toLocaleDateString('en-US', { weekday: 'long' })
-  .toLowerCase()
+  .toLocaleDateString("en-US", { weekday: "long" })
+  .toLowerCase();
 
-const TODAY_LABEL = new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-})
+const TODAY_LABEL = new Date().toLocaleDateString("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+});
 
 function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 function formatTime(time: string): string {
-  const [h, m] = time.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
 // ─── Status Badge ──────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: ClassStatus }) {
-  const { color, background } = CLASS_STATUS_COLORS[status]
+  const { color, background } = CLASS_STATUS_COLORS[status];
   return (
     <View style={[styles.badge, { backgroundColor: background }]}>
       <Text style={[styles.badgeText, { color }]}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Text>
     </View>
-  )
+  );
 }
 
 // ─── Class Card ────────────────────────────────────────────────────────────
 
 interface ClassCardProps {
-  slot: TimetableSlot
-  update?: ClassUpdate
-  isToday?: boolean
-  onPress: () => void
+  slot: TimetableSlot;
+  update?: ClassUpdate;
+  isToday?: boolean;
+  onPress: () => void;
 }
 
 function ClassCard({ slot, update, isToday, onPress }: ClassCardProps) {
-  const status = update?.status ?? null
-  const accentColor = status ? CLASS_STATUS_COLORS[status].color : C.brand
+  const status = update?.status ?? null;
+  const accentColor = status ? CLASS_STATUS_COLORS[status].color : C.brand;
 
   return (
     <ScalePressable
@@ -93,12 +98,12 @@ function ClassCard({ slot, update, isToday, onPress }: ClassCardProps) {
 
       <View style={styles.classBody}>
         <View style={styles.classTop}>
-          <Text style={styles.courseCode}>{slot.courses?.code ?? '—'}</Text>
+          <Text style={styles.courseCode}>{slot.courses?.code ?? "—"}</Text>
           {status && <StatusBadge status={status} />}
         </View>
 
         <Text style={styles.courseTitle} numberOfLines={1}>
-          {slot.courses?.title ?? 'Unknown Course'}
+          {slot.courses?.title ?? "Unknown Course"}
         </Text>
 
         <View style={styles.classMeta}>
@@ -123,14 +128,25 @@ function ClassCard({ slot, update, isToday, onPress }: ClassCardProps) {
         ) : null}
       </View>
 
-      <ChevronRight size={15} color={C.textMuted} strokeWidth={1.8} style={{ marginRight: 14 }} />
+      <ChevronRight
+        size={15}
+        color={C.textMuted}
+        strokeWidth={1.8}
+        style={{ marginRight: 14 }}
+      />
     </ScalePressable>
-  )
+  );
 }
 
 // ─── Section Header ────────────────────────────────────────────────────────
 
-function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => void }) {
+function SectionHeader({
+  title,
+  onSeeAll,
+}: {
+  title: string;
+  onSeeAll: () => void;
+}) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -138,7 +154,7 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => voi
         <Text style={styles.seeAll}>See all</Text>
       </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 // ─── Empty State ───────────────────────────────────────────────────────────
@@ -152,109 +168,126 @@ function EmptyDay() {
         <Text style={styles.emptySub}>Enjoy your free day</Text>
       </View>
     </View>
-  )
+  );
 }
 
 // ─── Screen ────────────────────────────────────────────────────────────────
 
 export default function LecturerDashboard() {
-  const router = useRouter()
-  const insets = useSafeAreaInsets()
-  const profile = useAuthStore((s) => s.profile)
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
 
-  const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([])
-  const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([])
-  const [todayUpdates, setTodayUpdates] = useState<Record<string, ClassUpdate>>({})
-  const [totalCourses, setTotalCourses] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([]);
+  const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([]);
+  const [todayUpdates, setTodayUpdates] = useState<Record<string, ClassUpdate>>(
+    {},
+  );
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
   const fetchData = useCallback(async () => {
-    if (!profile) return
+    if (!profile) return;
     try {
       const { data: allSlots } = await supabase
-        .from('timetable')
-        .select('*, courses(id, title, code, credit_units)')
-        .eq('lecturer_id', profile.id)
-        .eq('is_active', true)
-        .order('start_time')
+        .from("timetable")
+        .select("*, courses(id, title, code, credit_units)")
+        .eq("lecturer_id", profile.id)
+        .eq("is_active", true)
+        .order("start_time");
 
-      if (!allSlots) return
+      if (!allSlots) return;
 
-      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME)
+      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME);
       const upcoming = allSlots
         .filter((s) => s.day_of_week !== TODAY_NAME)
-        .sort((a, b) => DAY_ORDER[a.day_of_week as DayOfWeek] - DAY_ORDER[b.day_of_week as DayOfWeek])
-        .slice(0, 4)
+        .sort(
+          (a, b) =>
+            DAY_ORDER[a.day_of_week as DayOfWeek] -
+            DAY_ORDER[b.day_of_week as DayOfWeek],
+        )
+        .slice(0, 4);
 
-      setTodaySlots(today)
-      setUpcomingSlots(upcoming)
-      setTotalCourses(new Set(allSlots.map((s) => s.course_id)).size)
+      setTodaySlots(today);
+      setUpcomingSlots(upcoming);
+      setTotalCourses(new Set(allSlots.map((s) => s.course_id)).size);
 
-      const todayIds = today.map((s) => s.id)
+      const todayIds = today.map((s) => s.id);
       if (todayIds.length === 0) {
-        setTodayUpdates({})
-        return
+        setTodayUpdates({});
+        return;
       }
 
-      const todayDate = new Date().toISOString().split('T')[0]
+      const todayDate = new Date().toISOString().split("T")[0];
       const { data: updates } = await supabase
-        .from('class_updates')
-        .select('*')
-        .eq('university_id', profile.university_id)
-        .eq('update_date', todayDate)
-        .in('timetable_id', todayIds)
+        .from("class_updates")
+        .select("*")
+        .eq("university_id", profile.university_id)
+        .eq("update_date", todayDate)
+        .in("timetable_id", todayIds);
 
       if (updates) {
-        const map: Record<string, ClassUpdate> = {}
-        updates.forEach((u) => { map[u.timetable_id] = u })
-        setTodayUpdates(map)
+        const map: Record<string, ClassUpdate> = {};
+        updates.forEach((u) => {
+          map[u.timetable_id] = u;
+        });
+        setTodayUpdates(map);
       } else {
-        setTodayUpdates({})
+        setTodayUpdates({});
       }
     } catch (e) {
-      console.error('Dashboard fetch error:', e)
+      console.error("Dashboard fetch error:", e);
     }
-  }, [profile])
+  }, [profile]);
 
   useEffect(() => {
-    fetchData().finally(() => setIsLoading(false))
-  }, [fetchData])
+    fetchData().finally(() => setIsLoading(false));
+  }, [fetchData]);
 
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true)
-    await fetchData()
-    setIsRefreshing(false)
-  }, [fetchData])
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  }, [fetchData]);
 
   // ── Realtime ──────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!profile) return
+    if (!profile) return;
     const channel = supabase
-      .channel('lecturer-dashboard')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'class_updates',
-        filter: `university_id=eq.${profile.university_id}`,
-      }, (payload) => {
-        const update = payload.new as ClassUpdate
-        if (!update?.timetable_id) return
-        setTodayUpdates((prev) => ({ ...prev, [update.timetable_id]: update }))
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [profile])
+      .channel("lecturer-dashboard")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "class_updates",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        (payload) => {
+          const update = payload.new as ClassUpdate;
+          if (!update?.timetable_id) return;
+          setTodayUpdates((prev) => ({
+            ...prev,
+            [update.timetable_id]: update,
+          }));
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile]);
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  if (isLoading) return <DashboardSkeleton />
+  if (isLoading) return <DashboardSkeleton />;
 
-  const firstName = profile?.full_name ?? 'Lecturer'
-  const alertCount = Object.keys(todayUpdates).length
+  const firstName = profile?.full_name ?? "Lecturer";
+  const alertCount = Object.keys(todayUpdates).length;
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -267,7 +300,11 @@ export default function LecturerDashboard() {
       ]}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={C.brand} />
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={C.brand}
+        />
       }
     >
       <FadeSlideIn index={0}>
@@ -305,41 +342,42 @@ export default function LecturerDashboard() {
       <FadeSlideIn index={5} style={styles.section}>
         <SectionHeader
           title="Today's Classes"
-          onSeeAll={() => router.push('/(lecturer)/timetable')}
+          onSeeAll={() => router.push("/(lecturer)/timetable")}
         />
-        {todaySlots.length === 0
-          ? <EmptyDay />
-          : todaySlots.map((slot, index) => (
+        {todaySlots.length === 0 ? (
+          <EmptyDay />
+        ) : (
+          todaySlots.map((slot, index) => (
             <FadeSlideIn key={slot.id} index={index + 6}>
               <ClassCard
                 slot={slot}
                 update={todayUpdates[slot.id]}
                 isToday
-                onPress={() => router.push('/(lecturer)/timetable')}
+                onPress={() => router.push("/(lecturer)/timetable")}
               />
             </FadeSlideIn>
           ))
-        }
+        )}
       </FadeSlideIn>
 
       {upcomingSlots.length > 0 && (
         <FadeSlideIn index={8} style={styles.section}>
           <SectionHeader
             title="Upcoming"
-            onSeeAll={() => router.push('/(lecturer)/timetable')}
+            onSeeAll={() => router.push("/(lecturer)/timetable")}
           />
           {upcomingSlots.map((slot, index) => (
             <FadeSlideIn key={slot.id} index={index + 9}>
               <ClassCard
                 slot={slot}
-                onPress={() => router.push('/(lecturer)/timetable')}
+                onPress={() => router.push("/(lecturer)/timetable")}
               />
             </FadeSlideIn>
           ))}
         </FadeSlideIn>
       )}
     </ScrollView>
-  )
+  );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────
@@ -350,45 +388,45 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   headerLeft: { gap: 2 },
   greeting: { color: C.textMuted, fontSize: 13 },
   name: {
     color: C.textPrimary,
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.8,
     lineHeight: 34,
   },
   date: { color: C.textMuted, fontSize: 12, marginTop: 2 },
   // Stats
-  statsRow: { flexDirection: 'row', gap: 10 },
+  statsRow: { flexDirection: "row", gap: 10 },
   // Section
   section: { gap: 10 },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   sectionTitle: {
     color: C.textPrimary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: -0.2,
   },
   seeAll: {
     color: C.brand,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // Empty
   emptyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
     backgroundColor: C.bgSecondary,
     borderRadius: R.md,
@@ -397,57 +435,57 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: { gap: 2 },
-  emptyTitle: { color: C.textSecondary, fontSize: 14, fontWeight: '600' },
+  emptyTitle: { color: C.textSecondary, fontSize: 14, fontWeight: "600" },
   emptySub: { color: C.textMuted, fontSize: 12 },
 
   // Class Card
   classCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: C.bgSecondary,
     borderRadius: R.md,
     borderWidth: 1,
     borderColor: C.borderPrimary,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   classCardToday: {
     borderColor: C.borderBrand,
-    backgroundColor: 'rgba(255, 92, 26, 0.03)',
+    backgroundColor: "rgba(255, 92, 26, 0.03)",
   },
   classCardPressed: {
     opacity: 0.75,
   },
-  classAccent: { width: 3, alignSelf: 'stretch' },
+  classAccent: { width: 3, alignSelf: "stretch" },
   classBody: { flex: 1, paddingVertical: 14, paddingLeft: 12, gap: 4 },
-  classTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  classTop: { flexDirection: "row", alignItems: "center", gap: 8 },
   courseCode: {
     color: C.brand,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.6,
   },
   courseTitle: {
     color: C.textPrimary,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     lineHeight: 20,
   },
   classMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
     marginTop: 3,
   },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   metaText: { color: C.textMuted, fontSize: 12 },
   updateMsg: {
     color: C.textSecondary,
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     marginTop: 2,
   },
 
   // Badge
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: R.full },
-  badgeText: { fontSize: 11, fontWeight: '700' },
-})
+  badgeText: { fontSize: 11, fontWeight: "700" },
+});

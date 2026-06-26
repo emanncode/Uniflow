@@ -57,7 +57,6 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -117,12 +116,6 @@ export async function proxy(request: NextRequest) {
     if (profile?.role !== "uniflow_admin") {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";
-      return NextResponse.redirect(url);
-    }
-
-    if (pathname === "/") {
-      const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
 

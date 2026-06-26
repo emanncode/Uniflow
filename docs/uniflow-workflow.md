@@ -39,7 +39,7 @@ flowchart TB
   end
 
   subgraph super [admin.uniflowapp.xyz]
-    Dashboard["/dashboard"]
+    Dashboard["/(dashboard)"]
     Registrations["Registrations review"]
     Universities["Universities list"]
   end
@@ -185,7 +185,7 @@ sequenceDiagram
 1. Email + password via Supabase `signInWithPassword`.
 2. Portal verification: `POST /api/auth/verify-portal` with `portal: "uniflow_admin"`.
 3. If the profile role is not `uniflow_admin` → sign out, show access denied.
-4. Redirect to `/dashboard`.
+4. Redirect to `/(dashboard)`.
 
 > OTP verification exists in code but is **currently disabled** on both admin login flows.
 
@@ -193,11 +193,11 @@ sequenceDiagram
 
 | Route | Purpose |
 |-------|---------|
-| `/dashboard` | Overview — registration stats, recent applications |
-| `/dashboard/registrations` | Approve or reject pending university applications |
-| `/dashboard/universities` | List approved universities; send password reset to uni admins |
-| `/dashboard/notifications` | Platform notifications |
-| `/dashboard/settings` | Edit profile; change password (requires current password) |
+| `/(dashboard)` | Overview — registration stats, recent applications |
+| `/(dashboard)/registrations` | Approve or reject pending university applications |
+| `/(dashboard)/universities` | List approved universities; send password reset to uni admins |
+| `/(dashboard)/notifications` | Platform notifications |
+| `/(dashboard)/settings` | Edit profile; change password (requires current password) |
 
 ### What Uniflow Admin does NOT do
 
@@ -521,7 +521,7 @@ Used for first-time setup and admin-initiated resets:
 | Actor | Login | After login |
 |-------|-------|-------------|
 | Public | `uniflowapp.xyz/register` | — |
-| Uniflow Admin | `uniflowapp.xyz/login` or `admin.uniflowapp.xyz` | `/dashboard` |
+| Uniflow Admin | `uniflowapp.xyz/login` or `admin.uniflowapp.xyz` | `/(dashboard)` |
 | University Admin | `{short}-admin.uniflowapp.xyz/login` | `/` (overview) |
 | Mobile user | App login screen | `(student)` or `(lecturer)` tabs |
 

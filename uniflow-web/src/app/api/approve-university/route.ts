@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
     await supabase
       .from('university_registrations')
-      .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+      .update({ status: 'approved' })
       .eq('id', registrationId)
 
     const resetRedirect = universityAdminPasswordResetUrl(reg.short_name)

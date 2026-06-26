@@ -1,90 +1,128 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-import { Building2, Clock, CheckCircle2, XCircle } from 'lucide-react'
-import { universityPortalHost } from '@/lib/domain'
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import { Building2, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { universityPortalHost } from "@/lib/domain";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 interface Stats {
-  pending: number
-  approved: number
-  rejected: number
-  total: number
+  pending: number;
+  approved: number;
+  rejected: number;
+  total: number;
 }
 
 interface Registration {
-  id: string
-  university_name: string
-  short_name: string
-  country: string
-  status: 'pending' | 'approved' | 'rejected'
-  created_at: string
+  id: string;
+  university_name: string;
+  short_name: string;
+  country: string;
+  status: "pending" | "approved" | "rejected";
+  created_at: string;
 }
 
 const fetchData = async (
   setStats: React.Dispatch<React.SetStateAction<Stats>>,
   setRecent: React.Dispatch<React.SetStateAction<Registration[]>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   const { data } = await supabase
-    .from('university_registrations')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("university_registrations")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (data) {
-    const registrations = data as Registration[]
+    const registrations = data as Registration[];
     setStats({
-      pending: registrations.filter(r => r.status === 'pending').length,
-      approved: registrations.filter(r => r.status === 'approved').length,
-      rejected: registrations.filter(r => r.status === 'rejected').length,
+      pending: registrations.filter((r) => r.status === "pending").length,
+      approved: registrations.filter((r) => r.status === "approved").length,
+      rejected: registrations.filter((r) => r.status === "rejected").length,
       total: registrations.length,
-    })
-    setRecent(registrations.slice(0, 5))
+    });
+    setRecent(registrations.slice(0, 5));
   }
-  setLoading(false)
-}
+  setLoading(false);
+};
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats>({ pending: 0, approved: 0, rejected: 0, total: 0 })
-  const [recent, setRecent] = useState<Registration[]>([])
-  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<Stats>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    total: 0,
+  });
+  const [recent, setRecent] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData(setStats, setRecent, setLoading)
-  }, [])
+    fetchData(setStats, setRecent, setLoading);
+  }, []);
 
   const statCards = [
-    { label: 'Total Applications', value: stats.total, icon: Building2, color: 'var(--text-secondary)', bg: 'var(--bg-hover)' },
-    { label: 'Pending Review', value: stats.pending, icon: Clock, color: 'var(--warning)', bg: 'var(--warning-muted)' },
-    { label: 'Approved', value: stats.approved, icon: CheckCircle2, color: 'var(--success)', bg: 'var(--success-muted)' },
-    { label: 'Rejected', value: stats.rejected, icon: XCircle, color: 'var(--danger)', bg: 'var(--danger-muted)' },
-  ]
+    {
+      label: "Total Applications",
+      value: stats.total,
+      icon: Building2,
+      color: "var(--text-secondary)",
+      bg: "var(--bg-hover)",
+    },
+    {
+      label: "Pending Review",
+      value: stats.pending,
+      icon: Clock,
+      color: "var(--warning)",
+      bg: "var(--warning-muted)",
+    },
+    {
+      label: "Approved",
+      value: stats.approved,
+      icon: CheckCircle2,
+      color: "var(--success)",
+      bg: "var(--success-muted)",
+    },
+    {
+      label: "Rejected",
+      value: stats.rejected,
+      icon: XCircle,
+      color: "var(--danger)",
+      bg: "var(--danger-muted)",
+    },
+  ];
 
   return (
     <div>
       {/* header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{
-          fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 800,
-          letterSpacing: '-0.03em', color: 'var(--text-primary)', margin: '0 0 6px',
-        }}>
+      <div style={{ marginBottom: "32px" }}>
+        <h1
+          style={{
+            fontSize: "clamp(20px, 3vw, 28px)",
+            fontWeight: 800,
+            letterSpacing: "-0.03em",
+            color: "var(--text-primary)",
+            margin: "0 0 6px",
+          }}
+        >
           Overview
         </h1>
-        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+        <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: 0 }}>
           Manage Uniflow university registrations and approvals.
         </p>
       </div>
 
       {/* stat cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-        gap: '16px', marginBottom: '32px',
-      }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(min(100%, 200px), 1fr))",
+          gap: "16px",
+          marginBottom: "32px",
+        }}
+      >
         {statCards.map((card, i) => {
-          const Icon = card.icon
+          const Icon = card.icon;
           return (
             <motion.div
               key={card.label}
@@ -92,35 +130,57 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
               style={{
-                padding: '20px', borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--border-primary)',
-                backgroundColor: 'var(--bg-card)',
-                backdropFilter: 'blur(12px)',
+                padding: "20px",
+                borderRadius: "var(--radius-lg)",
+                border: "1px solid var(--border-primary)",
+                backgroundColor: "var(--bg-card)",
+                backdropFilter: "blur(12px)",
               }}
             >
-              <div style={{
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between', marginBottom: '12px',
-              }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "12px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "var(--text-muted)",
+                    fontWeight: 500,
+                  }}
+                >
                   {card.label}
                 </span>
-                <div style={{
-                  width: '32px', height: '32px', borderRadius: 'var(--radius-sm)',
-                  backgroundColor: card.bg, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: card.bg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Icon size={16} color={card.color} strokeWidth={1.8} />
                 </div>
               </div>
-              <div style={{
-                fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 900,
-                letterSpacing: '-0.04em', color: card.color, lineHeight: 1,
-              }}>
-                {loading ? '—' : card.value}
+              <div
+                style={{
+                  fontSize: "clamp(24px, 3vw, 36px)",
+                  fontWeight: 900,
+                  letterSpacing: "-0.04em",
+                  color: card.color,
+                  lineHeight: 1,
+                }}
+              >
+                {loading ? "—" : card.value}
               </div>
             </motion.div>
-          )
+          );
         })}
       </div>
 
@@ -130,34 +190,63 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         style={{
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-primary)',
-          backgroundColor: 'var(--bg-card)',
-          overflow: 'hidden',
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid var(--border-primary)",
+          backgroundColor: "var(--bg-card)",
+          overflow: "hidden",
         }}
       >
-        <div style={{
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--border-primary)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid var(--border-primary)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "13px",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+            }}
+          >
             Recent Applications
           </div>
-          <a href="/dashboard/registrations" style={{
-            fontSize: '12px', color: 'var(--brand)',
-            textDecoration: 'none', fontWeight: 600,
-          }}>
+          <a
+            href="/registrations"
+            style={{
+              fontSize: "12px",
+              color: "var(--brand)",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
             View all →
           </a>
         </div>
 
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+          <div
+            style={{
+              padding: "40px",
+              textAlign: "center",
+              color: "var(--text-muted)",
+              fontSize: "13px",
+            }}
+          >
             Loading...
           </div>
         ) : recent.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+          <div
+            style={{
+              padding: "40px",
+              textAlign: "center",
+              color: "var(--text-muted)",
+              fontSize: "13px",
+            }}
+          >
             No applications yet.
           </div>
         ) : (
@@ -169,29 +258,56 @@ export default function DashboardPage() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 + i * 0.05 }}
                 style={{
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '14px 20px', gap: '12px',
-                  borderBottom: i < recent.length - 1 ? '1px solid var(--border-primary)' : 'none',
-                  flexWrap: 'wrap',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "14px 20px",
+                  gap: "12px",
+                  borderBottom:
+                    i < recent.length - 1
+                      ? "1px solid var(--border-primary)"
+                      : "none",
+                  flexWrap: "wrap",
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "var(--text-primary)",
+                      marginBottom: "2px",
+                    }}
+                  >
                     {reg.university_name}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                     {universityPortalHost(reg.short_name)} · {reg.country}
                   </div>
                 </div>
-                <span style={{
-                  fontSize: '10px', fontWeight: 700,
-                  padding: '3px 10px', borderRadius: '999px',
-                  textTransform: 'uppercase', letterSpacing: '0.06em',
-                  color: reg.status === 'pending' ? 'var(--warning)' : reg.status === 'approved' ? 'var(--success)' : 'var(--danger)',
-                  backgroundColor: reg.status === 'pending' ? 'var(--warning-muted)' : reg.status === 'approved' ? 'var(--success-muted)' : 'var(--danger-muted)',
-                  border: `1px solid ${reg.status === 'pending' ? 'var(--warning-muted)' : reg.status === 'approved' ? 'var(--success-muted)' : 'var(--danger-muted)'}`,
-                }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    padding: "3px 10px",
+                    borderRadius: "999px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    color:
+                      reg.status === "pending"
+                        ? "var(--warning)"
+                        : reg.status === "approved"
+                          ? "var(--success)"
+                          : "var(--danger)",
+                    backgroundColor:
+                      reg.status === "pending"
+                        ? "var(--warning-muted)"
+                        : reg.status === "approved"
+                          ? "var(--success-muted)"
+                          : "var(--danger-muted)",
+                    border: `1px solid ${reg.status === "pending" ? "var(--warning-muted)" : reg.status === "approved" ? "var(--success-muted)" : "var(--danger-muted)"}`,
+                  }}
+                >
                   {reg.status}
                 </span>
               </motion.div>
@@ -200,5 +316,5 @@ export default function DashboardPage() {
         )}
       </motion.div>
     </div>
-  )
+  );
 }

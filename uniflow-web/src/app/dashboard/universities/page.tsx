@@ -20,7 +20,6 @@ interface University {
   estimated_students: number | null
   contact_person_name: string
   contact_person_role: string | null
-  reviewed_at: string
   created_at: string
 }
 
@@ -32,7 +31,7 @@ const fetchUniversities = async (
     .from('university_registrations')
     .select('*')
     .eq('status', 'approved')
-    .order('reviewed_at', { ascending: false })
+    .order('created_at', { ascending: false })
   if (data) setUniversities(data)
   setLoading(false)
 }
@@ -313,7 +312,7 @@ export default function UniversitiesPage() {
                 paddingTop: '12px',
                 borderTop: '1px solid var(--border-primary)',
               }}>
-                Approved {new Date(uni.reviewed_at || uni.created_at).toLocaleDateString('en-GB', {
+                Approved {new Date(uni.created_at).toLocaleDateString('en-GB', {
                   day: 'numeric', month: 'long', year: 'numeric'
                 })}
               </div>

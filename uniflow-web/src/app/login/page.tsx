@@ -90,7 +90,7 @@ export default function LoginPage() {
     setStep('otp')
     */
 
-    router.push("/dashboard");
+    router.push("/");
     setLoading(false);
   };
 
@@ -110,7 +110,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/");
   };
 
   const handleResend = async () => {
@@ -221,7 +221,8 @@ export default function LoginPage() {
                 </button>
 
                 <p className="text-xs text-muted text-center leading-relaxed">
-                  Need to reset your password? Contact another Uniflow administrator.
+                  Need to reset your password? Contact another Uniflow
+                  administrator.
                 </p>
               </div>
             </>
@@ -268,7 +269,9 @@ export default function LoginPage() {
                     className="input text-center text-2xl font-bold tracking-[0.5em]"
                     maxLength={6}
                     disabled={loading}
-                    onKeyDown={(e) => e.key === "Enter" && !loading && handleOtp()}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && !loading && handleOtp()
+                    }
                   />
                 </div>
 

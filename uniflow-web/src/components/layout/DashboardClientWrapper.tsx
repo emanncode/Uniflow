@@ -17,11 +17,11 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Registrations", href: "/dashboard/registrations", icon: Building2 },
-  { label: "Universities", href: "/dashboard/universities", icon: CheckSquare },
-  { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Overview", href: "/", icon: LayoutDashboard },
+  { label: "Registrations", href: "/registrations", icon: Building2 },
+  { label: "Universities", href: "/universities", icon: CheckSquare },
+  { label: "Notifications", href: "/notifications", icon: Bell },
+  { label: "Settings", href: "/settings", icon: Settings },
 ];
 
 interface SidebarContentProps {

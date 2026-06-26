@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   RefreshControl,
-} from 'react-native'
-import { useRouter } from 'expo-router'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+} from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   CalendarDays,
   BookOpen,
@@ -18,74 +18,85 @@ import {
   ChevronRight,
   User,
   ThumbsUp,
-} from 'lucide-react-native'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/store/useAuthStore'
-import { useStudentEnrollments } from '@/hooks/useStudentEnrollments'
-import { Theme } from '@/constants/Theme'
-import { DashboardSkeleton } from '@/components/SkeletonLoader'
-import { ScreenHeaderActions } from '@/components/ScreenHeaderActions'
-import { DashboardStatCard } from '@/components/DashboardStatCard'
-import { FadeSlideIn } from '@/components/FadeSlideIn'
-import { ScalePressable } from '@/components/ScalePressable'
-import type { TimetableSlot, ClassUpdate, ClassStatus, DayOfWeek } from '@/types'
-import { CLASS_STATUS_COLORS, DAY_ORDER } from '@/types'
+} from "lucide-react-native";
+import { supabase } from "@/lib/supabase";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
+import { Theme } from "@/constants/Theme";
+import { DashboardSkeleton } from "@/components/SkeletonLoader";
+import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
+import { DashboardStatCard } from "@/components/(dashboard)StatCard";
+import { FadeSlideIn } from "@/components/FadeSlideIn";
+import { ScalePressable } from "@/components/ScalePressable";
+import type {
+  TimetableSlot,
+  ClassUpdate,
+  ClassStatus,
+  DayOfWeek,
+} from "@/types";
+import { CLASS_STATUS_COLORS, DAY_ORDER } from "@/types";
 
-const C = Theme.colors
-const R = Theme.radius
+const C = Theme.colors;
+const R = Theme.radius;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
 const TODAY_NAME = new Date()
-  .toLocaleDateString('en-US', { weekday: 'long' })
-  .toLowerCase()
+  .toLocaleDateString("en-US", { weekday: "long" })
+  .toLowerCase();
 
-const TODAY_LABEL = new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-})
+const TODAY_LABEL = new Date().toLocaleDateString("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+});
 
 function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 function formatTime(time: string): string {
-  const [h, m] = time.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`
+  const [h, m] = time.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
 // ─── Status Badge ──────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: ClassStatus }) {
-  const { color, background } = CLASS_STATUS_COLORS[status]
+  const { color, background } = CLASS_STATUS_COLORS[status];
   return (
     <View style={[styles.badge, { backgroundColor: background }]}>
       <Text style={[styles.badgeText, { color }]}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Text>
     </View>
-  )
+  );
 }
 
 // ─── Class Card ────────────────────────────────────────────────────────────
 
 interface ClassCardProps {
-  slot: TimetableSlot
-  update?: ClassUpdate
-  isToday?: boolean
-  onPress: () => void
-  onUpvote?: (update: ClassUpdate) => void
+  slot: TimetableSlot;
+  update?: ClassUpdate;
+  isToday?: boolean;
+  onPress: () => void;
+  onUpvote?: (update: ClassUpdate) => void;
 }
 
-function ClassCard({ slot, update, isToday, onPress, onUpvote }: ClassCardProps) {
-  const status = update?.status ?? null
-  const accentColor = status ? CLASS_STATUS_COLORS[status].color : C.brand
+function ClassCard({
+  slot,
+  update,
+  isToday,
+  onPress,
+  onUpvote,
+}: ClassCardProps) {
+  const status = update?.status ?? null;
+  const accentColor = status ? CLASS_STATUS_COLORS[status].color : C.brand;
 
   return (
     <ScalePressable
@@ -96,12 +107,12 @@ function ClassCard({ slot, update, isToday, onPress, onUpvote }: ClassCardProps)
 
       <View style={styles.classBody}>
         <View style={styles.classTop}>
-          <Text style={styles.courseCode}>{slot.courses?.code ?? '—'}</Text>
+          <Text style={styles.courseCode}>{slot.courses?.code ?? "—"}</Text>
           {status && <StatusBadge status={status} />}
         </View>
 
         <Text style={styles.courseTitle} numberOfLines={1}>
-          {slot.courses?.title ?? 'Unknown Course'}
+          {slot.courses?.title ?? "Unknown Course"}
         </Text>
 
         {/* Lecturer name — student-specific */}
@@ -142,20 +153,32 @@ function ClassCard({ slot, update, isToday, onPress, onUpvote }: ClassCardProps)
           >
             <ThumbsUp size={11} color={C.brand} strokeWidth={2} />
             <Text style={styles.upvoteText}>
-              {update.upvotes ?? 0} confirm{(update.upvotes ?? 0) !== 1 ? 's' : ''}
+              {update.upvotes ?? 0} confirm
+              {(update.upvotes ?? 0) !== 1 ? "s" : ""}
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <ChevronRight size={15} color={C.textMuted} strokeWidth={1.8} style={{ marginRight: 14 }} />
+      <ChevronRight
+        size={15}
+        color={C.textMuted}
+        strokeWidth={1.8}
+        style={{ marginRight: 14 }}
+      />
     </ScalePressable>
-  )
+  );
 }
 
 // ─── Section Header ────────────────────────────────────────────────────────
 
-function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => void }) {
+function SectionHeader({
+  title,
+  onSeeAll,
+}: {
+  title: string;
+  onSeeAll: () => void;
+}) {
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -163,135 +186,152 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => voi
         <Text style={styles.seeAll}>See all</Text>
       </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 // ─── Screen ────────────────────────────────────────────────────────────────
 
 export default function StudentDashboard() {
-  const router = useRouter()
-  const insets = useSafeAreaInsets()
-  const profile = useAuthStore((s) => s.profile)
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const profile = useAuthStore((s) => s.profile);
 
-  const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([])
-  const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([])
-  const [todayUpdates, setTodayUpdates] = useState<Record<string, ClassUpdate>>({})
-  const [totalCourses, setTotalCourses] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([]);
+  const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([]);
+  const [todayUpdates, setTodayUpdates] = useState<Record<string, ClassUpdate>>(
+    {},
+  );
+  const [totalCourses, setTotalCourses] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // ── Fetch ─────────────────────────────────────────────────────────────
 
-  const { refresh: refreshEnrollments } = useStudentEnrollments()
+  const { refresh: refreshEnrollments } = useStudentEnrollments();
 
   const fetchData = useCallback(async () => {
-    if (!profile) return
+    if (!profile) return;
     try {
-      const { courseIds, offeringIds } = await refreshEnrollments(true)
+      const { courseIds, offeringIds } = await refreshEnrollments(true);
 
       if (courseIds.length === 0) {
-        setTodaySlots([])
-        setUpcomingSlots([])
-        setTotalCourses(0)
-        setTodayUpdates({})
-        return
+        setTodaySlots([]);
+        setUpcomingSlots([]);
+        setTotalCourses(0);
+        setTodayUpdates({});
+        return;
       }
 
-      setTotalCourses(courseIds.length)
+      setTotalCourses(courseIds.length);
 
-      const { fetchTimetableSlots } = await import('@/lib/timetable-query')
-      const allSlots = await fetchTimetableSlots({ offeringIds, courseIds })
+      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+      const allSlots = await fetchTimetableSlots({ offeringIds, courseIds });
 
       if (!allSlots.length) {
-        setTodaySlots([])
-        setUpcomingSlots([])
-        setTodayUpdates({})
-        return
+        setTodaySlots([]);
+        setUpcomingSlots([]);
+        setTodayUpdates({});
+        return;
       }
 
-      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME)
+      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME);
       const upcoming = allSlots
         .filter((s) => s.day_of_week !== TODAY_NAME)
-        .sort((a, b) => DAY_ORDER[a.day_of_week as DayOfWeek] - DAY_ORDER[b.day_of_week as DayOfWeek])
-        .slice(0, 4)
+        .sort(
+          (a, b) =>
+            DAY_ORDER[a.day_of_week as DayOfWeek] -
+            DAY_ORDER[b.day_of_week as DayOfWeek],
+        )
+        .slice(0, 4);
 
-      setTodaySlots(today)
-      setUpcomingSlots(upcoming)
+      setTodaySlots(today);
+      setUpcomingSlots(upcoming);
 
-      const todayIds = today.map((s) => s.id)
+      const todayIds = today.map((s) => s.id);
       if (todayIds.length === 0) {
-        setTodayUpdates({})
-        return
+        setTodayUpdates({});
+        return;
       }
 
-      const todayDate = new Date().toISOString().split('T')[0]
+      const todayDate = new Date().toISOString().split("T")[0];
       const { data: updates } = await supabase
-        .from('class_updates')
-        .select('*')
-        .eq('university_id', profile.university_id)
-        .eq('update_date', todayDate)
-        .in('timetable_id', todayIds)
+        .from("class_updates")
+        .select("*")
+        .eq("university_id", profile.university_id)
+        .eq("update_date", todayDate)
+        .in("timetable_id", todayIds);
 
       if (updates) {
-        const map: Record<string, ClassUpdate> = {}
-        updates.forEach((u) => { map[u.timetable_id] = u })
-        setTodayUpdates(map)
+        const map: Record<string, ClassUpdate> = {};
+        updates.forEach((u) => {
+          map[u.timetable_id] = u;
+        });
+        setTodayUpdates(map);
       } else {
-        setTodayUpdates({})
+        setTodayUpdates({});
       }
     } catch (e) {
-      console.error('Student dashboard fetch error:', e)
+      console.error("Student dashboard fetch error:", e);
     }
-  }, [profile, refreshEnrollments])
+  }, [profile, refreshEnrollments]);
 
   useEffect(() => {
-    fetchData().finally(() => setIsLoading(false))
-  }, [fetchData])
+    fetchData().finally(() => setIsLoading(false));
+  }, [fetchData]);
 
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true)
-    await fetchData()
-    setIsRefreshing(false)
-  }, [fetchData])
+    setIsRefreshing(true);
+    await fetchData();
+    setIsRefreshing(false);
+  }, [fetchData]);
 
   // ── Realtime ──────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!profile) return
+    if (!profile) return;
     const channel = supabase
-      .channel('student-dashboard')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'class_updates',
-        filter: `university_id=eq.${profile.university_id}`,
-      }, (payload) => {
-        const update = payload.new as ClassUpdate
-        if (!update?.timetable_id) return
-        setTodayUpdates((prev) => ({ ...prev, [update.timetable_id]: update }))
-      })
-      .subscribe()
-    return () => { supabase.removeChannel(channel) }
-  }, [profile])
+      .channel("student-dashboard")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "class_updates",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        (payload) => {
+          const update = payload.new as ClassUpdate;
+          if (!update?.timetable_id) return;
+          setTodayUpdates((prev) => ({
+            ...prev,
+            [update.timetable_id]: update,
+          }));
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile]);
 
   // ── Upvote ────────────────────────────────────────────────────────────
 
   const handleUpvote = useCallback(async (update: ClassUpdate) => {
-    const newCount = (update.upvotes ?? 0) + 1
+    const newCount = (update.upvotes ?? 0) + 1;
     setTodayUpdates((prev) => ({
       ...prev,
       [update.timetable_id]: { ...update, upvotes: newCount },
-    }))
+    }));
     await supabase
-      .from('class_updates')
+      .from("class_updates")
       .update({ upvotes: newCount })
-      .eq('id', update.id)
-  }, [])
+      .eq("id", update.id);
+  }, []);
 
-  if (isLoading) return <DashboardSkeleton />
+  if (isLoading) return <DashboardSkeleton />;
 
-  const firstName = profile?.full_name ?? 'Student'
-  const alertCount = Object.keys(todayUpdates).length
+  const firstName = profile?.full_name ?? "Student";
+  const alertCount = Object.keys(todayUpdates).length;
 
   return (
     <ScrollView
@@ -302,7 +342,11 @@ export default function StudentDashboard() {
       ]}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor={C.brand} />
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={C.brand}
+        />
       }
     >
       <FadeSlideIn index={0}>
@@ -345,7 +389,7 @@ export default function StudentDashboard() {
           <View style={styles.alertBanner}>
             <Zap size={13} color={C.brand} strokeWidth={2} />
             <Text style={styles.alertText}>
-              {alertCount} class update{alertCount !== 1 ? 's' : ''} today
+              {alertCount} class update{alertCount !== 1 ? "s" : ""} today
             </Text>
           </View>
         </FadeSlideIn>
@@ -354,7 +398,7 @@ export default function StudentDashboard() {
       <FadeSlideIn index={5} style={styles.section}>
         <SectionHeader
           title="Today's Classes"
-          onSeeAll={() => router.push('/(student)/timetable')}
+          onSeeAll={() => router.push("/(student)/timetable")}
         />
         {todaySlots.length === 0 ? (
           <View style={styles.emptyCard}>
@@ -371,7 +415,7 @@ export default function StudentDashboard() {
                 slot={slot}
                 update={todayUpdates[slot.id]}
                 isToday
-                onPress={() => router.push('/(student)/timetable')}
+                onPress={() => router.push("/(student)/timetable")}
                 onUpvote={handleUpvote}
               />
             </FadeSlideIn>
@@ -383,20 +427,20 @@ export default function StudentDashboard() {
         <FadeSlideIn index={8} style={styles.section}>
           <SectionHeader
             title="Upcoming"
-            onSeeAll={() => router.push('/(student)/timetable')}
+            onSeeAll={() => router.push("/(student)/timetable")}
           />
           {upcomingSlots.map((slot, index) => (
             <FadeSlideIn key={slot.id} index={index + 9}>
               <ClassCard
                 slot={slot}
-                onPress={() => router.push('/(student)/timetable')}
+                onPress={() => router.push("/(student)/timetable")}
               />
             </FadeSlideIn>
           ))}
         </FadeSlideIn>
       )}
     </ScrollView>
-  )
+  );
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────
@@ -406,30 +450,30 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, gap: 24 },
 
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   headerLeft: { gap: 2 },
   greeting: { color: C.textMuted, fontSize: 13 },
   name: {
     color: C.textPrimary,
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: -0.8,
     lineHeight: 34,
   },
   levelLabel: {
     color: C.brand,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 2,
   },
   date: { color: C.textMuted, fontSize: 12, marginTop: 2 },
-  statsRow: { flexDirection: 'row', gap: 10 },
+  statsRow: { flexDirection: "row", gap: 10 },
   alertBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     backgroundColor: C.brandMuted,
     borderRadius: R.sm,
@@ -438,25 +482,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  alertText: { color: C.brand, fontSize: 13, fontWeight: '600' },
+  alertText: { color: C.brand, fontSize: 13, fontWeight: "600" },
 
   section: { gap: 10 },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   sectionTitle: {
     color: C.textPrimary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: -0.2,
   },
-  seeAll: { color: C.brand, fontSize: 13, fontWeight: '600' },
+  seeAll: { color: C.brand, fontSize: 13, fontWeight: "600" },
 
   emptyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
     backgroundColor: C.bgSecondary,
     borderRadius: R.md,
@@ -465,58 +509,58 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: { gap: 2 },
-  emptyTitle: { color: C.textSecondary, fontSize: 14, fontWeight: '600' },
+  emptyTitle: { color: C.textSecondary, fontSize: 14, fontWeight: "600" },
   emptySub: { color: C.textMuted, fontSize: 12 },
 
   classCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: C.bgSecondary,
     borderRadius: R.md,
     borderWidth: 1,
     borderColor: C.borderPrimary,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   classCardToday: {
     borderColor: C.borderBrand,
-    backgroundColor: 'rgba(255, 92, 26, 0.03)',
+    backgroundColor: "rgba(255, 92, 26, 0.03)",
   },
-  classAccent: { width: 3, alignSelf: 'stretch' },
+  classAccent: { width: 3, alignSelf: "stretch" },
   classBody: { flex: 1, paddingVertical: 14, paddingLeft: 12, gap: 4 },
-  classTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  classTop: { flexDirection: "row", alignItems: "center", gap: 8 },
   courseCode: {
     color: C.brand,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
     letterSpacing: 0.6,
   },
   courseTitle: {
     color: C.textPrimary,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     lineHeight: 20,
   },
-  lecturerRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  lecturerRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   lecturerText: { color: C.textMuted, fontSize: 11 },
   classMeta: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
     marginTop: 3,
   },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
   metaText: { color: C.textMuted, fontSize: 12 },
   updateMsg: {
     color: C.textSecondary,
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     marginTop: 2,
   },
   upvoteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 5,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     backgroundColor: C.brandSubtle,
     borderRadius: R.full,
     borderWidth: 1,
@@ -525,8 +569,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     marginTop: 8,
   },
-  upvoteText: { color: C.brand, fontSize: 11, fontWeight: '600' },
+  upvoteText: { color: C.brand, fontSize: 11, fontWeight: "600" },
 
   badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: R.full },
-  badgeText: { fontSize: 11, fontWeight: '700' },
-})
+  badgeText: { fontSize: 11, fontWeight: "700" },
+});

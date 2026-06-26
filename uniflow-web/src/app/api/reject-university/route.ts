@@ -15,11 +15,7 @@ export async function POST(req: Request) {
 
     await supabase
       .from('university_registrations')
-      .update({
-        status: 'rejected',
-        rejection_reason: reason,
-        reviewed_at: new Date().toISOString(),
-      })
+      .update({ status: 'rejected', rejection_reason: reason })
       .eq('id', registrationId)
 
     if (reg) {
