@@ -215,7 +215,7 @@ export default function DashboardPage() {
             Recent Applications
           </div>
           <a
-            href="/registrations"
+            href="/dashboard/registrations"
             style={{
               fontSize: "12px",
               color: "var(--brand)",

@@ -125,7 +125,7 @@ export default function DashboardNotFound() {
             flexWrap: "wrap",
           }}
         >
-          <Link href="/" style={{ textDecoration: "none" }}>
+          <Link href="/dashboard" style={{ textDecoration: "none" }}>
             <motion.button
               whileHover={{
                 scale: 1.04,
@@ -147,7 +147,7 @@ export default function DashboardNotFound() {
             </motion.button>
           </Link>
           <Link
-            href="/registrations"
+            href="/dashboard/registrations"
             style={{ textDecoration: "none" }}
           >
             <motion.button

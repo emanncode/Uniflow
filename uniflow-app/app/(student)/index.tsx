@@ -25,7 +25,7 @@ import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
 import { Theme } from "@/constants/Theme";
 import { DashboardSkeleton } from "@/components/SkeletonLoader";
 import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
-import { DashboardStatCard } from "@/components/(dashboard)StatCard";
+import { DashboardStatCard } from "@/components/DashboardStatCard";
 import { FadeSlideIn } from "@/components/FadeSlideIn";
 import { ScalePressable } from "@/components/ScalePressable";
 import type {
