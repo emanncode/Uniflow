@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
-import { getCurrentAcademicSession, getAcademicContext, displayDayToDb } from "@/lib/academic";
+import { getCurrentAcademicSession, getAcademicContext, displayDayToDb, dbDayToDisplay } from "@/lib/academic";
 import { type CourseLevel, ALL_COURSE_LEVELS, formatLevelTab } from "@/lib/course-levels";
 import { CalendarDays, Loader2, ArrowLeft, Plus } from "lucide-react";
 import { fetchCourseAssignments } from "@/lib/lecturer-courses";
@@ -121,9 +121,24 @@ export default function TimetablePage() {
       setDeptName(dept.name);
 
       const sessionYear = getCurrentAcademicSession();
+
+      // Fetch all courses for this department (used for both merge and unscheduled)
+      const { data: allCourses } = await supabase
+        .from("courses")
+        .select("id, code, title, level, semester")
+        .eq("university_id", universityId)
+        .eq("department_id", dept.id)
+        .eq("is_active", true);
+
+      const courseMap = new Map<string, { code: string; title: string; level: number }>();
+      for (const c of allCourses ?? []) {
+        courseMap.set(c.id, { code: c.code, title: c.title, level: c.level });
+      }
+
+      // Fetch timetable entries (without relying on FK join)
       const { data: ttData, error: ttError } = await supabase
         .from("timetable")
-        .select("*, courses!inner(code, title, level)")
+        .select("*")
         .eq("university_id", universityId)
         .eq("department_id", dept.id)
         .eq("is_active", true)
@@ -135,28 +150,32 @@ export default function TimetablePage() {
         setLoading(false);
         return;
       }
-      const ttEntries = (ttData as unknown as TimetableEntry[]) || [];
-      setEntries(ttEntries);
 
-      // Fetch unscheduled courses (courses in this dept with no active timetable slot)
+      const rawEntries = (ttData as unknown as TimetableEntry[]) || [];
+      console.log("[timetable] dept.id:", dept.id);
+      console.log("[timetable] universityId:", universityId);
+      console.log("[timetable] sessionYear:", sessionYear);
+      console.log("[timetable] raw timetable rows:", rawEntries.length, rawEntries);
+      console.log("[timetable] courseMap size:", courseMap.size, "ids:", Array.from(courseMap.keys()));
+      // Merge course info into entries, filtering out entries with missing courses
+      const mergedEntries = rawEntries.filter((e) => courseMap.has(e.course_id)).map((e) => ({
+        ...e,
+        day_of_week: dbDayToDisplay(e.day_of_week),
+        courses: courseMap.get(e.course_id) ?? null,
+      }));
+      console.log("[timetable] merged entries:", mergedEntries.length, mergedEntries);
+
+      setEntries(mergedEntries);
+
+      console.log("[timetable] all courses:", allCourses?.length, allCourses);
+      // Fetch unscheduled courses (courses with no active timetable slot)
       setUnscheduledLoading(true);
-      const scheduledCourseIds = new Set(ttEntries.map((e) => e.course_id));
+      const scheduledCourseIds = new Set(mergedEntries.map((e) => e.course_id));
+      const unscheduledRaw = (allCourses ?? []).filter((c) => !scheduledCourseIds.has(c.id));
+      console.log("[timetable] unscheduled courses:", unscheduledRaw.length, unscheduledRaw);
 
-      let courseQuery = supabase
-        .from("courses")
-        .select("id, code, title, level, semester")
-        .eq("university_id", universityId)
-        .eq("department_id", dept.id)
-        .eq("is_active", true);
-
-      if (scheduledCourseIds.size > 0) {
-        courseQuery = courseQuery.not("id", "in", `(${Array.from(scheduledCourseIds).join(",")})`);
-      }
-
-      const { data: courseData, error: courseError } = await courseQuery;
-
-      if (!courseError && courseData && courseData.length > 0) {
-        const unscheduledIds = courseData.map((c) => c.id);
+      if (unscheduledRaw.length > 0) {
+        const unscheduledIds = unscheduledRaw.map((c) => c.id);
         let assignmentMap: Record<string, { id: string; full_name: string }[]> = {};
         try {
           assignmentMap = await fetchCourseAssignments({
@@ -168,7 +187,7 @@ export default function TimetablePage() {
           // proceed without assignments
         }
         setUnscheduledCourses(
-          courseData.map((c) => ({
+          unscheduledRaw.map((c) => ({
             id: c.id,
             code: c.code,
             title: c.title,
