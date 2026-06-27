@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import {
   Building2, Globe, Users, Mail,
-  ExternalLink, Search, CheckCircle2, Key, Loader2, AlertTriangle
+  ExternalLink, Search, CheckCircle2, Key, Loader2, AlertTriangle, X
 } from 'lucide-react'
 import { universityPortalHost } from '@/lib/domain'
 
@@ -42,6 +42,8 @@ export default function UniversitiesPage() {
   const [search, setSearch] = useState('')
   const [resettingId, setResettingId] = useState<string | null>(null)
   const [confirmReset, setConfirmReset] = useState<{ email: string, id: string } | null>(null)
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null)
+  const [resetError, setResetError] = useState<string | null>(null)
 
   useEffect(() => { fetchUniversities(setUniversities, setLoading) }, [])
 
@@ -57,12 +59,12 @@ export default function UniversitiesPage() {
 
       const data = await res.json()
       if (data.success) {
-        alert('A secure password reset link has been sent to ' + email)
+        setResetSuccess(email)
       } else {
-        alert(data.error || 'Failed to reset password')
+        setResetError(data.error || 'Failed to reset password')
       }
     } catch (err) {
-      alert('An error occurred while resetting password')
+      setResetError('An error occurred while resetting password')
     } finally {
       setResettingId(null)
     }
@@ -389,6 +391,144 @@ export default function UniversitiesPage() {
                   Yes, Reset
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {resetSuccess && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '24px', position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => setResetSuccess(null)}
+                style={{
+                  position: 'absolute', top: '12px', right: '12px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--text-muted)', padding: '4px',
+                }}
+              >
+                <X size={16} />
+              </button>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                backgroundColor: 'rgba(34,197,94,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '16px', border: '1px solid rgba(34,197,94,0.2)',
+              }}>
+                <CheckCircle2 size={24} color="#22c55e" />
+              </div>
+
+              <h3 style={{
+                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}>
+                Reset Link Sent
+              </h3>
+              <p style={{
+                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
+                lineHeight: 1.5,
+              }}>
+                A secure password reset link has been sent to <strong>{resetSuccess}</strong>.
+              </p>
+
+              <button
+                onClick={() => setResetSuccess(null)}
+                style={{
+                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--brand)', color: 'white',
+                  fontWeight: 700, fontSize: '14px', border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                Done
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Modal */}
+      <AnimatePresence>
+        {resetError && (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px', backgroundColor: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              style={{
+                width: '100%', maxWidth: '400px',
+                backgroundColor: 'var(--bg-card)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-primary)',
+                padding: '24px', position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => setResetError(null)}
+                style={{
+                  position: 'absolute', top: '12px', right: '12px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--text-muted)', padding: '4px',
+                }}
+              >
+                <X size={16} />
+              </button>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%',
+                backgroundColor: 'rgba(239,68,68,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: '16px', border: '1px solid rgba(239,68,68,0.2)',
+              }}>
+                <AlertTriangle size={24} color="#ef4444" />
+              </div>
+
+              <h3 style={{
+                fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)',
+                marginBottom: '8px',
+              }}>
+                Reset Failed
+              </h3>
+              <p style={{
+                fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px',
+                lineHeight: 1.5,
+              }}>
+                {resetError}
+              </p>
+
+              <button
+                onClick={() => setResetError(null)}
+                style={{
+                  width: '100%', padding: '12px', borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--brand)', color: 'white',
+                  fontWeight: 700, fontSize: '14px', border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                OK
+              </button>
             </motion.div>
           </div>
         )}

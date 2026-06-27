@@ -90,7 +90,7 @@ export async function proxy(request: NextRequest) {
   // Only the landing page and university registration live here.
   // Everything else returns a 404 — no redirects to the admin subdomain.
   if (!subdomain) {
-    const rootPublicRoutes = ["/", "/register"];
+    const rootPublicRoutes = ["/", "/register", "/reset-password", "/auth/callback"];
     if (!rootPublicRoutes.includes(pathname)) {
       const url = request.nextUrl.clone();
       url.pathname = "/not-found-page";
