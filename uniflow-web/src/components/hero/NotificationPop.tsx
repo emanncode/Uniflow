@@ -21,7 +21,7 @@ export default function NotificationPop({ text, sub, icon, color, delay }: {
           exit={{ opacity: 0, y: 16, scale: 0.92 }}
           transition={{ type: 'spring', stiffness: 120, damping: 25, mass: 1.2 }}
           style={{
-            background: 'rgba(18,15,11,0.92)',
+            background: 'rgba(23,32,50,0.92)',
             backdropFilter: 'blur(24px)',
             WebkitBackdropFilter: 'blur(24px)',
             border: `1px solid ${color}30`,

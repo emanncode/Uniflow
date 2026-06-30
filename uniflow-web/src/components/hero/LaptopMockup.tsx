@@ -41,7 +41,7 @@ export default function LaptopMockup() {
 
         {/* screen content */}
         <div style={{
-          background: '#0d0b09',
+          background: '#172032',
           borderRadius: '6px',
           overflow: 'hidden',
           border: '1px solid rgba(255,255,255,0.06)',

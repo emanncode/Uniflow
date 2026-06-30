@@ -41,7 +41,7 @@ export default function PhoneMockup() {
 
       {/* screen */}
       <div style={{
-        background: '#0d0b09',
+        background: '#172032',
         borderRadius: '18px',
         overflow: 'hidden',
         border: '1px solid var(--border-primary)',
