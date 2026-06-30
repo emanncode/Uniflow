@@ -33,8 +33,8 @@ function MobileBrowserTip() {
     <div
       className="mb-5 rounded-lg px-4 py-3 text-left text-sm leading-relaxed"
       style={{
-        background: "rgba(255, 92, 26, 0.08)",
-        border: "1px solid rgba(255, 92, 26, 0.2)",
+        background: "rgba(29, 78, 216, 0.08)",
+        border: "1px solid rgba(29, 78, 216, 0.2)",
         color: "var(--text-secondary)",
       }}
     >
