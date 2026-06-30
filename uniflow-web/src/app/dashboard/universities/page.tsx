@@ -29,7 +29,7 @@ const fetchUniversities = async (
 ) => {
   const { data } = await supabase
     .from('university_registrations')
-    .select('*')
+    .select('id, university_name, short_name, official_email, country, state, website, estimated_students, contact_person_name, contact_person_role, created_at')
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
   if (data) setUniversities(data)

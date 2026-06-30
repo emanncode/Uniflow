@@ -1,27 +1,24 @@
 {
-  "version": "2.13",
-  "name": "Uniflow Mobile \u2014 All Screens",
+  "version": "2.14",
   "children": [
     {
       "type": "frame",
       "id": "uniflowCanvas",
-      "name": "Uniflow Mobile \u2014 All Screens",
-      "clip": false,
       "x": 0,
       "y": 0,
+      "name": "Uniflow Mobile — All Screens",
       "width": 2970,
       "height": 1728,
       "fill": "#050505",
       "layout": "none",
-      "gap": 12,
       "children": [
         {
           "type": "frame",
           "id": "loginScreen",
-          "name": "Login",
-          "clip": true,
           "x": 0,
           "y": 0,
+          "name": "Login",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -39,7 +36,6 @@
               "type": "frame",
               "id": "loginBrand",
               "name": "Brand",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 12,
@@ -53,9 +49,9 @@
                   "width": 48,
                   "height": 48,
                   "fill": "#ff5c1a",
+                  "cornerRadius": 14,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 14,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -84,10 +80,9 @@
                   "id": "loginTagline",
                   "fill": "#666666",
                   "content": "University intelligence, in your pocket",
+                  "textAlign": "center",
                   "fontFamily": "Inter",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "textAlign": "center"
+                  "fontSize": 14
                 }
               ]
             },
@@ -98,18 +93,17 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#0f1011",
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 20,
               "padding": 24,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "children": [
                 {
                   "type": "frame",
                   "id": "loginCardHeader",
                   "name": "Header",
-                  "clip": false,
                   "layout": "vertical",
                   "gap": 6,
                   "children": [
@@ -128,8 +122,7 @@
                       "fill": "#a1a1a1",
                       "content": "Sign in to your account",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     }
                   ]
                 },
@@ -137,7 +130,6 @@
                   "type": "frame",
                   "id": "emailField",
                   "name": "Email",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 8,
@@ -159,15 +151,15 @@
                       "width": "fill_container",
                       "height": 48,
                       "fill": "#161719",
+                      "cornerRadius": 14,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         0,
                         16
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 14,
                       "alignItems": "center",
                       "children": [
                         {
@@ -176,8 +168,7 @@
                           "fill": "#666666",
                           "content": "you@university.edu",
                           "fontFamily": "Inter",
-                          "fontSize": 15,
-                          "fontWeight": "400"
+                          "fontSize": 15
                         }
                       ]
                     }
@@ -187,7 +178,6 @@
                   "type": "frame",
                   "id": "passwordField",
                   "name": "Password",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 8,
@@ -196,9 +186,7 @@
                       "type": "frame",
                       "id": "passwordLabelRow",
                       "name": "Labels",
-                      "clip": false,
                       "width": "fill_container",
-                      "layout": "horizontal",
                       "gap": 12,
                       "justifyContent": "space_between",
                       "alignItems": "center",
@@ -231,15 +219,15 @@
                       "width": "fill_container",
                       "height": 48,
                       "fill": "#161719",
+                      "cornerRadius": 14,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         0,
                         16
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 14,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -249,8 +237,7 @@
                           "fill": "#666666",
                           "content": "Enter your password",
                           "fontFamily": "Inter",
-                          "fontSize": 15,
-                          "fontWeight": "400"
+                          "fontSize": 15
                         },
                         {
                           "type": "text",
@@ -273,9 +260,9 @@
                   "width": "fill_container",
                   "height": 52,
                   "fill": "#ff5c1a",
+                  "cornerRadius": 14,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 14,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -294,13 +281,12 @@
                   "type": "text",
                   "id": "tempPasswordHelp",
                   "fill": "#666666",
-                  "content": "Need a temporary password? Click here",
-                  "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400",
-                  "textAlign": "center",
+                  "textGrowth": "fixed-width",
                   "width": "fill_container",
-                  "textGrowth": "fixed-width"
+                  "content": "Need a temporary password? Click here",
+                  "textAlign": "center",
+                  "fontFamily": "Inter",
+                  "fontSize": 13
                 }
               ]
             },
@@ -308,21 +294,20 @@
               "type": "text",
               "id": "loginFooter",
               "fill": "#666666",
-              "content": "Uniflow \u00b7 Built for Nigerian universities",
+              "content": "Uniflow · Built for Nigerian universities",
+              "textAlign": "center",
               "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "400",
-              "textAlign": "center"
+              "fontSize": 12
             }
           ]
         },
         {
           "type": "frame",
           "id": "studentHome",
-          "name": "Student \u00b7 Home",
-          "clip": true,
           "x": 430,
           "y": 0,
+          "name": "Student · Home",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -339,9 +324,7 @@
               "type": "frame",
               "id": "stuHomeHeader",
               "name": "Header",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "justifyContent": "space_between",
               "children": [
@@ -349,7 +332,6 @@
                   "type": "frame",
                   "id": "stuHomeHeaderLeft",
                   "name": "Greeting",
-                  "clip": false,
                   "layout": "vertical",
                   "gap": 4,
                   "children": [
@@ -377,8 +359,7 @@
                       "fill": "#666666",
                       "content": "Thursday, June 18",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     }
                   ]
                 },
@@ -386,8 +367,6 @@
                   "type": "frame",
                   "id": "stuHomeHeaderActions",
                   "name": "Header Actions",
-                  "clip": false,
-                  "layout": "horizontal",
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -399,11 +378,11 @@
                       "width": 40,
                       "height": 40,
                       "fill": "#0f1011",
-                      "layout": "vertical",
-                      "gap": 12,
+                      "cornerRadius": 12,
                       "stroke": "#ffffff0d",
                       "strokeWidth": 1,
-                      "cornerRadius": 12,
+                      "layout": "vertical",
+                      "gap": 12,
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
@@ -411,10 +390,9 @@
                           "type": "text",
                           "id": "stuHomeNotifIcon",
                           "fill": "#ff5c1a",
-                          "content": "\ud83d\udd14",
+                          "content": "🔔",
                           "fontFamily": "Inter",
-                          "fontSize": 16,
-                          "fontWeight": "400"
+                          "fontSize": 16
                         }
                       ]
                     },
@@ -426,11 +404,11 @@
                       "width": 40,
                       "height": 40,
                       "fill": "#ff5c1a1a",
-                      "layout": "vertical",
-                      "gap": 12,
+                      "cornerRadius": 20,
                       "stroke": "#ff5c1a40",
                       "strokeWidth": 1,
-                      "cornerRadius": 20,
+                      "layout": "vertical",
+                      "gap": 12,
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
@@ -453,9 +431,7 @@
               "type": "frame",
               "id": "stuStats",
               "name": "Stats",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 10,
               "children": [
                 {
@@ -465,19 +441,17 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
+                  "cornerRadius": 14,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 10,
                   "padding": 14,
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "frame",
                       "id": "stuStatTodayTop",
                       "name": "Top",
-                      "clip": false,
-                      "layout": "horizontal",
                       "gap": 6,
                       "alignItems": "center",
                       "children": [
@@ -485,10 +459,9 @@
                           "type": "text",
                           "id": "stuStatTodayIcon",
                           "fill": "#ff5c1a",
-                          "content": "\ud83d\udcc5",
+                          "content": "📅",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         },
                         {
                           "type": "text",
@@ -519,19 +492,17 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
+                  "cornerRadius": 14,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 10,
                   "padding": 14,
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "frame",
                       "id": "stuStatCoursesTop",
                       "name": "Top",
-                      "clip": false,
-                      "layout": "horizontal",
                       "gap": 6,
                       "alignItems": "center",
                       "children": [
@@ -539,10 +510,9 @@
                           "type": "text",
                           "id": "stuStatCoursesIcon",
                           "fill": "#ff5c1a",
-                          "content": "\ud83d\udcda",
+                          "content": "📚",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         },
                         {
                           "type": "text",
@@ -573,19 +543,17 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
+                  "cornerRadius": 14,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 10,
                   "padding": 14,
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "frame",
                       "id": "stuStatAlertsTop",
                       "name": "Top",
-                      "clip": false,
-                      "layout": "horizontal",
                       "gap": 6,
                       "alignItems": "center",
                       "children": [
@@ -593,10 +561,9 @@
                           "type": "text",
                           "id": "stuStatAlertsIcon",
                           "fill": "#ff5c1a",
-                          "content": "\u26a1",
+                          "content": "⚡",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         },
                         {
                           "type": "text",
@@ -629,25 +596,23 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#ff5c1a1a",
-              "layout": "horizontal",
+              "cornerRadius": 12,
+              "stroke": "#ff5c1a40",
+              "strokeWidth": 1,
               "gap": 8,
               "padding": [
                 12,
                 14
               ],
-              "stroke": "#ff5c1a40",
-              "strokeWidth": 1,
-              "cornerRadius": 12,
               "alignItems": "center",
               "children": [
                 {
                   "type": "text",
                   "id": "stuAlertIcon",
                   "fill": "#ff5c1a",
-                  "content": "\u26a1",
+                  "content": "⚡",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 },
                 {
                   "type": "text",
@@ -664,7 +629,6 @@
               "type": "frame",
               "id": "stuTodaySection",
               "name": "Today",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 12,
@@ -673,9 +637,7 @@
                   "type": "frame",
                   "id": "stuTodayHeader",
                   "name": "Section",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "justifyContent": "space_between",
                   "alignItems": "center",
@@ -707,12 +669,11 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
-                  "layout": "horizontal",
-                  "gap": 12,
-                  "padding": 16,
+                  "cornerRadius": 14,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 14,
+                  "gap": 12,
+                  "padding": 16,
                   "children": [
                     {
                       "type": "frame",
@@ -722,15 +683,14 @@
                       "width": 4,
                       "height": "fill_container",
                       "fill": "#ff5c1a",
+                      "cornerRadius": 2,
                       "layout": "vertical",
-                      "gap": 12,
-                      "cornerRadius": 2
+                      "gap": 12
                     },
                     {
                       "type": "frame",
                       "id": "stuCSC301Body",
                       "name": "Body",
-                      "clip": false,
                       "width": "fill_container",
                       "layout": "vertical",
                       "gap": 6,
@@ -739,9 +699,7 @@
                           "type": "frame",
                           "id": "stuCSC301Top",
                           "name": "Top",
-                          "clip": false,
                           "width": "fill_container",
-                          "layout": "horizontal",
                           "gap": 12,
                           "justifyContent": "space_between",
                           "alignItems": "center",
@@ -761,13 +719,13 @@
                               "name": "Badge",
                               "clip": true,
                               "fill": "#f59e0b14",
+                              "cornerRadius": 8,
                               "layout": "vertical",
                               "gap": 12,
                               "padding": [
                                 4,
                                 10
                               ],
-                              "cornerRadius": 8,
                               "children": [
                                 {
                                   "type": "text",
@@ -788,17 +746,15 @@
                           "fill": "#a1a1a1",
                           "content": "Data Structures & Algorithms",
                           "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "400"
+                          "fontSize": 13
                         },
                         {
                           "type": "text",
                           "id": "stuCSC301Meta",
                           "fill": "#666666",
-                          "content": "9:00 AM \u00b7 LT 2 \u00b7 Dr. Okafor",
+                          "content": "9:00 AM · LT 2 · Dr. Okafor",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -811,12 +767,11 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
-                  "layout": "horizontal",
-                  "gap": 12,
-                  "padding": 16,
+                  "cornerRadius": 14,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 14,
+                  "gap": 12,
+                  "padding": 16,
                   "children": [
                     {
                       "type": "frame",
@@ -826,15 +781,14 @@
                       "width": 4,
                       "height": "fill_container",
                       "fill": "#22c55e",
+                      "cornerRadius": 2,
                       "layout": "vertical",
-                      "gap": 12,
-                      "cornerRadius": 2
+                      "gap": 12
                     },
                     {
                       "type": "frame",
                       "id": "stuMTH201Body",
                       "name": "Body",
-                      "clip": false,
                       "width": "fill_container",
                       "layout": "vertical",
                       "gap": 6,
@@ -843,9 +797,7 @@
                           "type": "frame",
                           "id": "stuMTH201Top",
                           "name": "Top",
-                          "clip": false,
                           "width": "fill_container",
-                          "layout": "horizontal",
                           "gap": 12,
                           "justifyContent": "space_between",
                           "alignItems": "center",
@@ -867,17 +819,15 @@
                           "fill": "#a1a1a1",
                           "content": "Linear Algebra II",
                           "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "400"
+                          "fontSize": 13
                         },
                         {
                           "type": "text",
                           "id": "stuMTH201Meta",
                           "fill": "#666666",
-                          "content": "11:00 AM \u00b7 Room 14 \u00b7 Prof. Adeyemi",
+                          "content": "11:00 AM · Room 14 · Prof. Adeyemi",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -893,15 +843,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -909,7 +857,6 @@
                   "type": "frame",
                   "id": "studentHomeTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -920,10 +867,9 @@
                       "type": "text",
                       "id": "studentHomeTabHomeIcon",
                       "fill": "#ff5c1a",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -940,7 +886,6 @@
                   "type": "frame",
                   "id": "studentHomeTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -951,10 +896,9 @@
                       "type": "text",
                       "id": "studentHomeTabScheduleIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -971,7 +915,6 @@
                   "type": "frame",
                   "id": "studentHomeTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -982,10 +925,9 @@
                       "type": "text",
                       "id": "studentHomeTabCoursesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -1002,7 +944,6 @@
                   "type": "frame",
                   "id": "studentHomeTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -1013,10 +954,9 @@
                       "type": "text",
                       "id": "studentHomeTabResourcesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -1036,10 +976,10 @@
         {
           "type": "frame",
           "id": "studentSchedule",
-          "name": "Student \u00b7 Schedule",
-          "clip": true,
           "x": 860,
           "y": 0,
+          "name": "Student · Schedule",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -1056,7 +996,6 @@
               "type": "frame",
               "id": "stuSchedPageHeader",
               "name": "Page Header",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 4,
@@ -1076,8 +1015,7 @@
                   "fill": "#666666",
                   "content": "Your weekly timetable",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -1085,9 +1023,7 @@
               "type": "frame",
               "id": "stuDayPicker",
               "name": "Day Picker",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 6,
               "children": [
                 {
@@ -1097,15 +1033,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -1113,10 +1049,10 @@
                       "id": "stuDayMonText",
                       "fill": "#a1a1a1",
                       "content": "Mon",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -1127,15 +1063,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -1143,10 +1079,10 @@
                       "id": "stuDayTueText",
                       "fill": "#a1a1a1",
                       "content": "Tue",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -1157,15 +1093,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -1173,10 +1109,10 @@
                       "id": "stuDayWedText",
                       "fill": "#a1a1a1",
                       "content": "Wed",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -1187,15 +1123,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#ff5c1a",
+                  "cornerRadius": 12,
+                  "stroke": "#ff5c1a",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ff5c1a",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -1203,10 +1139,10 @@
                       "id": "stuDayThuText",
                       "fill": "#ffffff",
                       "content": "Thu",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "700",
-                      "textAlign": "center"
+                      "fontWeight": "700"
                     }
                   ]
                 },
@@ -1217,15 +1153,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -1233,10 +1169,10 @@
                       "id": "stuDayFriText",
                       "fill": "#a1a1a1",
                       "content": "Fri",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -1247,15 +1183,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -1263,10 +1199,10 @@
                       "id": "stuDaySatText",
                       "fill": "#a1a1a1",
                       "content": "Sat",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 }
@@ -1279,12 +1215,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 16,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 16,
               "children": [
                 {
                   "type": "frame",
@@ -1294,15 +1229,14 @@
                   "width": 4,
                   "height": "fill_container",
                   "fill": "#ff5c1a",
+                  "cornerRadius": 2,
                   "layout": "vertical",
-                  "gap": 12,
-                  "cornerRadius": 2
+                  "gap": 12
                 },
                 {
                   "type": "frame",
                   "id": "stuSchedCSC301Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 6,
@@ -1311,9 +1245,7 @@
                       "type": "frame",
                       "id": "stuSchedCSC301Top",
                       "name": "Top",
-                      "clip": false,
                       "width": "fill_container",
-                      "layout": "horizontal",
                       "gap": 12,
                       "justifyContent": "space_between",
                       "alignItems": "center",
@@ -1333,13 +1265,13 @@
                           "name": "Badge",
                           "clip": true,
                           "fill": "#f59e0b14",
+                          "cornerRadius": 8,
                           "layout": "vertical",
                           "gap": 12,
                           "padding": [
                             4,
                             10
                           ],
-                          "cornerRadius": 8,
                           "children": [
                             {
                               "type": "text",
@@ -1360,17 +1292,15 @@
                       "fill": "#a1a1a1",
                       "content": "Data Structures & Algorithms",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     },
                     {
                       "type": "text",
                       "id": "stuSchedCSC301Meta",
                       "fill": "#666666",
-                      "content": "9:00 \u2013 11:00 AM \u00b7 LT 2",
+                      "content": "9:00 – 11:00 AM · LT 2",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -1383,12 +1313,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 16,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 16,
               "children": [
                 {
                   "type": "frame",
@@ -1398,15 +1327,14 @@
                   "width": 4,
                   "height": "fill_container",
                   "fill": "#22c55e",
+                  "cornerRadius": 2,
                   "layout": "vertical",
-                  "gap": 12,
-                  "cornerRadius": 2
+                  "gap": 12
                 },
                 {
                   "type": "frame",
                   "id": "stuSchedMTH201Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 6,
@@ -1415,9 +1343,7 @@
                       "type": "frame",
                       "id": "stuSchedMTH201Top",
                       "name": "Top",
-                      "clip": false,
                       "width": "fill_container",
-                      "layout": "horizontal",
                       "gap": 12,
                       "justifyContent": "space_between",
                       "alignItems": "center",
@@ -1439,17 +1365,15 @@
                       "fill": "#a1a1a1",
                       "content": "Linear Algebra II",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     },
                     {
                       "type": "text",
                       "id": "stuSchedMTH201Meta",
                       "fill": "#666666",
-                      "content": "11:00 AM \u2013 1:00 PM \u00b7 Room 14",
+                      "content": "11:00 AM – 1:00 PM · Room 14",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -1462,12 +1386,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 16,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 16,
               "children": [
                 {
                   "type": "frame",
@@ -1477,15 +1400,14 @@
                   "width": 4,
                   "height": "fill_container",
                   "fill": "#ff5c1a",
+                  "cornerRadius": 2,
                   "layout": "vertical",
-                  "gap": 12,
-                  "cornerRadius": 2
+                  "gap": 12
                 },
                 {
                   "type": "frame",
                   "id": "stuSchedGST102Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 6,
@@ -1494,9 +1416,7 @@
                       "type": "frame",
                       "id": "stuSchedGST102Top",
                       "name": "Top",
-                      "clip": false,
                       "width": "fill_container",
-                      "layout": "horizontal",
                       "gap": 12,
                       "justifyContent": "space_between",
                       "alignItems": "center",
@@ -1518,17 +1438,15 @@
                       "fill": "#a1a1a1",
                       "content": " Nigerian People & Culture",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     },
                     {
                       "type": "text",
                       "id": "stuSchedGST102Meta",
                       "fill": "#666666",
-                      "content": "2:00 \u2013 4:00 PM \u00b7 Hall A",
+                      "content": "2:00 – 4:00 PM · Hall A",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -1542,15 +1460,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -1558,7 +1474,6 @@
                   "type": "frame",
                   "id": "studentScheduleTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -1569,10 +1484,9 @@
                       "type": "text",
                       "id": "studentScheduleTabHomeIcon",
                       "fill": "#666666",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -1589,7 +1503,6 @@
                   "type": "frame",
                   "id": "studentScheduleTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -1600,10 +1513,9 @@
                       "type": "text",
                       "id": "studentScheduleTabScheduleIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -1620,7 +1532,6 @@
                   "type": "frame",
                   "id": "studentScheduleTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -1631,10 +1542,9 @@
                       "type": "text",
                       "id": "studentScheduleTabCoursesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -1651,7 +1561,6 @@
                   "type": "frame",
                   "id": "studentScheduleTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -1662,10 +1571,9 @@
                       "type": "text",
                       "id": "studentScheduleTabResourcesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -1685,10 +1593,10 @@
         {
           "type": "frame",
           "id": "studentCourses",
-          "name": "Student \u00b7 Courses",
-          "clip": true,
           "x": 1290,
           "y": 0,
+          "name": "Student · Courses",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -1705,7 +1613,6 @@
               "type": "frame",
               "id": "stuCoursesPageHeader",
               "name": "Page Header",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 4,
@@ -1725,8 +1632,7 @@
                   "fill": "#666666",
                   "content": "6 enrolled courses",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -1737,19 +1643,17 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
+              "cornerRadius": 14,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 10,
               "padding": 16,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 14,
               "children": [
                 {
                   "type": "frame",
                   "id": "stuCourseTags",
                   "name": "Tags",
-                  "clip": false,
-                  "layout": "horizontal",
                   "gap": 8,
                   "children": [
                     {
@@ -1758,13 +1662,13 @@
                       "name": "Code",
                       "clip": true,
                       "fill": "#ff5c1a1a",
+                      "cornerRadius": 8,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         4,
                         10
                       ],
-                      "cornerRadius": 8,
                       "children": [
                         {
                           "type": "text",
@@ -1783,15 +1687,15 @@
                       "name": "Level",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 8,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         4,
                         10
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 8,
                       "children": [
                         {
                           "type": "text",
@@ -1799,8 +1703,7 @@
                           "fill": "#a1a1a1",
                           "content": "300L",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     },
@@ -1810,15 +1713,15 @@
                       "name": "Sem",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 8,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         4,
                         10
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 8,
                       "children": [
                         {
                           "type": "text",
@@ -1826,8 +1729,7 @@
                           "fill": "#a1a1a1",
                           "content": "Sem 1",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -1848,15 +1750,12 @@
                   "fill": "#666666",
                   "content": "Dr. Okafor",
                   "fontFamily": "Inter",
-                  "fontSize": 12,
-                  "fontWeight": "400"
+                  "fontSize": 12
                 },
                 {
                   "type": "frame",
                   "id": "stuCourseStats",
                   "name": "Stats",
-                  "clip": false,
-                  "layout": "horizontal",
                   "gap": 12,
                   "children": [
                     {
@@ -1865,8 +1764,7 @@
                       "fill": "#a1a1a1",
                       "content": "3 units",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -1874,8 +1772,7 @@
                       "fill": "#a1a1a1",
                       "content": "2 sessions/week",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -1888,19 +1785,17 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
+              "cornerRadius": 14,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 10,
               "padding": 16,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 14,
               "children": [
                 {
                   "type": "frame",
                   "id": "stuCourse2Tags",
                   "name": "Tags",
-                  "clip": false,
-                  "layout": "horizontal",
                   "gap": 8,
                   "children": [
                     {
@@ -1909,13 +1804,13 @@
                       "name": "Code",
                       "clip": true,
                       "fill": "#ff5c1a1a",
+                      "cornerRadius": 8,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         4,
                         10
                       ],
-                      "cornerRadius": 8,
                       "children": [
                         {
                           "type": "text",
@@ -1934,15 +1829,15 @@
                       "name": "Level",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 8,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         4,
                         10
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 8,
                       "children": [
                         {
                           "type": "text",
@@ -1950,8 +1845,7 @@
                           "fill": "#a1a1a1",
                           "content": "300L",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     },
@@ -1961,15 +1855,15 @@
                       "name": "Sem",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 8,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         4,
                         10
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 8,
                       "children": [
                         {
                           "type": "text",
@@ -1977,8 +1871,7 @@
                           "fill": "#a1a1a1",
                           "content": "Sem 1",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -1999,15 +1892,12 @@
                   "fill": "#666666",
                   "content": "Dr. Okafor",
                   "fontFamily": "Inter",
-                  "fontSize": 12,
-                  "fontWeight": "400"
+                  "fontSize": 12
                 },
                 {
                   "type": "frame",
                   "id": "stuCourse2Stats",
                   "name": "Stats",
-                  "clip": false,
-                  "layout": "horizontal",
                   "gap": 12,
                   "children": [
                     {
@@ -2016,8 +1906,7 @@
                       "fill": "#a1a1a1",
                       "content": "3 units",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -2025,8 +1914,7 @@
                       "fill": "#a1a1a1",
                       "content": "2 sessions/week",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -2040,15 +1928,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -2056,7 +1942,6 @@
                   "type": "frame",
                   "id": "studentCoursesTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2067,10 +1952,9 @@
                       "type": "text",
                       "id": "studentCoursesTabHomeIcon",
                       "fill": "#666666",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2087,7 +1971,6 @@
                   "type": "frame",
                   "id": "studentCoursesTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2098,10 +1981,9 @@
                       "type": "text",
                       "id": "studentCoursesTabScheduleIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2118,7 +2000,6 @@
                   "type": "frame",
                   "id": "studentCoursesTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2129,10 +2010,9 @@
                       "type": "text",
                       "id": "studentCoursesTabCoursesIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2149,7 +2029,6 @@
                   "type": "frame",
                   "id": "studentCoursesTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2160,10 +2039,9 @@
                       "type": "text",
                       "id": "studentCoursesTabResourcesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2183,10 +2061,10 @@
         {
           "type": "frame",
           "id": "studentResources",
-          "name": "Student \u00b7 Resources",
-          "clip": true,
           "x": 1720,
           "y": 0,
+          "name": "Student · Resources",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -2203,7 +2081,6 @@
               "type": "frame",
               "id": "stuResPageHeader",
               "name": "Page Header",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 4,
@@ -2223,8 +2100,7 @@
                   "fill": "#666666",
                   "content": "Course materials & past questions",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -2241,9 +2117,7 @@
               "type": "frame",
               "id": "stuResFilters",
               "name": "Filter Chips",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 8,
               "children": [
                 {
@@ -2252,15 +2126,15 @@
                   "name": "All",
                   "clip": true,
                   "fill": "#ff5c1a",
+                  "cornerRadius": 20,
+                  "stroke": "#ff5c1a",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ff5c1a",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -2279,15 +2153,15 @@
                   "name": "Past Questions",
                   "clip": true,
                   "fill": "#0f1011",
+                  "cornerRadius": 20,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -2306,15 +2180,15 @@
                   "name": "Notes",
                   "clip": true,
                   "fill": "#0f1011",
+                  "cornerRadius": 20,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -2333,15 +2207,15 @@
                   "name": "Materials",
                   "clip": true,
                   "fill": "#0f1011",
+                  "cornerRadius": 20,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -2363,12 +2237,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -2378,9 +2251,9 @@
                   "width": 44,
                   "height": 44,
                   "fill": "#ef444414",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2399,7 +2272,6 @@
                   "type": "frame",
                   "id": "stuResBody",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -2417,10 +2289,9 @@
                       "type": "text",
                       "id": "stuResMeta",
                       "fill": "#666666",
-                      "content": "Past Question \u00b7 CSC 301 \u00b7 2.4 MB",
+                      "content": "Past Question · CSC 301 · 2.4 MB",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 },
@@ -2428,7 +2299,7 @@
                   "type": "text",
                   "id": "stuResDl",
                   "fill": "#ff5c1a",
-                  "content": "\u2193",
+                  "content": "↓",
                   "fontFamily": "Inter",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -2442,12 +2313,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -2457,9 +2327,9 @@
                   "width": 44,
                   "height": 44,
                   "fill": "#ef444414",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2478,7 +2348,6 @@
                   "type": "frame",
                   "id": "stuRes2Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -2496,10 +2365,9 @@
                       "type": "text",
                       "id": "stuRes2Meta",
                       "fill": "#666666",
-                      "content": "Note \u00b7 MTH 201 \u00b7 1.1 MB",
+                      "content": "Note · MTH 201 · 1.1 MB",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 },
@@ -2507,7 +2375,7 @@
                   "type": "text",
                   "id": "stuRes2Dl",
                   "fill": "#ff5c1a",
-                  "content": "\u2193",
+                  "content": "↓",
                   "fontFamily": "Inter",
                   "fontSize": 18,
                   "fontWeight": "700"
@@ -2522,15 +2390,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -2538,7 +2404,6 @@
                   "type": "frame",
                   "id": "studentResourcesTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2549,10 +2414,9 @@
                       "type": "text",
                       "id": "studentResourcesTabHomeIcon",
                       "fill": "#666666",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2569,7 +2433,6 @@
                   "type": "frame",
                   "id": "studentResourcesTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2580,10 +2443,9 @@
                       "type": "text",
                       "id": "studentResourcesTabScheduleIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2600,7 +2462,6 @@
                   "type": "frame",
                   "id": "studentResourcesTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2611,10 +2472,9 @@
                       "type": "text",
                       "id": "studentResourcesTabCoursesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2631,7 +2491,6 @@
                   "type": "frame",
                   "id": "studentResourcesTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -2642,10 +2501,9 @@
                       "type": "text",
                       "id": "studentResourcesTabResourcesIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -2665,10 +2523,10 @@
         {
           "type": "frame",
           "id": "studentNotifications",
-          "name": "Student \u00b7 Notifications",
-          "clip": true,
           "x": 2150,
           "y": 0,
+          "name": "Student · Notifications",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -2685,9 +2543,7 @@
               "type": "frame",
               "id": "stuNotifBackHeader",
               "name": "Back Header",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "alignItems": "center",
               "children": [
@@ -2699,11 +2555,11 @@
                   "width": 36,
                   "height": 36,
                   "fill": "#0f1011",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "cornerRadius": 12,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2711,10 +2567,9 @@
                       "type": "text",
                       "id": "stuNotifBackIcon",
                       "fill": "#ffffff",
-                      "content": "\u2190",
+                      "content": "←",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     }
                   ]
                 },
@@ -2733,9 +2588,7 @@
               "type": "frame",
               "id": "stuNotifActions",
               "name": "Actions",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "justifyContent": "space_between",
               "alignItems": "center",
@@ -2767,12 +2620,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -2782,9 +2634,9 @@
                   "width": 40,
                   "height": 40,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2792,10 +2644,9 @@
                       "type": "text",
                       "id": "stuNotif1Icon",
                       "fill": "#ff5c1a",
-                      "content": "\u26a1",
+                      "content": "⚡",
                       "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "400"
+                      "fontSize": 16
                     }
                   ]
                 },
@@ -2803,7 +2654,6 @@
                   "type": "frame",
                   "id": "stuNotif1Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -2823,8 +2673,7 @@
                       "fill": "#a1a1a1",
                       "content": "Starts 30 minutes late today in LT 2",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -2832,8 +2681,7 @@
                       "fill": "#666666",
                       "content": "2h ago",
                       "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "400"
+                      "fontSize": 11
                     }
                   ]
                 }
@@ -2846,12 +2694,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -2861,9 +2708,9 @@
                   "width": 40,
                   "height": 40,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2871,10 +2718,9 @@
                       "type": "text",
                       "id": "stuNotif2Icon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "400"
+                      "fontSize": 16
                     }
                   ]
                 },
@@ -2882,7 +2728,6 @@
                   "type": "frame",
                   "id": "stuNotif2Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -2902,8 +2747,7 @@
                       "fill": "#a1a1a1",
                       "content": "Week 4 notes added to CSC 301",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -2911,8 +2755,7 @@
                       "fill": "#666666",
                       "content": "5h ago",
                       "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "400"
+                      "fontSize": 11
                     }
                   ]
                 }
@@ -2925,12 +2768,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -2940,9 +2782,9 @@
                   "width": 40,
                   "height": 40,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -2950,10 +2792,9 @@
                       "type": "text",
                       "id": "stuNotif3Icon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "400"
+                      "fontSize": 16
                     }
                   ]
                 },
@@ -2961,7 +2802,6 @@
                   "type": "frame",
                   "id": "stuNotif3Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -2981,8 +2821,7 @@
                       "fill": "#a1a1a1",
                       "content": "MTH 201 starts in 1 hour",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -2990,8 +2829,7 @@
                       "fill": "#666666",
                       "content": "Yesterday",
                       "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "400"
+                      "fontSize": 11
                     }
                   ]
                 }
@@ -3002,10 +2840,10 @@
         {
           "type": "frame",
           "id": "studentProfile",
-          "name": "Student \u00b7 Profile",
-          "clip": true,
           "x": 2580,
           "y": 0,
+          "name": "Student · Profile",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -3022,9 +2860,7 @@
               "type": "frame",
               "id": "stuProfBackHeader",
               "name": "Back Header",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "alignItems": "center",
               "children": [
@@ -3036,11 +2872,11 @@
                   "width": 36,
                   "height": 36,
                   "fill": "#0f1011",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "cornerRadius": 12,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -3048,10 +2884,9 @@
                       "type": "text",
                       "id": "stuProfBackIcon",
                       "fill": "#ffffff",
-                      "content": "\u2190",
+                      "content": "←",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     }
                   ]
                 },
@@ -3073,12 +2908,12 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
+              "cornerRadius": 16,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 12,
               "padding": 20,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 16,
               "alignItems": "center",
               "children": [
                 {
@@ -3089,11 +2924,11 @@
                   "width": 72,
                   "height": 72,
                   "fill": "#ff5c1a1a",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "cornerRadius": 36,
                   "stroke": "#ff5c1a40",
                   "strokeWidth": 1,
-                  "cornerRadius": 36,
+                  "layout": "vertical",
+                  "gap": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -3121,10 +2956,9 @@
                   "type": "text",
                   "id": "stuProfRole",
                   "fill": "#a1a1a1",
-                  "content": "Student \u00b7 300 Level",
+                  "content": "Student · 300 Level",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -3135,19 +2969,16 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "vertical",
-              "gap": 0,
+              "cornerRadius": 16,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 16,
+              "layout": "vertical",
               "children": [
                 {
                   "type": "frame",
                   "id": "stuProfEmail",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "alignItems": "center",
@@ -3156,16 +2987,14 @@
                       "type": "text",
                       "id": "stuProfEmailIcon",
                       "fill": "#ff5c1a",
-                      "content": "\u2709",
+                      "content": "✉",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     },
                     {
                       "type": "frame",
                       "id": "stuProfEmailCol",
                       "name": "Col",
-                      "clip": false,
                       "layout": "vertical",
                       "gap": 2,
                       "children": [
@@ -3175,8 +3004,7 @@
                           "fill": "#666666",
                           "content": "Email",
                           "fontFamily": "Inter",
-                          "fontSize": 11,
-                          "fontWeight": "400"
+                          "fontSize": 11
                         },
                         {
                           "type": "text",
@@ -3184,8 +3012,7 @@
                           "fill": "#ffffff",
                           "content": "adaobi@university.edu",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         }
                       ]
                     }
@@ -3195,9 +3022,7 @@
                   "type": "frame",
                   "id": "stuProfDept",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "alignItems": "center",
@@ -3206,16 +3031,14 @@
                       "type": "text",
                       "id": "stuProfDeptIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83c\udf93",
+                      "content": "🎓",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     },
                     {
                       "type": "frame",
                       "id": "stuProfDeptCol",
                       "name": "Col",
-                      "clip": false,
                       "layout": "vertical",
                       "gap": 2,
                       "children": [
@@ -3225,8 +3048,7 @@
                           "fill": "#666666",
                           "content": "Department",
                           "fontFamily": "Inter",
-                          "fontSize": 11,
-                          "fontWeight": "400"
+                          "fontSize": 11
                         },
                         {
                           "type": "text",
@@ -3234,8 +3056,7 @@
                           "fill": "#ffffff",
                           "content": "Computer Science",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         }
                       ]
                     }
@@ -3250,19 +3071,16 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "vertical",
-              "gap": 0,
+              "cornerRadius": 16,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 16,
+              "layout": "vertical",
               "children": [
                 {
                   "type": "frame",
                   "id": "stuChangePass",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "justifyContent": "space_between",
@@ -3274,17 +3092,15 @@
                       "fill": "#ffffff",
                       "content": "Change password",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     },
                     {
                       "type": "text",
                       "id": "stuChangePassChev",
                       "fill": "#666666",
-                      "content": "\u203a",
+                      "content": "›",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     }
                   ]
                 },
@@ -3292,9 +3108,7 @@
                   "type": "frame",
                   "id": "stuLogout",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "justifyContent": "space_between",
@@ -3313,10 +3127,9 @@
                       "type": "text",
                       "id": "stuLogoutChev",
                       "fill": "#666666",
-                      "content": "\u203a",
+                      "content": "›",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     }
                   ]
                 }
@@ -3327,10 +3140,10 @@
         {
           "type": "frame",
           "id": "lecturerHome",
-          "name": "Lecturer \u00b7 Home",
-          "clip": true,
           "x": 0,
           "y": 884,
+          "name": "Lecturer · Home",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -3347,9 +3160,7 @@
               "type": "frame",
               "id": "lecHomeHeader",
               "name": "Header",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "justifyContent": "space_between",
               "children": [
@@ -3357,7 +3168,6 @@
                   "type": "frame",
                   "id": "lecHomeHeaderLeft",
                   "name": "Greeting",
-                  "clip": false,
                   "layout": "vertical",
                   "gap": 4,
                   "children": [
@@ -3385,8 +3195,7 @@
                       "fill": "#666666",
                       "content": "Thursday, June 18",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     }
                   ]
                 },
@@ -3394,8 +3203,6 @@
                   "type": "frame",
                   "id": "lecHomeHeaderActions",
                   "name": "Header Actions",
-                  "clip": false,
-                  "layout": "horizontal",
                   "gap": 10,
                   "alignItems": "center",
                   "children": [
@@ -3407,11 +3214,11 @@
                       "width": 40,
                       "height": 40,
                       "fill": "#0f1011",
-                      "layout": "vertical",
-                      "gap": 12,
+                      "cornerRadius": 12,
                       "stroke": "#ffffff0d",
                       "strokeWidth": 1,
-                      "cornerRadius": 12,
+                      "layout": "vertical",
+                      "gap": 12,
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
@@ -3419,10 +3226,9 @@
                           "type": "text",
                           "id": "lecHomeNotifIcon",
                           "fill": "#ff5c1a",
-                          "content": "\ud83d\udd14",
+                          "content": "🔔",
                           "fontFamily": "Inter",
-                          "fontSize": 16,
-                          "fontWeight": "400"
+                          "fontSize": 16
                         }
                       ]
                     },
@@ -3434,11 +3240,11 @@
                       "width": 40,
                       "height": 40,
                       "fill": "#ff5c1a1a",
-                      "layout": "vertical",
-                      "gap": 12,
+                      "cornerRadius": 20,
                       "stroke": "#ff5c1a40",
                       "strokeWidth": 1,
-                      "cornerRadius": 20,
+                      "layout": "vertical",
+                      "gap": 12,
                       "justifyContent": "center",
                       "alignItems": "center",
                       "children": [
@@ -3461,9 +3267,7 @@
               "type": "frame",
               "id": "lecStats",
               "name": "Stats",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 10,
               "children": [
                 {
@@ -3473,19 +3277,17 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
+                  "cornerRadius": 14,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 10,
                   "padding": 14,
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "frame",
                       "id": "lecStatTodayTop",
                       "name": "Top",
-                      "clip": false,
-                      "layout": "horizontal",
                       "gap": 6,
                       "alignItems": "center",
                       "children": [
@@ -3493,10 +3295,9 @@
                           "type": "text",
                           "id": "lecStatTodayIcon",
                           "fill": "#ff5c1a",
-                          "content": "\ud83d\udcc5",
+                          "content": "📅",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         },
                         {
                           "type": "text",
@@ -3527,19 +3328,17 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
+                  "cornerRadius": 14,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 10,
                   "padding": 14,
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "frame",
                       "id": "lecStatCoursesTop",
                       "name": "Top",
-                      "clip": false,
-                      "layout": "horizontal",
                       "gap": 6,
                       "alignItems": "center",
                       "children": [
@@ -3547,10 +3346,9 @@
                           "type": "text",
                           "id": "lecStatCoursesIcon",
                           "fill": "#ff5c1a",
-                          "content": "\ud83d\udcda",
+                          "content": "📚",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         },
                         {
                           "type": "text",
@@ -3581,19 +3379,17 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
+                  "cornerRadius": 14,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 10,
                   "padding": 14,
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "frame",
                       "id": "lecStatUpdatesTop",
                       "name": "Top",
-                      "clip": false,
-                      "layout": "horizontal",
                       "gap": 6,
                       "alignItems": "center",
                       "children": [
@@ -3601,10 +3397,9 @@
                           "type": "text",
                           "id": "lecStatUpdatesIcon",
                           "fill": "#ff5c1a",
-                          "content": "\u26a1",
+                          "content": "⚡",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         },
                         {
                           "type": "text",
@@ -3634,7 +3429,6 @@
               "type": "frame",
               "id": "lecTodaySection",
               "name": "Today",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 12,
@@ -3643,9 +3437,7 @@
                   "type": "frame",
                   "id": "lecTodayHeader",
                   "name": "Section",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "justifyContent": "space_between",
                   "alignItems": "center",
@@ -3677,12 +3469,11 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
-                  "layout": "horizontal",
-                  "gap": 12,
-                  "padding": 16,
+                  "cornerRadius": 14,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 14,
+                  "gap": 12,
+                  "padding": 16,
                   "children": [
                     {
                       "type": "frame",
@@ -3692,15 +3483,14 @@
                       "width": 4,
                       "height": "fill_container",
                       "fill": "#ff5c1a",
+                      "cornerRadius": 2,
                       "layout": "vertical",
-                      "gap": 12,
-                      "cornerRadius": 2
+                      "gap": 12
                     },
                     {
                       "type": "frame",
                       "id": "lecCSC301Body",
                       "name": "Body",
-                      "clip": false,
                       "width": "fill_container",
                       "layout": "vertical",
                       "gap": 6,
@@ -3709,9 +3499,7 @@
                           "type": "frame",
                           "id": "lecCSC301Top",
                           "name": "Top",
-                          "clip": false,
                           "width": "fill_container",
-                          "layout": "horizontal",
                           "gap": 12,
                           "justifyContent": "space_between",
                           "alignItems": "center",
@@ -3733,17 +3521,15 @@
                           "fill": "#a1a1a1",
                           "content": "Data Structures & Algorithms",
                           "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "400"
+                          "fontSize": 13
                         },
                         {
                           "type": "text",
                           "id": "lecCSC301Meta",
                           "fill": "#666666",
-                          "content": "9:00 AM \u00b7 LT 2",
+                          "content": "9:00 AM · LT 2",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -3756,12 +3542,11 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
-                  "layout": "horizontal",
-                  "gap": 12,
-                  "padding": 16,
+                  "cornerRadius": 14,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 14,
+                  "gap": 12,
+                  "padding": 16,
                   "children": [
                     {
                       "type": "frame",
@@ -3771,15 +3556,14 @@
                       "width": 4,
                       "height": "fill_container",
                       "fill": "#ff5c1a",
+                      "cornerRadius": 2,
                       "layout": "vertical",
-                      "gap": 12,
-                      "cornerRadius": 2
+                      "gap": 12
                     },
                     {
                       "type": "frame",
                       "id": "lecCSC401Body",
                       "name": "Body",
-                      "clip": false,
                       "width": "fill_container",
                       "layout": "vertical",
                       "gap": 6,
@@ -3788,9 +3572,7 @@
                           "type": "frame",
                           "id": "lecCSC401Top",
                           "name": "Top",
-                          "clip": false,
                           "width": "fill_container",
-                          "layout": "horizontal",
                           "gap": 12,
                           "justifyContent": "space_between",
                           "alignItems": "center",
@@ -3812,17 +3594,15 @@
                           "fill": "#a1a1a1",
                           "content": "Software Engineering",
                           "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "400"
+                          "fontSize": 13
                         },
                         {
                           "type": "text",
                           "id": "lecCSC401Meta",
                           "fill": "#666666",
-                          "content": "2:00 PM \u00b7 Lab 3",
+                          "content": "2:00 PM · Lab 3",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -3834,7 +3614,6 @@
               "type": "frame",
               "id": "lecUpcomingSection",
               "name": "Upcoming",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 12,
@@ -3855,12 +3634,11 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#12131599",
-                  "layout": "horizontal",
-                  "gap": 12,
-                  "padding": 16,
+                  "cornerRadius": 14,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 14,
+                  "gap": 12,
+                  "padding": 16,
                   "children": [
                     {
                       "type": "frame",
@@ -3870,15 +3648,14 @@
                       "width": 4,
                       "height": "fill_container",
                       "fill": "#ff5c1a",
+                      "cornerRadius": 2,
                       "layout": "vertical",
-                      "gap": 12,
-                      "cornerRadius": 2
+                      "gap": 12
                     },
                     {
                       "type": "frame",
                       "id": "lecUpGST102Body",
                       "name": "Body",
-                      "clip": false,
                       "width": "fill_container",
                       "layout": "vertical",
                       "gap": 6,
@@ -3887,9 +3664,7 @@
                           "type": "frame",
                           "id": "lecUpGST102Top",
                           "name": "Top",
-                          "clip": false,
                           "width": "fill_container",
-                          "layout": "horizontal",
                           "gap": 12,
                           "justifyContent": "space_between",
                           "alignItems": "center",
@@ -3911,17 +3686,15 @@
                           "fill": "#a1a1a1",
                           "content": "Communication Skills",
                           "fontFamily": "Inter",
-                          "fontSize": 13,
-                          "fontWeight": "400"
+                          "fontSize": 13
                         },
                         {
                           "type": "text",
                           "id": "lecUpGST102Meta",
                           "fill": "#666666",
-                          "content": "Friday \u00b7 10:00 AM \u00b7 Hall B",
+                          "content": "Friday · 10:00 AM · Hall B",
                           "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "400"
+                          "fontSize": 12
                         }
                       ]
                     }
@@ -3937,15 +3710,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -3953,7 +3724,6 @@
                   "type": "frame",
                   "id": "lecturerHomeTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -3964,10 +3734,9 @@
                       "type": "text",
                       "id": "lecturerHomeTabHomeIcon",
                       "fill": "#ff5c1a",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -3984,7 +3753,6 @@
                   "type": "frame",
                   "id": "lecturerHomeTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -3995,10 +3763,9 @@
                       "type": "text",
                       "id": "lecturerHomeTabScheduleIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4015,7 +3782,6 @@
                   "type": "frame",
                   "id": "lecturerHomeTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4026,10 +3792,9 @@
                       "type": "text",
                       "id": "lecturerHomeTabCoursesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4046,7 +3811,6 @@
                   "type": "frame",
                   "id": "lecturerHomeTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4057,10 +3821,9 @@
                       "type": "text",
                       "id": "lecturerHomeTabResourcesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4080,10 +3843,10 @@
         {
           "type": "frame",
           "id": "lecturerSchedule",
-          "name": "Lecturer \u00b7 Schedule",
-          "clip": true,
           "x": 430,
           "y": 884,
+          "name": "Lecturer · Schedule",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -4100,7 +3863,6 @@
               "type": "frame",
               "id": "lecSchedPageHeader",
               "name": "Page Header",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 4,
@@ -4120,8 +3882,7 @@
                   "fill": "#666666",
                   "content": "Manage class updates",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -4129,9 +3890,7 @@
               "type": "frame",
               "id": "lecDayPicker",
               "name": "Day Picker",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 6,
               "children": [
                 {
@@ -4141,15 +3900,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -4157,10 +3916,10 @@
                       "id": "lecDayMonText",
                       "fill": "#a1a1a1",
                       "content": "Mon",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -4171,15 +3930,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -4187,10 +3946,10 @@
                       "id": "lecDayTueText",
                       "fill": "#a1a1a1",
                       "content": "Tue",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -4201,15 +3960,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -4217,10 +3976,10 @@
                       "id": "lecDayWedText",
                       "fill": "#a1a1a1",
                       "content": "Wed",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -4231,15 +3990,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#ff5c1a",
+                  "cornerRadius": 12,
+                  "stroke": "#ff5c1a",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ff5c1a",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -4247,10 +4006,10 @@
                       "id": "lecDayThuText",
                       "fill": "#ffffff",
                       "content": "Thu",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "700",
-                      "textAlign": "center"
+                      "fontWeight": "700"
                     }
                   ]
                 },
@@ -4261,15 +4020,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -4277,10 +4036,10 @@
                       "id": "lecDayFriText",
                       "fill": "#a1a1a1",
                       "content": "Fri",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 },
@@ -4291,15 +4050,15 @@
                   "clip": true,
                   "width": "fill_container",
                   "fill": "#0f1011",
+                  "cornerRadius": 12,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     0
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 12,
                   "alignItems": "center",
                   "children": [
                     {
@@ -4307,10 +4066,10 @@
                       "id": "lecDaySatText",
                       "fill": "#a1a1a1",
                       "content": "Sat",
+                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 11,
-                      "fontWeight": "500",
-                      "textAlign": "center"
+                      "fontWeight": "500"
                     }
                   ]
                 }
@@ -4323,12 +4082,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 16,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 16,
               "children": [
                 {
                   "type": "frame",
@@ -4338,15 +4096,14 @@
                   "width": 4,
                   "height": "fill_container",
                   "fill": "#ff5c1a",
+                  "cornerRadius": 2,
                   "layout": "vertical",
-                  "gap": 12,
-                  "cornerRadius": 2
+                  "gap": 12
                 },
                 {
                   "type": "frame",
                   "id": "lecSchedCSC301Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 6,
@@ -4355,9 +4112,7 @@
                       "type": "frame",
                       "id": "lecSchedCSC301Top",
                       "name": "Top",
-                      "clip": false,
                       "width": "fill_container",
-                      "layout": "horizontal",
                       "gap": 12,
                       "justifyContent": "space_between",
                       "alignItems": "center",
@@ -4379,17 +4134,15 @@
                       "fill": "#a1a1a1",
                       "content": "Data Structures & Algorithms",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     },
                     {
                       "type": "text",
                       "id": "lecSchedCSC301Meta",
                       "fill": "#666666",
-                      "content": "9:00 \u2013 11:00 AM \u00b7 LT 2 \u00b7 Tap to update",
+                      "content": "9:00 – 11:00 AM · LT 2 · Tap to update",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -4399,7 +4152,6 @@
               "type": "frame",
               "id": "lecStatusActions",
               "name": "Status Actions",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 8,
@@ -4417,9 +4169,7 @@
                   "type": "frame",
                   "id": "lecStatusFilters",
                   "name": "Filter Chips",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 8,
                   "children": [
                     {
@@ -4428,15 +4178,15 @@
                       "name": "Ongoing",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 20,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         8,
                         14
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 20,
                       "children": [
                         {
                           "type": "text",
@@ -4455,15 +4205,15 @@
                       "name": "Delayed",
                       "clip": true,
                       "fill": "#ff5c1a",
+                      "cornerRadius": 20,
+                      "stroke": "#ff5c1a",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         8,
                         14
                       ],
-                      "stroke": "#ff5c1a",
-                      "strokeWidth": 1,
-                      "cornerRadius": 20,
                       "children": [
                         {
                           "type": "text",
@@ -4482,15 +4232,15 @@
                       "name": "Canceled",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 20,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         8,
                         14
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 20,
                       "children": [
                         {
                           "type": "text",
@@ -4509,15 +4259,15 @@
                       "name": "Ended",
                       "clip": true,
                       "fill": "#0f1011",
+                      "cornerRadius": 20,
+                      "stroke": "#ffffff0d",
+                      "strokeWidth": 1,
                       "layout": "vertical",
                       "gap": 12,
                       "padding": [
                         8,
                         14
                       ],
-                      "stroke": "#ffffff0d",
-                      "strokeWidth": 1,
-                      "cornerRadius": 20,
                       "children": [
                         {
                           "type": "text",
@@ -4542,15 +4292,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -4558,7 +4306,6 @@
                   "type": "frame",
                   "id": "lecturerScheduleTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4569,10 +4316,9 @@
                       "type": "text",
                       "id": "lecturerScheduleTabHomeIcon",
                       "fill": "#666666",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4589,7 +4335,6 @@
                   "type": "frame",
                   "id": "lecturerScheduleTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4600,10 +4345,9 @@
                       "type": "text",
                       "id": "lecturerScheduleTabScheduleIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4620,7 +4364,6 @@
                   "type": "frame",
                   "id": "lecturerScheduleTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4631,10 +4374,9 @@
                       "type": "text",
                       "id": "lecturerScheduleTabCoursesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4651,7 +4393,6 @@
                   "type": "frame",
                   "id": "lecturerScheduleTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4662,10 +4403,9 @@
                       "type": "text",
                       "id": "lecturerScheduleTabResourcesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4685,10 +4425,10 @@
         {
           "type": "frame",
           "id": "lecturerCourses",
-          "name": "Lecturer \u00b7 Courses",
-          "clip": true,
           "x": 860,
           "y": 884,
+          "name": "Lecturer · Courses",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -4705,7 +4445,6 @@
               "type": "frame",
               "id": "lecCoursesPageHeader",
               "name": "Page Header",
-              "clip": false,
               "width": "fill_container",
               "layout": "vertical",
               "gap": 4,
@@ -4725,8 +4464,7 @@
                   "fill": "#666666",
                   "content": "4 assigned courses",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -4737,12 +4475,12 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
+              "cornerRadius": 14,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 10,
               "padding": 16,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 14,
               "children": [
                 {
                   "type": "frame",
@@ -4750,13 +4488,13 @@
                   "name": "Tag",
                   "clip": true,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 8,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     4,
                     10
                   ],
-                  "cornerRadius": 8,
                   "children": [
                     {
                       "type": "text",
@@ -4782,10 +4520,9 @@
                   "type": "text",
                   "id": "lecCourseMeta",
                   "fill": "#666666",
-                  "content": "300L \u00b7 Sem 1 \u00b7 45 students",
+                  "content": "300L · Sem 1 · 45 students",
                   "fontFamily": "Inter",
-                  "fontSize": 12,
-                  "fontWeight": "400"
+                  "fontSize": 12
                 }
               ]
             },
@@ -4796,12 +4533,12 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
+              "cornerRadius": 14,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 10,
               "padding": 16,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 14,
               "children": [
                 {
                   "type": "frame",
@@ -4809,13 +4546,13 @@
                   "name": "Tag",
                   "clip": true,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 8,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     4,
                     10
                   ],
-                  "cornerRadius": 8,
                   "children": [
                     {
                       "type": "text",
@@ -4841,10 +4578,9 @@
                   "type": "text",
                   "id": "lecCourseMeta2",
                   "fill": "#666666",
-                  "content": "400L \u00b7 Sem 1 \u00b7 38 students",
+                  "content": "400L · Sem 1 · 38 students",
                   "fontFamily": "Inter",
-                  "fontSize": 12,
-                  "fontWeight": "400"
+                  "fontSize": 12
                 }
               ]
             },
@@ -4856,15 +4592,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -4872,7 +4606,6 @@
                   "type": "frame",
                   "id": "lecturerCoursesTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4883,10 +4616,9 @@
                       "type": "text",
                       "id": "lecturerCoursesTabHomeIcon",
                       "fill": "#666666",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4903,7 +4635,6 @@
                   "type": "frame",
                   "id": "lecturerCoursesTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4914,10 +4645,9 @@
                       "type": "text",
                       "id": "lecturerCoursesTabScheduleIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4934,7 +4664,6 @@
                   "type": "frame",
                   "id": "lecturerCoursesTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4945,10 +4674,9 @@
                       "type": "text",
                       "id": "lecturerCoursesTabCoursesIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4965,7 +4693,6 @@
                   "type": "frame",
                   "id": "lecturerCoursesTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -4976,10 +4703,9 @@
                       "type": "text",
                       "id": "lecturerCoursesTabResourcesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -4999,10 +4725,10 @@
         {
           "type": "frame",
           "id": "lecturerResources",
-          "name": "Lecturer \u00b7 Resources",
-          "clip": true,
           "x": 1290,
           "y": 884,
+          "name": "Lecturer · Resources",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -5019,9 +4745,7 @@
               "type": "frame",
               "id": "lecResHeaderRow",
               "name": "Header Row",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "justifyContent": "space_between",
               "alignItems": "center",
@@ -5030,7 +4754,6 @@
                   "type": "frame",
                   "id": "lecResPageHeader",
                   "name": "Page Header",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -5050,8 +4773,7 @@
                       "fill": "#666666",
                       "content": "Upload & manage files",
                       "fontFamily": "Inter",
-                      "fontSize": 13,
-                      "fontWeight": "400"
+                      "fontSize": 13
                     }
                   ]
                 },
@@ -5060,15 +4782,15 @@
                   "id": "lecUploadBtn",
                   "name": "Upload",
                   "clip": true,
+                  "cornerRadius": 14,
+                  "stroke": "#ff5c1a",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     10,
                     16
                   ],
-                  "stroke": "#ff5c1a",
-                  "strokeWidth": 1,
-                  "cornerRadius": 14,
                   "children": [
                     {
                       "type": "text",
@@ -5096,9 +4818,7 @@
               "type": "frame",
               "id": "lecResFilters",
               "name": "Filter Chips",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 8,
               "children": [
                 {
@@ -5107,15 +4827,15 @@
                   "name": "All",
                   "clip": true,
                   "fill": "#ff5c1a",
+                  "cornerRadius": 20,
+                  "stroke": "#ff5c1a",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ff5c1a",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -5134,15 +4854,15 @@
                   "name": "Notes",
                   "clip": true,
                   "fill": "#0f1011",
+                  "cornerRadius": 20,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -5161,15 +4881,15 @@
                   "name": "Materials",
                   "clip": true,
                   "fill": "#0f1011",
+                  "cornerRadius": 20,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -5188,15 +4908,15 @@
                   "name": "Past Questions",
                   "clip": true,
                   "fill": "#0f1011",
+                  "cornerRadius": 20,
+                  "stroke": "#ffffff0d",
+                  "strokeWidth": 1,
                   "layout": "vertical",
                   "gap": 12,
                   "padding": [
                     8,
                     14
                   ],
-                  "stroke": "#ffffff0d",
-                  "strokeWidth": 1,
-                  "cornerRadius": 20,
                   "children": [
                     {
                       "type": "text",
@@ -5218,12 +4938,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -5233,9 +4952,9 @@
                   "width": 44,
                   "height": 44,
                   "fill": "#3b82f614",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5254,7 +4973,6 @@
                   "type": "frame",
                   "id": "lecResBody",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -5272,10 +4990,9 @@
                       "type": "text",
                       "id": "lecResMeta",
                       "fill": "#666666",
-                      "content": "Note \u00b7 CSC 301 \u00b7 Uploaded today",
+                      "content": "Note · CSC 301 · Uploaded today",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     }
                   ]
                 }
@@ -5289,15 +5006,13 @@
               "width": "fill_container",
               "height": 72,
               "fill": "#0f1011",
-              "layout": "horizontal",
-              "gap": 0,
+              "cornerRadius": 20,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "padding": [
                 8,
                 12
               ],
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 20,
               "justifyContent": "space_between",
               "alignItems": "center",
               "children": [
@@ -5305,7 +5020,6 @@
                   "type": "frame",
                   "id": "lecturerResourcesTabHome",
                   "name": "Home",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -5316,10 +5030,9 @@
                       "type": "text",
                       "id": "lecturerResourcesTabHomeIcon",
                       "fill": "#666666",
-                      "content": "\u2302",
+                      "content": "⌂",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -5336,7 +5049,6 @@
                   "type": "frame",
                   "id": "lecturerResourcesTabSchedule",
                   "name": "Schedule",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -5347,10 +5059,9 @@
                       "type": "text",
                       "id": "lecturerResourcesTabScheduleIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcc5",
+                      "content": "📅",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -5367,7 +5078,6 @@
                   "type": "frame",
                   "id": "lecturerResourcesTabCourses",
                   "name": "Courses",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -5378,10 +5088,9 @@
                       "type": "text",
                       "id": "lecturerResourcesTabCoursesIcon",
                       "fill": "#666666",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -5398,7 +5107,6 @@
                   "type": "frame",
                   "id": "lecturerResourcesTabResources",
                   "name": "Resources",
-                  "clip": false,
                   "width": "fill_container",
                   "height": "fill_container",
                   "layout": "vertical",
@@ -5409,10 +5117,9 @@
                       "type": "text",
                       "id": "lecturerResourcesTabResourcesIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcc1",
+                      "content": "📁",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     },
                     {
                       "type": "text",
@@ -5432,10 +5139,10 @@
         {
           "type": "frame",
           "id": "lecturerNotifications",
-          "name": "Lecturer \u00b7 Notifications",
-          "clip": true,
           "x": 1720,
           "y": 884,
+          "name": "Lecturer · Notifications",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -5452,9 +5159,7 @@
               "type": "frame",
               "id": "lecNotifBackHeader",
               "name": "Back Header",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "alignItems": "center",
               "children": [
@@ -5466,11 +5171,11 @@
                   "width": 36,
                   "height": 36,
                   "fill": "#0f1011",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "cornerRadius": 12,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5478,10 +5183,9 @@
                       "type": "text",
                       "id": "lecNotifBackIcon",
                       "fill": "#ffffff",
-                      "content": "\u2190",
+                      "content": "←",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     }
                   ]
                 },
@@ -5500,9 +5204,7 @@
               "type": "frame",
               "id": "lecNotifActions",
               "name": "Actions",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "justifyContent": "space_between",
               "alignItems": "center",
@@ -5534,12 +5236,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -5549,9 +5250,9 @@
                   "width": 40,
                   "height": 40,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5559,10 +5260,9 @@
                       "type": "text",
                       "id": "lecNotif1Icon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83d\udcda",
+                      "content": "📚",
                       "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "400"
+                      "fontSize": 16
                     }
                   ]
                 },
@@ -5570,7 +5270,6 @@
                   "type": "frame",
                   "id": "lecNotif1Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -5590,8 +5289,7 @@
                       "fill": "#a1a1a1",
                       "content": "3 new students in CSC 301",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -5599,8 +5297,7 @@
                       "fill": "#666666",
                       "content": "1h ago",
                       "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "400"
+                      "fontSize": 11
                     }
                   ]
                 }
@@ -5613,12 +5310,11 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "horizontal",
-              "gap": 12,
-              "padding": 14,
+              "cornerRadius": 14,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 14,
+              "gap": 12,
+              "padding": 14,
               "children": [
                 {
                   "type": "frame",
@@ -5628,9 +5324,9 @@
                   "width": 40,
                   "height": 40,
                   "fill": "#ff5c1a1a",
+                  "cornerRadius": 12,
                   "layout": "vertical",
                   "gap": 12,
-                  "cornerRadius": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5638,10 +5334,9 @@
                       "type": "text",
                       "id": "lecNotif2Icon",
                       "fill": "#ff5c1a",
-                      "content": "\u2139\ufe0f",
+                      "content": "ℹ️",
                       "fontFamily": "Inter",
-                      "fontSize": 16,
-                      "fontWeight": "400"
+                      "fontSize": 16
                     }
                   ]
                 },
@@ -5649,7 +5344,6 @@
                   "type": "frame",
                   "id": "lecNotif2Body",
                   "name": "Body",
-                  "clip": false,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 4,
@@ -5669,8 +5363,7 @@
                       "fill": "#a1a1a1",
                       "content": "Exam timetable published",
                       "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "400"
+                      "fontSize": 12
                     },
                     {
                       "type": "text",
@@ -5678,8 +5371,7 @@
                       "fill": "#666666",
                       "content": "Yesterday",
                       "fontFamily": "Inter",
-                      "fontSize": 11,
-                      "fontWeight": "400"
+                      "fontSize": 11
                     }
                   ]
                 }
@@ -5690,10 +5382,10 @@
         {
           "type": "frame",
           "id": "lecturerProfile",
-          "name": "Lecturer \u00b7 Profile",
-          "clip": true,
           "x": 2150,
           "y": 884,
+          "name": "Lecturer · Profile",
+          "clip": true,
           "width": 390,
           "height": 844,
           "fill": "#0a0a0b",
@@ -5710,9 +5402,7 @@
               "type": "frame",
               "id": "lecProfBackHeader",
               "name": "Back Header",
-              "clip": false,
               "width": "fill_container",
-              "layout": "horizontal",
               "gap": 12,
               "alignItems": "center",
               "children": [
@@ -5724,11 +5414,11 @@
                   "width": 36,
                   "height": 36,
                   "fill": "#0f1011",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "cornerRadius": 12,
                   "stroke": "#ffffff0d",
                   "strokeWidth": 1,
-                  "cornerRadius": 12,
+                  "layout": "vertical",
+                  "gap": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5736,10 +5426,9 @@
                       "type": "text",
                       "id": "lecProfBackIcon",
                       "fill": "#ffffff",
-                      "content": "\u2190",
+                      "content": "←",
                       "fontFamily": "Inter",
-                      "fontSize": 18,
-                      "fontWeight": "400"
+                      "fontSize": 18
                     }
                   ]
                 },
@@ -5761,12 +5450,12 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
+              "cornerRadius": 16,
+              "stroke": "#ffffff0d",
+              "strokeWidth": 1,
               "layout": "vertical",
               "gap": 12,
               "padding": 20,
-              "stroke": "#ffffff0d",
-              "strokeWidth": 1,
-              "cornerRadius": 16,
               "alignItems": "center",
               "children": [
                 {
@@ -5777,11 +5466,11 @@
                   "width": 72,
                   "height": 72,
                   "fill": "#ff5c1a1a",
-                  "layout": "vertical",
-                  "gap": 12,
+                  "cornerRadius": 36,
                   "stroke": "#ff5c1a40",
                   "strokeWidth": 1,
-                  "cornerRadius": 36,
+                  "layout": "vertical",
+                  "gap": 12,
                   "justifyContent": "center",
                   "alignItems": "center",
                   "children": [
@@ -5809,10 +5498,9 @@
                   "type": "text",
                   "id": "lecProfRole",
                   "fill": "#a1a1a1",
-                  "content": "Lecturer \u00b7 Computer Science",
+                  "content": "Lecturer · Computer Science",
                   "fontFamily": "Inter",
-                  "fontSize": 13,
-                  "fontWeight": "400"
+                  "fontSize": 13
                 }
               ]
             },
@@ -5823,19 +5511,16 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "vertical",
-              "gap": 0,
+              "cornerRadius": 16,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 16,
+              "layout": "vertical",
               "children": [
                 {
                   "type": "frame",
                   "id": "lecProfEmail",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "alignItems": "center",
@@ -5844,16 +5529,14 @@
                       "type": "text",
                       "id": "lecProfEmailIcon",
                       "fill": "#ff5c1a",
-                      "content": "\u2709",
+                      "content": "✉",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     },
                     {
                       "type": "frame",
                       "id": "lecProfEmailCol",
                       "name": "Col",
-                      "clip": false,
                       "layout": "vertical",
                       "gap": 2,
                       "children": [
@@ -5863,8 +5546,7 @@
                           "fill": "#666666",
                           "content": "Email",
                           "fontFamily": "Inter",
-                          "fontSize": 11,
-                          "fontWeight": "400"
+                          "fontSize": 11
                         },
                         {
                           "type": "text",
@@ -5872,8 +5554,7 @@
                           "fill": "#ffffff",
                           "content": "adaobi@university.edu",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         }
                       ]
                     }
@@ -5883,9 +5564,7 @@
                   "type": "frame",
                   "id": "lecProfDept",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "alignItems": "center",
@@ -5894,16 +5573,14 @@
                       "type": "text",
                       "id": "lecProfDeptIcon",
                       "fill": "#ff5c1a",
-                      "content": "\ud83c\udf93",
+                      "content": "🎓",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     },
                     {
                       "type": "frame",
                       "id": "lecProfDeptCol",
                       "name": "Col",
-                      "clip": false,
                       "layout": "vertical",
                       "gap": 2,
                       "children": [
@@ -5913,8 +5590,7 @@
                           "fill": "#666666",
                           "content": "Department",
                           "fontFamily": "Inter",
-                          "fontSize": 11,
-                          "fontWeight": "400"
+                          "fontSize": 11
                         },
                         {
                           "type": "text",
@@ -5922,8 +5598,7 @@
                           "fill": "#ffffff",
                           "content": "Computer Science",
                           "fontFamily": "Inter",
-                          "fontSize": 14,
-                          "fontWeight": "400"
+                          "fontSize": 14
                         }
                       ]
                     }
@@ -5938,19 +5613,16 @@
               "clip": true,
               "width": "fill_container",
               "fill": "#12131599",
-              "layout": "vertical",
-              "gap": 0,
+              "cornerRadius": 16,
               "stroke": "#ffffff0d",
               "strokeWidth": 1,
-              "cornerRadius": 16,
+              "layout": "vertical",
               "children": [
                 {
                   "type": "frame",
                   "id": "lecChangePass",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "justifyContent": "space_between",
@@ -5962,17 +5634,15 @@
                       "fill": "#ffffff",
                       "content": "Change password",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     },
                     {
                       "type": "text",
                       "id": "lecChangePassChev",
                       "fill": "#666666",
-                      "content": "\u203a",
+                      "content": "›",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     }
                   ]
                 },
@@ -5980,9 +5650,7 @@
                   "type": "frame",
                   "id": "lecLogout",
                   "name": "Row",
-                  "clip": false,
                   "width": "fill_container",
-                  "layout": "horizontal",
                   "gap": 12,
                   "padding": 14,
                   "justifyContent": "space_between",
@@ -6001,10 +5669,9 @@
                       "type": "text",
                       "id": "lecLogoutChev",
                       "fill": "#666666",
-                      "content": "\u203a",
+                      "content": "›",
                       "fontFamily": "Inter",
-                      "fontSize": 14,
-                      "fontWeight": "400"
+                      "fontSize": 14
                     }
                   ]
                 }
@@ -6080,5 +5747,6 @@
       "type": "number",
       "value": 20
     }
-  }
+  },
+  "fileToken": "33deedb1-d8ee-488b-b952-c50a807e71dc"
 }

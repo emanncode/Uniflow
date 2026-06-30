@@ -46,7 +46,7 @@ export default function RegistrationsPage() {
   const fetchRegistrations = useCallback(async () => {
     const { data } = await supabase
       .from('university_registrations')
-      .select('*')
+      .select('id, university_name, short_name, official_email, phone, country, state, website, estimated_students, contact_person_name, contact_person_role, status, rejection_reason, created_at')
       .order('created_at', { ascending: false })
     if (data) setRegistrations(data)
     setLoading(false)

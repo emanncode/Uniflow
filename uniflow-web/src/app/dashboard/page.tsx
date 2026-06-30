@@ -28,21 +28,38 @@ const fetchData = async (
   setRecent: React.Dispatch<React.SetStateAction<Registration[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
-  const { data } = await supabase
-    .from("university_registrations")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [
+    { count: pending },
+    { count: approved },
+    { count: rejected },
+    { data: recentData },
+  ] = await Promise.all([
+    supabase
+      .from("university_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending"),
+    supabase
+      .from("university_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "approved"),
+    supabase
+      .from("university_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "rejected"),
+    supabase
+      .from("university_registrations")
+      .select("id, university_name, short_name, country, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
 
-  if (data) {
-    const registrations = data as Registration[];
-    setStats({
-      pending: registrations.filter((r) => r.status === "pending").length,
-      approved: registrations.filter((r) => r.status === "approved").length,
-      rejected: registrations.filter((r) => r.status === "rejected").length,
-      total: registrations.length,
-    });
-    setRecent(registrations.slice(0, 5));
-  }
+  setStats({
+    pending: pending ?? 0,
+    approved: approved ?? 0,
+    rejected: rejected ?? 0,
+    total: (pending ?? 0) + (approved ?? 0) + (rejected ?? 0),
+  });
+  setRecent((recentData as Registration[]) ?? []);
   setLoading(false);
 };
 

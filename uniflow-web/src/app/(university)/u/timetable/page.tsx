@@ -90,26 +90,12 @@ export default function TimetablePage() {
     setError("");
 
     (async () => {
-      let dept: { id: string; name: string } | null = null;
-
-      const { data: byId } = await supabase
+      const { data: dept } = await supabase
         .from("departments")
         .select("id, name")
-        .eq("id", deptParam)
+        .or(`id.eq.${deptParam},short_name.eq.${deptParam}`)
         .eq("university_id", universityId)
         .maybeSingle();
-
-      if (byId) {
-        dept = byId;
-      } else {
-        const { data: byShort } = await supabase
-          .from("departments")
-          .select("id, name")
-          .eq("short_name", deptParam)
-          .eq("university_id", universityId)
-          .maybeSingle();
-        dept = byShort ?? null;
-      }
 
       if (!dept) {
         setError("Department not found");
