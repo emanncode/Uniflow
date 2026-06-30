@@ -171,8 +171,8 @@ export default function SettingsPage() {
         }}>
           <div style={{
             width: '32px', height: '32px', borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'rgba(255,92,26,0.08)',
-            border: '1px solid rgba(255,92,26,0.15)',
+            backgroundColor: 'rgba(29,78,216,0.08)',
+            border: '1px solid rgba(29,78,216,0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <User size={15} color="var(--brand)" />
@@ -229,7 +229,7 @@ export default function SettingsPage() {
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(255,92,26,0.2)' }}
+            whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(29,78,216,0.2)' }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSaveProfile}
             disabled={saving}

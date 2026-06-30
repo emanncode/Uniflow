@@ -182,8 +182,8 @@ export default function UniversitiesPage() {
                   <div style={{
                     width: '42px', height: '42px',
                     borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'rgba(255,92,26,0.08)',
-                    border: '1px solid rgba(255,92,26,0.15)',
+                    backgroundColor: 'rgba(29,78,216,0.08)',
+                    border: '1px solid rgba(29,78,216,0.15)',
                     display: 'flex', alignItems: 'center',
                     justifyContent: 'center', flexShrink: 0,
                   }}>
