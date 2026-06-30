@@ -20,19 +20,19 @@ export default function CTA() {
           style={{
             position: 'relative',
             borderRadius: 'var(--radius-xl)',
-            border: '1px solid rgba(255,92,26,0.3)',
+            border: '1px solid rgba(29,78,216,0.3)',
             overflow: 'hidden',
             padding: 'clamp(56px, 9vw, 100px) clamp(32px, 6vw, 80px)',
             textAlign: 'center',
-            backgroundColor: 'rgba(255,92,26,0.06)',
-            boxShadow: '0 12px 48px rgba(255,92,26,0.08)',
+            backgroundColor: 'rgba(29,78,216,0.06)',
+            boxShadow: '0 12px 48px rgba(29,78,216,0.08)',
             transition: 'all 0.4s ease',
           }}
         >
           {/* background effects */}
           <div style={{
             position: 'absolute', inset: 0,
-            backgroundImage: 'linear-gradient(rgba(255,92,26,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,92,26,0.04) 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(rgba(29,78,216,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(29,78,216,0.04) 1px, transparent 1px)',
             backgroundSize: '40px 40px',
             pointerEvents: 'none',
           }} />
@@ -43,7 +43,7 @@ export default function CTA() {
               position: 'absolute', top: '-40%', left: '50%',
               transform: 'translateX(-50%)',
               width: '700px', height: '500px',
-              background: 'radial-gradient(ellipse, rgba(255,92,26,0.15) 0%, transparent 65%)',
+              background: 'radial-gradient(ellipse, rgba(29,78,216,0.15) 0%, transparent 65%)',
               pointerEvents: 'none',
             }}
           />
@@ -53,7 +53,7 @@ export default function CTA() {
             style={{
               position: 'absolute', bottom: '-25%', right: '-5%',
               width: '450px', height: '450px',
-              background: 'radial-gradient(circle, rgba(255,92,26,0.1) 0%, transparent 60%)',
+              background: 'radial-gradient(circle, rgba(29,78,216,0.1) 0%, transparent 60%)',
               pointerEvents: 'none',
             }}
           />
@@ -70,11 +70,11 @@ export default function CTA() {
                 justifyContent: 'center',
                 width: '64px', height: '64px',
                 borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'rgba(255,92,26,0.15)',
-                border: '1px solid rgba(255,92,26,0.3)',
+                backgroundColor: 'rgba(29,78,216,0.15)',
+                border: '1px solid rgba(29,78,216,0.3)',
                 marginBottom: '32px',
                 cursor: 'default',
-                boxShadow: '0 8px 24px rgba(255,92,26,0.15)',
+                boxShadow: '0 8px 24px rgba(29,78,216,0.15)',
                 transition: 'all 0.4s ease',
               }}
             >
@@ -112,7 +112,7 @@ export default function CTA() {
                   letterSpacing: '-0.04em',
                   lineHeight: 1.05,
                   color: 'var(--brand)',
-                  textShadow: '0 0 40px rgba(255,92,26,0.3)',
+                  textShadow: '0 0 40px rgba(29,78,216,0.3)',
                   margin: 0,
                 }}
               >
@@ -151,7 +151,7 @@ export default function CTA() {
             >
               <Link href="/register">
                 <motion.button
-                  whileHover={{ scale: 1.06, boxShadow: '0 12px 48px rgba(255,92,26,0.4)' }}
+                  whileHover={{ scale: 1.06, boxShadow: '0 12px 48px rgba(29,78,216,0.4)' }}
                   whileTap={{ scale: 0.95 }}
                   className="btn-primary pulse-glow"
                   style={{

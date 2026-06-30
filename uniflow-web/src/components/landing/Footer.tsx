@@ -13,16 +13,12 @@ const links = {
     { label: "Features", href: "#features" },
     { label: "How it Works", href: "#how-it-works" },
     { label: "Pricing", href: "#pricing" },
-    { label: "Changelog", href: "#" },
   ],
   Universities: [
     { label: "Register", href: "/register" },
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Contact", href: "/contact" },
   ],
   Legal: [
     { label: "Privacy Policy", href: "/privacy" },
@@ -56,7 +52,7 @@ export default function Footer() {
           right: 0,
           height: "1px",
           background:
-            "linear-gradient(90deg, transparent, rgba(255,92,26,0.4), transparent)",
+            "linear-gradient(90deg, transparent, rgba(29,78,216,0.4), transparent)",
         }}
       />
 

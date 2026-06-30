@@ -65,7 +65,7 @@ export default function Problem() {
         top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '800px', height: '400px',
-        background: 'radial-gradient(ellipse, rgba(255,92,26,0.04) 0%, transparent 70%)',
+        background: 'radial-gradient(ellipse, rgba(29,78,216,0.04) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -82,8 +82,8 @@ export default function Problem() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '5px 14px', borderRadius: '999px',
-            border: '1px solid rgba(255,92,26,0.2)',
-            backgroundColor: 'rgba(255,92,26,0.06)',
+            border: '1px solid rgba(29,78,216,0.2)',
+            backgroundColor: 'rgba(29,78,216,0.06)',
             fontSize: '11px', fontWeight: 600,
             color: 'var(--brand)', letterSpacing: '0.1em',
             textTransform: 'uppercase', marginBottom: '20px',
@@ -150,7 +150,7 @@ export default function Problem() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                whileHover={{ backgroundColor: 'rgba(255,92,26,0.05)' }}
+                whileHover={{ backgroundColor: 'rgba(29,78,216,0.05)' }}
                 style={{
                   backgroundColor: 'var(--bg-card)',
                   padding: 'clamp(28px, 3.5vw, 40px)',
@@ -171,7 +171,7 @@ export default function Problem() {
                   style={{
                     position: 'absolute', top: 0, right: -40,
                     width: '180px', height: '180px',
-                    background: 'radial-gradient(circle, rgba(255,92,26,0.1) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(29,78,216,0.1) 0%, transparent 70%)',
                     pointerEvents: 'none',
                   }}
                 />
@@ -190,8 +190,8 @@ export default function Problem() {
                     style={{
                       width: '48px', height: '48px',
                       borderRadius: 'var(--radius-md)',
-                      backgroundColor: 'rgba(255,92,26,0.12)',
-                      border: '1px solid rgba(255,92,26,0.2)',
+                      backgroundColor: 'rgba(29,78,216,0.12)',
+                      border: '1px solid rgba(29,78,216,0.2)',
                       display: 'flex', alignItems: 'center',
                       justifyContent: 'center', flexShrink: 0,
                       transition: 'all 0.4s ease',
@@ -264,8 +264,8 @@ export default function Problem() {
             marginTop: '40px',
             padding: 'clamp(24px, 3vw, 40px)',
             borderRadius: 'var(--radius-xl)',
-            border: '1px solid rgba(255,92,26,0.15)',
-            backgroundColor: 'rgba(255,92,26,0.04)',
+            border: '1px solid rgba(29,78,216,0.15)',
+            backgroundColor: 'rgba(29,78,216,0.04)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -293,7 +293,7 @@ export default function Problem() {
             </div>
           </div>
           <motion.button
-            whileHover={{ scale: 1.04, boxShadow: '0 0 30px rgba(255,92,26,0.25)' }}
+            whileHover={{ scale: 1.04, boxShadow: '0 0 30px rgba(29,78,216,0.25)' }}
             whileTap={{ scale: 0.97 }}
             className="btn-primary"
             style={{ padding: '14px 28px', fontSize: '14px', borderRadius: 'var(--radius-lg)', whiteSpace: 'nowrap' }}

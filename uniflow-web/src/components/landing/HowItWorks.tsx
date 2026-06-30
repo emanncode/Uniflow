@@ -64,7 +64,7 @@ export default function HowItWorks() {
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '900px', height: '500px',
-        background: 'radial-gradient(ellipse, rgba(255,92,26,0.04) 0%, transparent 65%)',
+        background: 'radial-gradient(ellipse, rgba(29,78,216,0.04) 0%, transparent 65%)',
         pointerEvents: 'none',
       }} />
 
@@ -81,8 +81,8 @@ export default function HowItWorks() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '5px 14px', borderRadius: '999px',
-            border: '1px solid rgba(255,92,26,0.2)',
-            backgroundColor: 'rgba(255,92,26,0.06)',
+            border: '1px solid rgba(29,78,216,0.2)',
+            backgroundColor: 'rgba(29,78,216,0.06)',
             fontSize: '11px', fontWeight: 600,
             color: 'var(--brand)', letterSpacing: '0.1em',
             textTransform: 'uppercase' as const, marginBottom: '20px',
@@ -108,7 +108,7 @@ export default function HowItWorks() {
               Up and running in{' '}
               <span style={{
                 color: 'var(--brand)',
-                textShadow: '0 0 30px rgba(255,92,26,0.3)',
+                textShadow: '0 0 30px rgba(29,78,216,0.3)',
               }}>
                 three steps.
               </span>
@@ -148,7 +148,7 @@ export default function HowItWorks() {
             left: 'calc(16.67% + 20px)',
             right: 'calc(16.67% + 20px)',
             height: '1px',
-            background: 'linear-gradient(90deg, rgba(255,92,26,0.4), rgba(255,92,26,0.1), rgba(255,92,26,0.4))',
+            background: 'linear-gradient(90deg, rgba(29,78,216,0.4), rgba(29,78,216,0.1), rgba(29,78,216,0.4))',
             pointerEvents: 'none',
             zIndex: 0,
           }} />
@@ -188,15 +188,15 @@ export default function HowItWorks() {
                   onHoverStart={() => setHoveredStep(i)}
                   onHoverEnd={() => setHoveredStep(null)}
                   whileHover={{
-                    border: '1px solid rgba(255,92,26,0.2)',
-                    backgroundColor: 'rgba(255,92,26,0.05)',
+                    border: '1px solid rgba(29,78,216,0.2)',
+                    backgroundColor: 'rgba(29,78,216,0.05)',
                   }}
                   style={{
                     border: '1px solid var(--border-primary)',
                     backgroundColor: 'var(--bg-card)',
                     padding: 'clamp(20px, 2.5vw, 28px)',
                   }}
-                  className="card hover:border-[rgba(255,92,26,0.2)] hover:bg-[rgba(255,92,26,0.05)] transition-colors duration-300 cursor-default"
+                  className="card hover:border-[rgba(29,78,216,0.2)] hover:bg-[rgba(29,78,216,0.05)] transition-colors duration-300 cursor-default"
                 >
                   {/* step label */}
                   <div style={{
@@ -249,10 +249,10 @@ export default function HowItWorks() {
                           width: '16px', height: '16px',
                           borderRadius: '50%',
                           backgroundColor: active
-                            ? 'rgba(255,92,26,0.15)'
+                            ? 'rgba(29,78,216,0.15)'
                             : 'rgba(255,255,255,0.04)',
                           border: active
-                            ? '1px solid rgba(255,92,26,0.3)'
+                            ? '1px solid rgba(29,78,216,0.3)'
                             : '1px solid var(--border-secondary)',
                           display: 'flex', alignItems: 'center',
                           justifyContent: 'center', flexShrink: 0,
