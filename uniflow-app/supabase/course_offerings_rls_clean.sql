@@ -1,5 +1,6 @@
 -- RLS for course_offerings + updated policies for offering-based reads.
 -- Run AFTER course_offerings_migration.sql
+-- Also ensure `class_updates_migration.sql` has been run (it adds the timetable_id column used in policies below).
 
 -- ── Helper: check if auth user is enrolled (bypasses RLS to avoid recursion) ──
 CREATE OR REPLACE FUNCTION public.check_student_enrolled(target_course_offering_id uuid)
@@ -120,3 +121,25 @@ CREATE POLICY "Lecturers read enrollments for assigned courses"
         AND lc.course_id = enrollments.course_id
     )
   );
+
+-- ── class_updates: allow students to report status on their enrolled slots ──
+
+DROP POLICY IF EXISTS "Students insert class_updates for enrolled slots" ON class_updates;
+DROP POLICY IF EXISTS "Students can update their own class_updates" ON class_updates;
+
+CREATE POLICY "Students insert class_updates for enrolled slots"
+  ON class_updates FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM timetable t
+      WHERE t.id = class_updates.timetable_id
+        AND check_student_enrolled_by_course(t.course_id, t.course_offering_id)
+    )
+  );
+
+-- Allow the reporter (student or lecturer) to update their own report
+-- (extends the lecturer-only one; keep original for lecturers too)
+CREATE POLICY "Students can update their own class_updates"
+  ON class_updates FOR UPDATE TO authenticated
+  USING (reported_by = auth.uid())
+  WITH CHECK (reported_by = auth.uid());
