@@ -59,6 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_enrollments_course_id
   ON public.enrollments (course_id);
 
 -- ── class_updates ───────────────────────────────────────────────────────────
+-- Make sure class_updates_migration.sql has been run first (otherwise these will fail with 42703 if timetable_id missing).
 
 CREATE INDEX IF NOT EXISTS idx_class_updates_university_id
   ON public.class_updates (university_id);

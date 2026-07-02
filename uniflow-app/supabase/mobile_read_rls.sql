@@ -1,5 +1,6 @@
 -- Mobile read access for lecturers and students.
 -- Run in Supabase SQL Editor after courses_rls.sql.
+-- IMPORTANT: Run `class_updates_migration.sql` first if you get "column class_updates.timetable_id does not exist".
 -- Web admin writes via university_admin session or service role; the app reads with lecturer/student JWT.
 
 -- ── lecturer_courses ─────────────────────────────────────────────────────────
