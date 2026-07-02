@@ -21,22 +21,22 @@ uniflow/
 
 **Domains (production):**
 
-| Host | Role |
-|------|------|
-| `uniflowapp.xyz` | Marketing, Uniflow Admin login, reset-password landing |
-| `admin.uniflowapp.xyz` | Uniflow Admin dashboard |
-| `{short}-admin.uniflowapp.xyz` | University Admin portal |
+| Host                           | Role                                                   |
+| ------------------------------ | ------------------------------------------------------ |
+| `uniflowapp.xyz`               | Marketing, Uniflow Admin login, reset-password landing |
+| `admin.uniflowapp.xyz`         | Uniflow Admin dashboard                                |
+| `{short}-admin.uniflowapp.xyz` | University Admin portal                                |
 
 ---
 
 ## 2. Roles (critical)
 
-| Role | Web | Mobile |
-|------|-----|--------|
-| `uniflow_admin` | ✅ super dashboard | ❌ blocked |
-| `university_admin` | ✅ uni portal | ❌ blocked |
-| `student` | ❌ | ✅ `(student)` tabs |
-| `lecturer`, `dean`, `hod` | ❌ | ✅ `(lecturer)` tabs (same UI) |
+| Role                      | Web                | Mobile                         |
+| ------------------------- | ------------------ | ------------------------------ |
+| `uniflow_admin`           | ✅ super dashboard | ❌ blocked                     |
+| `university_admin`        | ✅ uni portal      | ❌ blocked                     |
+| `student`                 | ❌                 | ✅ `(student)` tabs            |
+| `lecturer`, `dean`, `hod` | ❌                 | ✅ `(lecturer)` tabs (same UI) |
 
 Role gates: `uniflow-web/src/lib/role-access.ts`, `uniflow-app/lib/role-access.ts`
 
@@ -68,6 +68,7 @@ courses (catalog)
    ```
    course_code,course_title,level,semester,credit_units,lecturer_email,day,start_time,end_time,venue
    ```
+
    - Rows with schedule → offering + slot
    - Rows without day/time → offering only (schedule later)
    - Same `course_code` + `lecturer_email` repeated = multiple slots (lecture + lab)
@@ -76,23 +77,24 @@ courses (catalog)
 
 ### What was implemented (check git diff)
 
-| Area | Status | Key files |
-|------|--------|-----------|
-| SQL migration | ✅ Written, **must run in Supabase** | `uniflow-app/supabase/course_offerings_migration.sql`, `course_offerings_rls.sql` |
-| Combined CSV API | ✅ | `uniflow-web/src/app/api/timetable/import/route.ts` |
-| Auto-enroll API | ✅ | `uniflow-web/src/app/api/enrollments/auto/route.ts` |
-| Offerings list API | ✅ GET only | `uniflow-web/src/app/api/course-offerings/route.ts` |
-| Combined import UI | ✅ On timetable page | `uniflow-web/src/components/university/CombinedTimetableImport.tsx` |
-| Session helpers | ✅ | `getAcademicContext()` in web + mobile `lib/academic.ts` |
-| Mobile hooks | ✅ Offering-aware + legacy fallback | `useStudentEnrollments.ts`, `useLecturerCourseIds.ts` |
-| Mobile screens | ✅ Updated | student/lecturer courses, timetable, index, resources |
-| Types | ✅ | `uniflow-app/types/index.ts` — `CourseOffering`, `course_offering_id` fields |
+| Area               | Status                               | Key files                                                                                          |
+| ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| SQL migration      | ✅ Written, **must run in Supabase** | `uniflow-app/supabase/class_updates_migration.sql`, `course_offerings_migration.sql`, `*_rls*.sql` |
+| Combined CSV API   | ✅                                   | `uniflow-web/src/app/api/timetable/import/route.ts`                                                |
+| Auto-enroll API    | ✅                                   | `uniflow-web/src/app/api/enrollments/auto/route.ts`                                                |
+| Offerings list API | ✅ GET only                          | `uniflow-web/src/app/api/course-offerings/route.ts`                                                |
+| Combined import UI | ✅ On timetable page                 | `uniflow-web/src/components/university/CombinedTimetableImport.tsx`                                |
+| Session helpers    | ✅                                   | `getAcademicContext()` in web + mobile `lib/academic.ts`                                           |
+| Mobile hooks       | ✅ Offering-aware + legacy fallback  | `useStudentEnrollments.ts`, `useLecturerCourseIds.ts`                                              |
+| Mobile screens     | ✅ Updated                           | student/lecturer courses, timetable, index, resources                                              |
+| Types              | ✅                                   | `uniflow-app/types/index.ts` — `CourseOffering`, `course_offering_id` fields                       |
 
 ### What is NOT done yet (next AI should do)
 
 1. **Run SQL migrations** in Supabase SQL Editor (order matters):
+   - `class_updates_migration.sql` (if you see "column class_updates.timetable_id does not exist")
    - `course_offerings_migration.sql`
-   - `course_offerings_rls.sql`
+   - `course_offerings_rls.sql` (or `course_offerings_rls_clean.sql`)
 
 2. **Refactor `u/courses` page** — catalog only; remove lecturer assignment UI (now handled by combined CSV / offerings).
 
@@ -125,6 +127,7 @@ npm run dev                        # localhost:3000
 ```
 
 Env vars (typical):
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server routes)
@@ -140,6 +143,7 @@ npx expo start
 ```
 
 Env (`eas.json` / `.env`):
+
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - `EXPO_PUBLIC_WEB_APP_URL` (for forgot-password API)
@@ -152,11 +156,13 @@ Execute SQL files in `uniflow-app/supabase/` in Supabase Dashboard → SQL Edito
 2. `department_levels.sql`
 3. `timetable_department_fk.sql`
 4. `profiles_rls_fix.sql`
-5. `mobile_read_rls.sql`
-6. **`course_offerings_migration.sql`** ← new
-7. **`course_offerings_rls.sql`** ← new
+5. **`class_updates_migration.sql`** ← ensures timetable_id + other columns exist (fixes 42703 errors)
+6. `mobile_read_rls.sql`
+7. **`course_offerings_migration.sql`** ← new
+8. **`course_offerings_rls.sql`** ← new (re-run after class_updates if you added student report policies)
 
 **Redirect URLs** (Authentication → URL Configuration):
+
 - `https://uniflowapp.xyz/reset-password**`
 - `https://*-admin.uniflowapp.xyz/**`
 
@@ -172,26 +178,26 @@ Execute SQL files in `uniflow-app/supabase/` in Supabase Dashboard → SQL Edito
 
 ### University portal pages
 
-| Path (external on subdomain) | File |
-|-------------------------------|------|
-| `/` | `src/app/(university)/u/page.tsx` |
-| `/faculties` | `u/faculties/page.tsx` |
-| `/departments` | `u/departments/page.tsx` |
-| `/courses` | `u/courses/page.tsx` |
-| `/timetable` | `u/timetable/page.tsx` |
-| `/students` | `u/students/page.tsx` |
-| `/lecturers` | `u/lecturers/page.tsx` |
+| Path (external on subdomain) | File                              |
+| ---------------------------- | --------------------------------- |
+| `/`                          | `src/app/(university)/u/page.tsx` |
+| `/faculties`                 | `u/faculties/page.tsx`            |
+| `/departments`               | `u/departments/page.tsx`          |
+| `/courses`                   | `u/courses/page.tsx`              |
+| `/timetable`                 | `u/timetable/page.tsx`            |
+| `/students`                  | `u/students/page.tsx`             |
+| `/lecturers`                 | `u/lecturers/page.tsx`            |
 
 ### APIs (university admin)
 
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /api/create-staff` | Create student/lecturer + reset email |
-| `POST /api/reset-password` | Admin-initiated password reset |
-| `POST /api/approve-university` | Onboard new university |
-| `POST /api/timetable/import` | **Combined CSV** preview/commit |
-| `POST /api/enrollments/auto` | Auto-enroll by dept/level |
-| `GET /api/course-offerings` | List offerings |
+| Endpoint                       | Purpose                               |
+| ------------------------------ | ------------------------------------- |
+| `POST /api/create-staff`       | Create student/lecturer + reset email |
+| `POST /api/reset-password`     | Admin-initiated password reset        |
+| `POST /api/approve-university` | Onboard new university                |
+| `POST /api/timetable/import`   | **Combined CSV** preview/commit       |
+| `POST /api/enrollments/auto`   | Auto-enroll by dept/level             |
+| `GET /api/course-offerings`    | List offerings                        |
 
 ### Mobile auth
 
@@ -210,12 +216,13 @@ Execute SQL files in `uniflow-app/supabase/` in Supabase Dashboard → SQL Edito
 
 ```typescript
 // Nigerian default calendar
-getCurrentAcademicSession() // e.g. "2025/2026" — Aug+ = new session
-getCurrentSemester()        // 1 = Aug–Jan, 2 = Feb–Jul
-getAcademicContext()        // { academic_session, semester }
+getCurrentAcademicSession(); // e.g. "2025/2026" — Aug+ = new session
+getCurrentSemester(); // 1 = Aug–Jan, 2 = Feb–Jul
+getAcademicContext(); // { academic_session, semester }
 ```
 
 Defined in:
+
 - `uniflow-web/src/lib/academic.ts`
 - `uniflow-app/lib/academic.ts`
 
@@ -249,13 +256,13 @@ POST /api/timetable/import
 
 ## 8. Known conflicts / backward compatibility
 
-| Item | Notes |
-|------|-------|
-| `lecturer_courses` | Still synced on import for legacy mobile/web paths. Remove in phase 2. |
-| `timetable.course_id` + `lecturer_id` | Still written on import. Mobile falls back if `course_offering_id` missing. |
-| `enrollments.course_id` | Still written alongside `course_offering_id`. |
-| Old timetable CSV (generate → download → import) | Still on timetable page; combined import is preferred. |
-| `u/courses` lecturer assignment UI | Still present; should be removed when offerings page ships. |
+| Item                                             | Notes                                                                       |
+| ------------------------------------------------ | --------------------------------------------------------------------------- |
+| `lecturer_courses`                               | Still synced on import for legacy mobile/web paths. Remove in phase 2.      |
+| `timetable.course_id` + `lecturer_id`            | Still written on import. Mobile falls back if `course_offering_id` missing. |
+| `enrollments.course_id`                          | Still written alongside `course_offering_id`.                               |
+| Old timetable CSV (generate → download → import) | Still on timetable page; combined import is preferred.                      |
+| `u/courses` lecturer assignment UI               | Still present; should be removed when offerings page ships.                 |
 
 ---
 
@@ -295,8 +302,8 @@ Read first:
 - docs/uniflow-workflow.md (platform workflow)
 
 The Course Offering redesign is partially implemented. SQL migrations in
-uniflow-app/supabase/course_offerings_*.sql MUST be run in Supabase before
-offerings work in production.
+uniflow-app/supabase/ MUST be run in Supabase before things work in production.
+In particular run `class_updates_migration.sql` if you see errors about timetable_id column.
 
 Your tasks:
 1. [Specify task from section 10 above]
@@ -322,4 +329,4 @@ rg "enrollments" uniflow-web/src/app/api
 
 ---
 
-*Last updated: Course Offering redesign — implementation phase 1 complete, SQL + UI cleanup pending.*
+_Last updated: Course Offering redesign — implementation phase 1 complete, SQL + UI cleanup pending._
