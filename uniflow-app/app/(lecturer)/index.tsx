@@ -192,14 +192,19 @@ export default function LecturerDashboard() {
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
-      const { data: allSlots } = await supabase
-        .from("timetable")
-        .select("*, courses(id, title, code, credit_units)")
-        .eq("lecturer_id", profile.id)
-        .eq("is_active", true)
-        .order("start_time");
+      // Use the shared offering-aware + session-filtered fetch for consistency with Timetable tab
+      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+      const allSlots = await fetchTimetableSlots({
+        lecturerId: profile.id,
+      });
 
-      if (!allSlots) return;
+      if (!allSlots.length) {
+        setTodaySlots([]);
+        setUpcomingSlots([]);
+        setTotalCourses(0);
+        setTodayUpdates({});
+        return;
+      }
 
       const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME);
       const upcoming = allSlots
@@ -276,11 +281,37 @@ export default function LecturerDashboard() {
           }));
         },
       )
+      // Sync timetable slot changes live (e.g. from admin import/edit)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "timetable",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
+      // Catch new offerings assigned to me
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "course_offerings",
+          filter: `lecturer_id=eq.${profile.id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile]);
+  }, [profile, fetchData]);
 
   // ── Loading ───────────────────────────────────────────────────────────
 
