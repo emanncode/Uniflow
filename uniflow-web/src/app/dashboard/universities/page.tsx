@@ -7,7 +7,7 @@ import {
   Building2, Globe, Users, Mail,
   ExternalLink, Search, CheckCircle2, Key, Loader2, AlertTriangle, X
 } from 'lucide-react'
-import { universityPortalHost, universityPortalUrl, ensureAbsoluteUrl } from '@/lib/domain'
+import { universityPortalHost, universityPortalUrl } from '@/lib/domain'
 
 interface University {
   id: string
@@ -275,24 +275,19 @@ export default function UniversitiesPage() {
                   {universityPortalHost(uni.short_name)}
                   <ExternalLink size={10} style={{ opacity: 0.7, flexShrink: 0 }} />
                 </a>
-                {uni.website && (() => {
-                  const websiteUrl = ensureAbsoluteUrl(uni.website);
-                  return websiteUrl ? (
-                    <a
-                      href={websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '4px',
-                        fontSize: '11px', color: 'var(--brand)',
-                        textDecoration: 'none', fontWeight: 600, flexShrink: 0,
-                      }}
-                    >
-                      <ExternalLink size={11} />
-                      Website
-                    </a>
-                  ) : null;
-                })()}
+                <a
+                  href={universityPortalUrl(uni.short_name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '4px',
+                    fontSize: '11px', color: 'var(--brand)',
+                    textDecoration: 'none', fontWeight: 600, flexShrink: 0,
+                  }}
+                >
+                  <ExternalLink size={11} />
+                  Website
+                </a>
               </div>
 
               {/* actions */}
