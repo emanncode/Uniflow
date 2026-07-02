@@ -53,8 +53,8 @@ function FacultyCard({
   const [assigning, setAssigning] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // All deans in the university are eligible
-  const eligibleDeans = deans;
+  // Deans who belong to this faculty or haven't been assigned to any faculty yet
+  const eligibleDeans = deans.filter(d => !d.faculty || d.faculty === faculty.short_name);
 
   return (
     <div
@@ -266,7 +266,7 @@ function FacultyCard({
                 }}
               >
                 <option value="" disabled>
-                  {eligibleDeans.length > 0 ? "Select a dean..." : "No deans found"}
+                  {eligibleDeans.length > 0 ? "Select a dean..." : "No deans found in this faculty"}
                 </option>
                 {eligibleDeans.map((d) => (
                   <option key={d.id} value={d.id}>

@@ -63,8 +63,8 @@ function DeptCard({
 }) {
   const [assigning, setAssigning] = useState(false);
 
-  // Filter HODs to only show those registered under THIS faculty
-  const eligibleHods = hods.filter(h => h.faculty === dept.faculty_id);
+  // HODs who belong to this faculty or haven't been assigned to any faculty yet
+  const eligibleHods = hods.filter(h => !h.faculty || h.faculty === dept.faculty_id);
 
   return (
     <div
