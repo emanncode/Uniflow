@@ -7,7 +7,7 @@ import {
   Building2, Globe, Users, Mail,
   ExternalLink, Search, CheckCircle2, Key, Loader2, AlertTriangle, X
 } from 'lucide-react'
-import { universityPortalHost } from '@/lib/domain'
+import { universityPortalHost, universityPortalUrl, ensureAbsoluteUrl } from '@/lib/domain'
 
 interface University {
   id: string
@@ -254,31 +254,45 @@ export default function UniversitiesPage() {
                 })}
               </div>
 
-              {/* portal link */}
+              {/* portal + website */}
               <div style={{
                 display: 'flex', alignItems: 'center',
                 justifyContent: 'space-between', gap: '8px',
               }}>
-                <span style={{
-                  fontSize: '11px', color: 'var(--text-muted)',
-                  fontFamily: 'monospace',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
+                <a
+                  href={universityPortalUrl(uni.short_name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '3px',
+                    fontSize: '11px', color: 'var(--brand)',
+                    fontFamily: 'monospace', fontWeight: 600,
+                    textDecoration: 'none',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}
+                  title="Open university admin portal"
+                >
                   {universityPortalHost(uni.short_name)}
-                </span>
-                {uni.website && (
-                  <a
-                    href={uni.website} target="_blank" rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '4px',
-                      fontSize: '11px', color: 'var(--brand)',
-                      textDecoration: 'none', fontWeight: 600, flexShrink: 0,
-                    }}
-                  >
-                    <ExternalLink size={11} />
-                    Website
-                  </a>
-                )}
+                  <ExternalLink size={10} style={{ opacity: 0.7, flexShrink: 0 }} />
+                </a>
+                {uni.website && (() => {
+                  const websiteUrl = ensureAbsoluteUrl(uni.website);
+                  return websiteUrl ? (
+                    <a
+                      href={websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        fontSize: '11px', color: 'var(--brand)',
+                        textDecoration: 'none', fontWeight: 600, flexShrink: 0,
+                      }}
+                    >
+                      <ExternalLink size={11} />
+                      Website
+                    </a>
+                  ) : null;
+                })()}
               </div>
 
               {/* actions */}

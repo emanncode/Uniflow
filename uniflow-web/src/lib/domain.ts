@@ -43,3 +43,24 @@ export function resolveBaseDomainFromRequestHost(host: string): string {
 export function resolveProtocolFromRequestHost(host: string): "http" | "https" {
   return host.toLowerCase().includes("localhost") ? "http" : "https";
 }
+
+/**
+ * Ensures a user-provided external URL (e.g. university website) has a protocol.
+ * Bare domains like "www.example.edu" or "example.edu" become "https://..."
+ * Returns null for empty values.
+ */
+export function ensureAbsoluteUrl(input: string | null | undefined): string | null {
+  if (!input) return null;
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // already has protocol
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:\/\//.test(trimmed)) {
+    return trimmed;
+  }
+
+  // common bare domain patterns → prefix https
+  // handles www. or domain.tld etc.
+  const withoutLeadingSlashes = trimmed.replace(/^\/+/, "");
+  return `https://${withoutLeadingSlashes}`;
+}

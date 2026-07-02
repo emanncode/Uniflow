@@ -13,7 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import { validateAndNormalizeEmail } from '@/lib/email'
-import { universityPortalHost } from '@/lib/domain'
+import { universityPortalHost, ensureAbsoluteUrl } from '@/lib/domain'
 
 export const dynamic = 'force-dynamic'
 
@@ -133,7 +133,7 @@ export default function RegisterPage() {
         phone: form.phone.trim() || null,
         country: form.country,
         state: form.state || null,
-        website: form.website.trim() || null,
+        website: ensureAbsoluteUrl(form.website) || null,
         estimated_students: form.estimated_students ? parseInt(form.estimated_students) : null,
         contact_person_name: form.contact_person_name.trim(),
         contact_person_role: form.contact_person_role.trim() || null,

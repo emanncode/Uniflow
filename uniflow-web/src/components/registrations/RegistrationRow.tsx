@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronUp, Globe, Mail,
   Phone, Users, User, Briefcase, ExternalLink
 } from 'lucide-react'
-import { universityPortalHost } from '@/lib/domain'
+import { universityPortalHost, ensureAbsoluteUrl } from '@/lib/domain'
 
 
 interface Registration {
@@ -144,22 +144,26 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
               </div>
 
               {/* website link */}
-              {reg.website && (
-                <a
-                  href={reg.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    fontSize: '12px', color: 'var(--brand)',
-                    textDecoration: 'none', marginBottom: '20px',
-                    fontWeight: 600,
-                  }}
-                >
-                  <ExternalLink size={12} />
-                  {reg.website}
-                </a>
-              )}
+              {reg.website && (() => {
+                const websiteUrl = ensureAbsoluteUrl(reg.website);
+                if (!websiteUrl) return null;
+                return (
+                  <a
+                    href={websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      fontSize: '12px', color: 'var(--brand)',
+                      textDecoration: 'none', marginBottom: '20px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <ExternalLink size={12} />
+                    {reg.website}
+                  </a>
+                );
+              })()}
 
               {/* rejection reason if rejected */}
               {reg.status === 'rejected' && reg.rejection_reason && (
