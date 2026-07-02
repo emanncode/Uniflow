@@ -371,12 +371,38 @@ export default function LecturerTimetable() {
           setUpdates((prev) => ({ ...prev, [update.timetable_id]: update }));
         },
       )
+      // Listen for timetable slot changes so changes from web admin sync live to mobile
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "timetable",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
+      // Listen for new/updated offerings assigned to me (may bring new slots)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "course_offerings",
+          filter: `lecturer_id=eq.${profile.id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile]);
+  }, [profile, fetchData]);
 
   // ── Mark Status ───────────────────────────────────────────────────────
 

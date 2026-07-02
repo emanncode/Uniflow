@@ -308,11 +308,37 @@ export default function StudentDashboard() {
           }));
         },
       )
+      // Sync timetable slot changes (admin edits) into home dashboard too
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "timetable",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
+      // React to my enrollments changing (new courses appear in timetable sections)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "enrollments",
+          filter: `student_id=eq.${profile.id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile]);
+  }, [profile, fetchData]);
 
   // ── Upvote ────────────────────────────────────────────────────────────
 

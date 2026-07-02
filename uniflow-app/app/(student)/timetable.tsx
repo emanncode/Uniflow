@@ -418,12 +418,39 @@ export default function StudentTimetable() {
           setUpdates((prev) => ({ ...prev, [update.timetable_id]: update }));
         },
       )
+      // Also listen for timetable slot changes (add/edit/delete) so schedule syncs live from admin
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "timetable",
+          filter: `university_id=eq.${profile.university_id}`,
+        },
+        () => {
+          // Refetch to pick up new/updated/removed slots (RLS will limit to enrolled)
+          fetchData();
+        },
+      )
+      // React to enrollment changes so new/removed courses' timetables appear
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "enrollments",
+          filter: `student_id=eq.${profile.id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile]);
+  }, [profile, fetchData]);
 
   // ── Handlers ──────────────────────────────────────────────────────────
 
