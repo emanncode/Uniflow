@@ -1,6 +1,7 @@
 -- RLS for course_offerings + updated policies for offering-based reads.
 -- Run AFTER course_offerings_migration.sql
 -- Also ensure `class_updates_migration.sql` has been run (it adds the timetable_id column used in policies below).
+-- Re-run this file if students get RLS errors (42501) when reporting class status.
 
 -- ── Helper: check if auth user is enrolled (bypasses RLS to avoid recursion) ──
 CREATE OR REPLACE FUNCTION public.check_student_enrolled(target_course_offering_id uuid)
@@ -47,8 +48,12 @@ AS $$
     WHERE e.student_id = auth.uid()
       AND e.is_active = true
       AND (
+        -- Match on offering if provided (for specific section)
         (target_course_offering_id IS NOT NULL AND e.course_offering_id = target_course_offering_id)
-        OR (target_course_offering_id IS NULL AND e.course_id = target_course_id)
+        -- Or always allow if course_id matches (handles legacy data, backfill mismatches,
+        -- or when timetable/enrollment use course-level linking). This makes student
+        -- status reporting work consistently with visible timetable slots.
+        OR e.course_id = target_course_id
       )
   );
 $$;
@@ -128,7 +133,13 @@ CREATE POLICY "Students insert class_updates for enrolled slots"
     EXISTS (
       SELECT 1 FROM timetable t
       WHERE t.id = class_updates.timetable_id
-        AND check_student_enrolled_by_course(t.course_id, t.course_offering_id)
+        AND (
+          check_student_enrolled_by_course(t.course_id, t.course_offering_id)
+          -- Also allow if the student would be allowed to see this timetable slot via
+          -- the course_id-based auth helper (covers cases where mobile_read_rls.sql
+          -- timetable policy or level-based fallbacks are in effect due to script order).
+          OR t.course_id IN (SELECT auth_student_enrolled_course_ids())
+        )
     )
   );
 

@@ -1,6 +1,7 @@
 -- Mobile read access for lecturers and students.
 -- Run in Supabase SQL Editor after courses_rls.sql.
 -- IMPORTANT: Run `class_updates_migration.sql` first if you get "column class_updates.timetable_id does not exist".
+-- Also ensure course_offerings_rls_clean.sql is run for full student support on class_updates inserts (and offering-based logic).
 -- Web admin writes via university_admin session or service role; the app reads with lecturer/student JWT.
 
 -- ── SECURITY DEFINER helpers to prevent RLS recursion (42P17) ─────────────────
@@ -126,7 +127,9 @@ ALTER TABLE class_updates ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "University members read class_updates" ON class_updates;
 DROP POLICY IF EXISTS "Lecturers insert class_updates for own slots" ON class_updates;
+DROP POLICY IF EXISTS "Students insert class_updates for enrolled slots" ON class_updates;
 DROP POLICY IF EXISTS "Lecturers update own class_updates" ON class_updates;
+DROP POLICY IF EXISTS "Students can update their own class_updates" ON class_updates;
 DROP POLICY IF EXISTS "University admins manage class_updates" ON class_updates;
 
 CREATE POLICY "University members read class_updates"
@@ -149,7 +152,25 @@ CREATE POLICY "Lecturers insert class_updates for own slots"
     )
   );
 
+-- Students can insert status reports for slots they can see via their enrollments (or level fallback).
+-- Uses the same helper as the student timetable read policy in this file.
+CREATE POLICY "Students insert class_updates for enrolled slots"
+  ON class_updates FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM timetable t
+      WHERE t.id = class_updates.timetable_id
+        AND t.course_id IN (SELECT auth_student_enrolled_course_ids())
+    )
+  );
+
 CREATE POLICY "Lecturers update own class_updates"
+  ON class_updates FOR UPDATE TO authenticated
+  USING (reported_by = auth.uid())
+  WITH CHECK (reported_by = auth.uid());
+
+-- Allow students (or the original reporter) to update their own status reports.
+CREATE POLICY "Students can update their own class_updates"
   ON class_updates FOR UPDATE TO authenticated
   USING (reported_by = auth.uid())
   WITH CHECK (reported_by = auth.uid());
