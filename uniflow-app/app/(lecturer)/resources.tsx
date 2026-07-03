@@ -25,13 +25,16 @@ import {
   Layers,
 } from "lucide-react-native";
 import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { supabase } from "@/lib/supabase";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 import { ResourcesSkeleton } from "@/components/SkeletonLoader";
 import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
 import { FadeSlideIn } from "@/components/FadeSlideIn";
 import { ScalePressable } from "@/components/ScalePressable";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
+import { getAcademicContext } from "@/lib/academic";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import type { Resource, ResourceType, FileType, Course } from "@/types";
@@ -63,6 +66,81 @@ function getFileType(mimeType?: string, fileName?: string): FileType {
     return "image";
   if (["doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(ext)) return "doc";
   return "other";
+}
+
+/** Read local file reliably on mobile (used for fallback uploads). */
+async function uriToUint8Array(uri: string): Promise<Uint8Array> {
+  const base64 = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function uploadResourceFile(
+  fileName: string,
+  uri: string,
+  contentType: string,
+): Promise<void> {
+  // Preferred: FormData (lets native layer stream the file, works reliably with file:// and content://)
+  try {
+    const formData = new FormData();
+    // Use empty key name to match the proven avatar upload pattern
+    formData.append("", {
+      uri,
+      name: fileName.split("/").pop() || "resource",
+      type: contentType,
+    } as any);
+
+    const { error } = await supabase.storage
+      .from("resources")
+      .upload(fileName, formData, {
+        contentType,
+        upsert: false,
+      });
+
+    if (error) throw error;
+    return;
+  } catch (formErr: any) {
+    const msg = (formErr?.message || String(formErr)).toLowerCase();
+    if (!msg.includes("network") && !msg.includes("failed") && !msg.includes("fetch")) {
+      throw formErr;
+    }
+    // fall through to REST fallback
+  }
+
+  // Fallback: direct REST upload using bytes (more reliable in some RN environments)
+  const bytes = await uriToUint8Array(uri);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    throw new Error("Session expired. Please sign in again.");
+  }
+
+  const response = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/resources/${fileName}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_ANON_KEY,
+        "Content-Type": contentType,
+        "cache-control": "max-age=3600",
+      },
+      body: new Blob([new Uint8Array(bytes)], { type: contentType }),
+    }
+  );
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(text || `Storage upload failed with status ${response.status}`);
+  }
 }
 
 // ─── File Type Config ──────────────────────────────────────────────────────
@@ -260,19 +338,11 @@ function UploadSheet({
     setProgress("Uploading file...");
 
     try {
-      const ext = file.name.split(".").pop();
+      const ext = file.name.split(".").pop() || "bin";
       const fileName = `${selectedCourseId}/${Date.now()}.${ext}`;
+      const contentType = file.mimeType ?? "application/octet-stream";
 
-      const response = await fetch(file.uri);
-      const blob = await response.blob();
-
-      const { error: uploadError } = await supabase.storage
-        .from("resources")
-        .upload(fileName, blob, {
-          contentType: file.mimeType ?? "application/octet-stream",
-        });
-
-      if (uploadError) throw uploadError;
+      await uploadResourceFile(fileName, file.uri, contentType);
 
       setProgress("Saving record...");
 
@@ -291,8 +361,7 @@ function UploadSheet({
         file_url: urlData.publicUrl,
         file_type: fileType,
         resource_type: resourceType,
-        academic_session:
-          new Date().getFullYear() + "/" + (new Date().getFullYear() + 1),
+        academic_session: getAcademicContext().academic_session,
         is_approved: true,
       });
 
@@ -305,7 +374,16 @@ function UploadSheet({
         onUploaded();
       }, 800);
     } catch (e: any) {
-      Alert.alert("Upload Failed", e.message ?? "Please try again.");
+      console.error("Resource upload error:", e);
+      const rawMsg = e?.message || e?.error || String(e) || "Please try again.";
+      // Give helpful guidance for common setup issues
+      let friendly = rawMsg;
+      if (rawMsg.toLowerCase().includes("bucket not found") || rawMsg.toLowerCase().includes("does not exist")) {
+        friendly = "The 'resources' storage bucket is missing. Run uniflow-app/supabase/resources_storage.sql in Supabase.";
+      } else if (rawMsg.toLowerCase().includes("row-level security") || rawMsg.toLowerCase().includes("policy") || rawMsg.includes("403")) {
+        friendly = "Permission denied uploading to resources. Run the storage + RLS scripts in Supabase.";
+      }
+      Alert.alert("Upload Failed", friendly);
       setIsUploading(false);
       setProgress("");
     }

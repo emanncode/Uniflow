@@ -30,6 +30,11 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
+  -- Prefer course_offerings when present, fall back to legacy lecturer_courses
+  SELECT course_id FROM course_offerings
+  WHERE lecturer_id = auth.uid()
+    AND is_active = true
+  UNION
   SELECT course_id FROM lecturer_courses
   WHERE lecturer_id = auth.uid()
     AND is_active = true;
@@ -202,4 +207,58 @@ CREATE POLICY "Users read profiles in same university"
       AND university_id = auth_user_university_id()
     )
     OR auth_user_role() = 'uniflow_admin'
+  );
+
+-- ── resources (lecturer uploads + student reads) ─────────────────────────────
+
+ALTER TABLE resources ENABLE ROW LEVEL SECURITY;
+
+-- Lecturers can insert resources for courses they teach
+DROP POLICY IF EXISTS "Lecturers can upload resources for their courses" ON resources;
+CREATE POLICY "Lecturers can upload resources for their courses"
+  ON resources FOR INSERT TO authenticated
+  WITH CHECK (
+    uploaded_by = auth.uid()
+    AND course_id IN (SELECT auth_lecturer_course_ids())
+  );
+
+-- Lecturers can view / manage the resources they uploaded
+DROP POLICY IF EXISTS "Lecturers manage own uploaded resources" ON resources;
+CREATE POLICY "Lecturers manage own uploaded resources"
+  ON resources FOR ALL TO authenticated
+  USING (uploaded_by = auth.uid())
+  WITH CHECK (uploaded_by = auth.uid());
+
+-- University members can read approved resources (students see approved ones for their courses via app query)
+DROP POLICY IF EXISTS "University members read approved resources" ON resources;
+CREATE POLICY "University members read approved resources"
+  ON resources FOR SELECT TO authenticated
+  USING (
+    is_approved = true
+    AND EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.university_id = resources.university_id
+    )
+  );
+
+-- University admins can manage all resources (in addition to the one in university_admins.sql)
+DROP POLICY IF EXISTS "University admins manage resources (mobile)" ON resources;
+CREATE POLICY "University admins manage resources (mobile)"
+  ON resources FOR ALL TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'university_admin'
+        AND p.university_id = resources.university_id
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'university_admin'
+        AND p.university_id = resources.university_id
+    )
   );
