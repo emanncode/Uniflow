@@ -20,6 +20,14 @@ export type ClassStatus =
   | "ongoing"
   | "ended";
 
+export const CLASS_UPDATE_TITLES: Record<ClassStatus, string> = {
+  ongoing: "Class is Ongoing",
+  ended: "Class has Ended",
+  canceled: "Class is Canceled",
+  delayed: "Class is Delayed",
+  moved: "Class was Moved",
+};
+
 export type DayOfWeek =
   | "monday"
   | "tuesday"
@@ -161,6 +169,7 @@ export interface ClassUpdate {
   reported_by: string;
   university_id: string;
   status: ClassStatus;
+  title: string | null;
   message: string | null;
   new_venue: string | null;
   new_start_time: string | null;
@@ -181,6 +190,7 @@ export interface NewClassUpdate {
   reported_by: string;
   university_id: string;
   status: ClassStatus;
+  title: string;
   message: string | null;
   new_venue: string | null;
   new_start_time: string | null;

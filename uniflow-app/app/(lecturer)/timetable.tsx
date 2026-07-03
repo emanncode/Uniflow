@@ -33,7 +33,7 @@ import type {
   ClassStatus,
   DayOfWeek,
 } from "@/types";
-import { CLASS_STATUS_COLORS } from "@/types";
+import { CLASS_STATUS_COLORS, CLASS_UPDATE_TITLES } from "@/types";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -430,13 +430,13 @@ export default function LecturerTimetable() {
           // Update existing record
           const { error } = await supabase
             .from("class_updates")
-            .update({ status, reported_by: profile.id })
+            .update({ status, title: CLASS_UPDATE_TITLES[status], reported_by: profile.id })
             .eq("id", existing.id);
 
           if (error) throw error;
           setUpdates((prev) => ({
             ...prev,
-            [activeSlot.id]: { ...existing, status },
+            [activeSlot.id]: { ...existing, status, title: CLASS_UPDATE_TITLES[status] },
           }));
         } else {
           // Insert new record
@@ -447,6 +447,7 @@ export default function LecturerTimetable() {
               reported_by: profile.id,
               university_id: profile.university_id,
               status,
+              title: CLASS_UPDATE_TITLES[status],
               update_date: todayDate,
             })
             .select()

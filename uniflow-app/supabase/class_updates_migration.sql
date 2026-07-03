@@ -2,6 +2,7 @@
 -- Run this BEFORE mobile_read_rls.sql and course_offerings_rls_clean.sql
 -- if you get "column class_updates.timetable_id does not exist"
 -- if you get "Could not find the 'delay_minutes' column of 'class_updates' in the schema cache" (or similar) -- re-run this migration.
+-- if you get 'null value in column "title" ... violates not-null constraint' -- re-run this migration (it now ensures the title column).
 
 -- Create the table if it does not exist at all
 CREATE TABLE IF NOT EXISTS class_updates (
@@ -10,6 +11,7 @@ CREATE TABLE IF NOT EXISTS class_updates (
   reported_by uuid REFERENCES profiles(id) ON DELETE SET NULL,
   university_id uuid NOT NULL REFERENCES universities(id) ON DELETE CASCADE,
   status text NOT NULL,
+  title text NOT NULL,
   message text,
   new_venue text,
   new_start_time text,
@@ -61,6 +63,14 @@ BEGIN
     WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'status'
   ) THEN
     ALTER TABLE public.class_updates ADD COLUMN status text;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'title'
+  ) THEN
+    -- title was added later; use DEFAULT '' so any pre-existing rows don't violate NOT NULL
+    ALTER TABLE public.class_updates ADD COLUMN title text NOT NULL DEFAULT '';
   END IF;
 
   IF NOT EXISTS (
