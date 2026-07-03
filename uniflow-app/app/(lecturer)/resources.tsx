@@ -25,8 +25,9 @@ import {
   Layers,
 } from "lucide-react-native";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system/legacy";
+import { Platform } from "react-native";
 import { supabase } from "@/lib/supabase";
+import { uriToUint8Array } from "@/lib/avatar";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 import { ResourcesSkeleton } from "@/components/SkeletonLoader";
 import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
@@ -68,17 +69,35 @@ function getFileType(mimeType?: string, fileName?: string): FileType {
   return "other";
 }
 
-/** Read local file reliably on mobile (used for fallback uploads). */
-async function uriToUint8Array(uri: string): Promise<Uint8Array> {
-  const base64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+/** Get a web-compatible File/Blob or RN file reference for upload. */
+async function getUploadFilePart(
+  uri: string,
+  contentType: string,
+  displayName: string,
+): Promise<any> {
+  if (Platform.OS === "web") {
+    // On web (or Expo web), convert the (often blob: or data:) URI to a real File/Blob
+    try {
+      const res = await fetch(uri);
+      const blob = await res.blob();
+      // File gives a proper filename in the multipart part (use any-cast for TS envs where lib.dom not fully active)
+      const FileCtor: any = typeof File !== "undefined" ? File : (globalThis as any)?.File;
+      if (FileCtor) {
+        return new FileCtor([blob], displayName, { type: contentType || blob.type });
+      }
+      return blob;
+    } catch (e) {
+      // fall through to byte reader below in caller
+      throw new Error("Could not read selected file for web upload.");
+    }
   }
-  return bytes;
+
+  // React Native: the special object is handled by the native fetch layer
+  return {
+    uri,
+    name: displayName,
+    type: contentType,
+  };
 }
 
 async function uploadResourceFile(
@@ -86,15 +105,15 @@ async function uploadResourceFile(
   uri: string,
   contentType: string,
 ): Promise<void> {
-  // Preferred: FormData (lets native layer stream the file, works reliably with file:// and content://)
+  const displayName = fileName.split("/").pop() || "resource";
+
+  // Preferred: FormData (cross-platform: uses real File/Blob on web, RN object on native)
   try {
     const formData = new FormData();
-    // Use empty key name to match the proven avatar upload pattern
-    formData.append("", {
-      uri,
-      name: fileName.split("/").pop() || "resource",
-      type: contentType,
-    } as any);
+    formData.append("cacheControl", "3600"); // match the working avatar upload pattern
+
+    const filePart = await getUploadFilePart(uri, contentType, displayName);
+    formData.append("", filePart as any);
 
     const { error } = await supabase.storage
       .from("resources")
@@ -107,14 +126,34 @@ async function uploadResourceFile(
     return;
   } catch (formErr: any) {
     const msg = (formErr?.message || String(formErr)).toLowerCase();
-    if (!msg.includes("network") && !msg.includes("failed") && !msg.includes("fetch")) {
+    // Only rethrow "real" configuration/permissions errors.
+    // Everything else (payload, network, web file read issues, "no content", etc.)
+    // should try the direct byte upload path.
+    const isHardError =
+      msg.includes("bucket") ||
+      msg.includes("permission") ||
+      msg.includes("policy") ||
+      msg.includes("unauthorized") ||
+      msg.includes("forbidden") ||
+      msg.includes("403") ||
+      msg.includes("401");
+
+    if (isHardError) {
       throw formErr;
     }
-    // fall through to REST fallback
+    // fall through to REST fallback for transient / content / platform compatibility issues
   }
 
-  // Fallback: direct REST upload using bytes (more reliable in some RN environments)
-  const bytes = await uriToUint8Array(uri);
+  // Fallback / reliable path: read bytes then POST directly (works reliably on web + native)
+  let bytes: Uint8Array;
+  if (Platform.OS === "web") {
+    // Web: fetch blob URL / object URL returned by document picker
+    const res = await fetch(uri);
+    bytes = new Uint8Array(await res.arrayBuffer());
+  } else {
+    bytes = await uriToUint8Array(uri);
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -133,12 +172,16 @@ async function uploadResourceFile(
         "Content-Type": contentType,
         "cache-control": "max-age=3600",
       },
-      body: new Blob([new Uint8Array(bytes)], { type: contentType }),
+      body: new Blob([bytes as BlobPart], { type: contentType }),
     }
   );
 
   if (!response.ok) {
     const text = await response.text().catch(() => "");
+    const lower = text.toLowerCase();
+    if (lower.includes("no content")) {
+      throw new Error("No file content was received by the server. Please re-pick the file and try again.");
+    }
     throw new Error(text || `Storage upload failed with status ${response.status}`);
   }
 }
@@ -382,6 +425,8 @@ function UploadSheet({
         friendly = "The 'resources' storage bucket is missing. Run uniflow-app/supabase/resources_storage.sql in Supabase.";
       } else if (rawMsg.toLowerCase().includes("row-level security") || rawMsg.toLowerCase().includes("policy") || rawMsg.includes("403")) {
         friendly = "Permission denied uploading to resources. Run the storage + RLS scripts in Supabase.";
+      } else if (rawMsg.toLowerCase().includes("no content") || rawMsg.toLowerCase().includes("no file content")) {
+        friendly = "No file data was sent. Re-select the file and try uploading again. If the issue continues, try a different file.";
       }
       Alert.alert("Upload Failed", friendly);
       setIsUploading(false);
