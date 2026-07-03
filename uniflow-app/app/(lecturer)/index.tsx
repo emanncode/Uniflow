@@ -19,6 +19,7 @@ import {
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import { Theme } from "@/constants/Theme";
 import { DashboardSkeleton } from "@/components/SkeletonLoader";
 import { ScreenHeaderActions } from "@/components/ScreenHeaderActions";
@@ -177,6 +178,9 @@ export default function LecturerDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
+  console.log('[LecturerHome] profile:', profile ? {id: profile.id, uni: profile.university_id, role: profile.role} : null);
+
+  const { refresh: refreshLecturerContext } = useLecturerCourseIds();
 
   const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([]);
   const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([]);
@@ -193,10 +197,13 @@ export default function LecturerDashboard() {
     if (!profile) return;
     try {
       // Use the shared offering-aware + session-filtered fetch for consistency with Timetable tab
+      const { offeringIds } = await refreshLecturerContext(true);
       const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const allSlots = await fetchTimetableSlots({
         lecturerId: profile.id,
+        offeringIds,
       });
+      console.log('[LecturerHome] fetched allSlots length:', allSlots.length, 'first:', allSlots[0]);
 
       if (!allSlots.length) {
         setTodaySlots([]);
@@ -315,6 +322,7 @@ export default function LecturerDashboard() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
+  console.log('[LecturerHome] render todaySlots:', todaySlots.length, 'upcoming:', upcomingSlots.length, 'totalCourses:', totalCourses, 'todaySlots[0]:', todaySlots[0]);
   if (isLoading) return <DashboardSkeleton />;
 
   const firstName = profile?.full_name ?? "Lecturer";

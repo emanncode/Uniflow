@@ -49,7 +49,19 @@ export async function fetchStudentEnrollmentContext(
       .eq("academic_session", academic_session)
       .eq("semester", semester);
 
+    console.log('[fetchStudentEnrollmentContext] raw enrollments length:', (data ?? []).length, 'for student', studentId, 'session:', academic_session, semester);
+
     if (error) throw error;
+
+    // Debug: if empty, check ignoring session
+    if ((data ?? []).length === 0) {
+      const { data: allEnr } = await supabase
+        .from("enrollments")
+        .select("course_id, course_offering_id, academic_session, semester, is_active")
+        .eq("student_id", studentId)
+        .eq("is_active", true);
+      console.log('[fetchStudentEnrollmentContext] NO ENROLLMENTS FOR CURRENT SESSION. All active for student (ignoring session):', allEnr);
+    }
 
     const courseIds = [
       ...new Set((data ?? []).map((row) => row.course_id).filter(Boolean)),
@@ -102,6 +114,7 @@ export function useStudentEnrollments() {
         return { courseIds: [], offeringIds: [] };
       }
       const next = await fetchStudentEnrollmentContext(studentId, force);
+      console.log('[useStudentEnrollments] refreshed context:', next, 'for student', studentId);
       setContext(next);
       return next;
     },

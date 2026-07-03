@@ -195,6 +195,7 @@ export default function StudentDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
+  console.log('[StudentHome] profile:', profile ? {id: profile.id, uni: profile.university_id, role: profile.role, level: profile.level} : null);
 
   const [todaySlots, setTodaySlots] = useState<TimetableSlot[]>([]);
   const [upcomingSlots, setUpcomingSlots] = useState<TimetableSlot[]>([]);
@@ -213,6 +214,7 @@ export default function StudentDashboard() {
     if (!profile) return;
     try {
       const { courseIds, offeringIds } = await refreshEnrollments(true);
+      console.log('[StudentHome] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
       if (courseIds.length === 0) {
         setTodaySlots([]);
@@ -226,6 +228,7 @@ export default function StudentDashboard() {
 
       const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const allSlots = await fetchTimetableSlots({ offeringIds, courseIds });
+      console.log('[StudentHome] fetched allSlots length:', allSlots.length, 'first:', allSlots[0]);
 
       if (!allSlots.length) {
         setTodaySlots([]);
@@ -354,6 +357,7 @@ export default function StudentDashboard() {
       .eq("id", update.id);
   }, []);
 
+  console.log('[StudentHome] render todaySlots:', todaySlots.length, 'upcoming:', upcomingSlots.length, 'totalCourses:', totalCourses, 'todaySlots[0]:', todaySlots[0]);
   if (isLoading) return <DashboardSkeleton />;
 
   const firstName = profile?.full_name ?? "Student";

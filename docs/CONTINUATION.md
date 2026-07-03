@@ -157,9 +157,9 @@ Execute SQL files in `uniflow-app/supabase/` in Supabase Dashboard → SQL Edito
 3. `timetable_department_fk.sql`
 4. `profiles_rls_fix.sql`
 5. **`class_updates_migration.sql`** ← ensures timetable_id + other columns exist (fixes 42703 errors)
-6. `mobile_read_rls.sql`
+6. `mobile_read_rls.sql`  (re-run to fix recursion in lecturer_courses policies)
 7. **`course_offerings_migration.sql`** ← new
-8. **`course_offerings_rls.sql`** ← new (re-run after class_updates if you added student report policies)
+8. **`course_offerings_rls.sql`** / `course_offerings_rls_clean.sql`  (re-run; includes safe lecturer_courses policies)
 
 **Redirect URLs** (Authentication → URL Configuration):
 

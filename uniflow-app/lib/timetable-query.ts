@@ -18,10 +18,10 @@ export async function fetchTimetableSlots(params: {
     .order("day_of_week")
     .order("start_time");
 
-  if (params.lecturerId) {
-    query = query.eq("lecturer_id", params.lecturerId);
-  } else if (params.offeringIds && params.offeringIds.length > 0) {
+  if (params.offeringIds && params.offeringIds.length > 0) {
     query = query.in("course_offering_id", params.offeringIds);
+  } else if (params.lecturerId) {
+    query = query.eq("lecturer_id", params.lecturerId);
   } else if (params.courseIds && params.courseIds.length > 0) {
     query = query.in("course_id", params.courseIds);
   } else {
@@ -30,5 +30,16 @@ export async function fetchTimetableSlots(params: {
 
   const { data, error } = await query;
   if (error) throw error;
+  console.log('[fetchTimetableSlots] returned', (data ?? []).length, 'slots for params:', params);
+
+  if ((data ?? []).length === 0 && params.lecturerId) {
+    const { data: allTimetable } = await supabase
+      .from("timetable")
+      .select("id, academic_session, semester, is_active, lecturer_id")
+      .eq("lecturer_id", params.lecturerId)
+      .eq("is_active", true);
+    console.log('[fetchTimetableSlots] NO TIMETABLE SLOTS FOR CURRENT SESSION. All active timetable for lecturer:', allTimetable);
+  }
+
   return (data ?? []) as TimetableSlot[];
 }

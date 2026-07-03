@@ -235,8 +235,10 @@ export default function LecturerCourses() {
     if (!profile) return;
     try {
       const { courseIds, offeringIds } = await refreshCourseIds(true);
+      console.log('[LecturerCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
       if (courseIds.length === 0) {
+        console.log('[LecturerCourses] no courseIds, skipping courses query');
         setCourses([]);
         return;
       }
@@ -266,6 +268,11 @@ export default function LecturerCourses() {
 
       const courseData = courseRes.data;
       const enrollmentCounts = countByCourseId(enrollmentsRes.data ?? []);
+      console.log('[LecturerCourses] courseData length:', courseData?.length, 'slots length:', slots?.length, 'enrollmentsRes:', enrollmentsRes.data?.length);
+
+      if (courseData && courseData.length === 0) {
+        console.log('[LecturerCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
+      }
 
       if (!courseData) return;
 
@@ -279,6 +286,7 @@ export default function LecturerCourses() {
           studentCount: enrollmentCounts[course.id] ?? 0,
         };
       });
+      console.log('[LecturerCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
 
       setCourses(enriched);
     } catch (e) {
@@ -305,10 +313,12 @@ export default function LecturerCourses() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
+  console.log('[LecturerCourses] render courses.length:', courses.length);
   if (isLoading) return <CoursesSkeleton />;
 
   // ── Render ────────────────────────────────────────────────────────────
 
+  console.log('[LecturerCourses] about to render, courses:', courses.length);
   const renderHeader = () => (
     <>
       {/* Header */}

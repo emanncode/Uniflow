@@ -114,12 +114,7 @@ CREATE POLICY "Lecturers read enrollments for assigned courses"
   ON enrollments FOR SELECT TO authenticated
   USING (
     check_lecturer_offering(course_offering_id, course_id)
-    OR EXISTS (
-      SELECT 1 FROM lecturer_courses lc
-      WHERE lc.lecturer_id = auth.uid()
-        AND lc.is_active = true
-        AND lc.course_id = enrollments.course_id
-    )
+    OR course_id IN (SELECT auth_lecturer_course_ids())
   );
 
 -- ── class_updates: allow students to report status on their enrolled slots ──
@@ -143,3 +138,45 @@ CREATE POLICY "Students can update their own class_updates"
   ON class_updates FOR UPDATE TO authenticated
   USING (reported_by = auth.uid())
   WITH CHECK (reported_by = auth.uid());
+
+-- ── Fix lecturer_courses student policy (prevent 42P17 recursion) ────────────
+-- The legacy student policy on lecturer_courses often created cycles with
+-- the enrollments policies. Use a SECURITY DEFINER helper (add if missing).
+
+CREATE OR REPLACE FUNCTION public.auth_student_enrolled_course_ids()
+RETURNS SETOF uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT course_id FROM enrollments
+  WHERE student_id = auth.uid()
+    AND is_active = true;
+$$;
+
+REVOKE ALL ON FUNCTION public.auth_student_enrolled_course_ids() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.auth_student_enrolled_course_ids() FROM anon;
+GRANT EXECUTE ON FUNCTION public.auth_student_enrolled_course_ids() TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.auth_lecturer_course_ids()
+RETURNS SETOF uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT course_id FROM lecturer_courses
+  WHERE lecturer_id = auth.uid()
+    AND is_active = true;
+$$;
+
+REVOKE ALL ON FUNCTION public.auth_lecturer_course_ids() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.auth_lecturer_course_ids() FROM anon;
+GRANT EXECUTE ON FUNCTION public.auth_lecturer_course_ids() TO authenticated;
+
+DROP POLICY IF EXISTS "Students read lecturer_courses for enrolled courses" ON lecturer_courses;
+
+CREATE POLICY "Students read lecturer_courses for enrolled courses"
+  ON lecturer_courses FOR SELECT TO authenticated
+  USING (course_id IN (SELECT auth_student_enrolled_course_ids()));

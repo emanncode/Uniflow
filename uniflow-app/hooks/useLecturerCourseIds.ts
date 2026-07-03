@@ -35,12 +35,26 @@ async function loadFromOfferings(
     .eq("academic_session", academic_session)
     .eq("semester", semester);
 
+  console.log('[loadFromOfferings] raw data length:', (data ?? []).length, 'for lecturer', lecturerId, 'session:', academic_session, semester);
+
   if (error) throw error;
 
-  return {
+  let context = {
     courseIds: [...new Set((data ?? []).map((r) => r.course_id))],
     offeringIds: (data ?? []).map((r) => r.id),
   };
+
+  // Debug: if empty, check if any data exists ignoring session
+  if (context.courseIds.length === 0) {
+    const { data: allData } = await supabase
+      .from("course_offerings")
+      .select("id, course_id, academic_session, semester")
+      .eq("lecturer_id", lecturerId)
+      .eq("is_active", true);
+    console.log('[loadFromOfferings] NO DATA FOR CURRENT SESSION. All offerings for lecturer (ignoring session):', allData);
+  }
+
+  return context;
 }
 
 async function loadFromLegacy(
@@ -56,7 +70,19 @@ async function loadFromLegacy(
     .eq("academic_session", academic_session)
     .eq("semester", semester);
 
+  console.log('[loadFromLegacy] raw data length:', (data ?? []).length, 'for lecturer', lecturerId, 'session:', academic_session, semester);
+
   if (error) throw error;
+
+  // Debug if empty
+  if ((data ?? []).length === 0) {
+    const { data: allLegacy } = await supabase
+      .from("lecturer_courses")
+      .select("course_id, academic_session, semester")
+      .eq("lecturer_id", lecturerId)
+      .eq("is_active", true);
+    console.log('[loadFromLegacy] NO LEGACY FOR SESSION. All legacy for lecturer:', allLegacy);
+  }
 
   const courseIds = (data ?? []).map((row) => row.course_id);
   return { courseIds, offeringIds: [] };
@@ -137,6 +163,7 @@ export function useLecturerCourseIds() {
         return { courseIds: [], offeringIds: [] };
       }
       const next = await fetchLecturerTeachingContext(lecturerId, force);
+      console.log('[useLecturerCourseIds] refreshed context:', next, 'for lecturer', lecturerId);
       setContext(next);
       return next;
     },

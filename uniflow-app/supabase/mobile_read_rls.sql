@@ -3,6 +3,42 @@
 -- IMPORTANT: Run `class_updates_migration.sql` first if you get "column class_updates.timetable_id does not exist".
 -- Web admin writes via university_admin session or service role; the app reads with lecturer/student JWT.
 
+-- ── SECURITY DEFINER helpers to prevent RLS recursion (42P17) ─────────────────
+-- These are used to safely check enrollments without triggering policy cycles
+-- between enrollments <-> lecturer_courses <-> etc.
+
+CREATE OR REPLACE FUNCTION public.auth_student_enrolled_course_ids()
+RETURNS SETOF uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT course_id FROM enrollments
+  WHERE student_id = auth.uid()
+    AND is_active = true;
+$$;
+
+REVOKE ALL ON FUNCTION public.auth_student_enrolled_course_ids() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.auth_student_enrolled_course_ids() FROM anon;
+GRANT EXECUTE ON FUNCTION public.auth_student_enrolled_course_ids() TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.auth_lecturer_course_ids()
+RETURNS SETOF uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT course_id FROM lecturer_courses
+  WHERE lecturer_id = auth.uid()
+    AND is_active = true;
+$$;
+
+REVOKE ALL ON FUNCTION public.auth_lecturer_course_ids() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.auth_lecturer_course_ids() FROM anon;
+GRANT EXECUTE ON FUNCTION public.auth_lecturer_course_ids() TO authenticated;
+
 -- ── lecturer_courses ─────────────────────────────────────────────────────────
 
 DROP POLICY IF EXISTS "Lecturers read own lecturer_courses" ON lecturer_courses;
@@ -12,16 +48,10 @@ CREATE POLICY "Lecturers read own lecturer_courses"
   ON lecturer_courses FOR SELECT TO authenticated
   USING (lecturer_id = auth.uid());
 
+-- Use helper (SECURITY DEFINER) to avoid recursion with enrollments policies
 CREATE POLICY "Students read lecturer_courses for enrolled courses"
   ON lecturer_courses FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM enrollments e
-      WHERE e.course_id = lecturer_courses.course_id
-        AND e.student_id = auth.uid()
-        AND e.is_active = true
-    )
-  );
+  USING (course_id IN (SELECT auth_student_enrolled_course_ids()));
 
 -- ── timetable ────────────────────────────────────────────────────────────────
 
@@ -32,16 +62,10 @@ CREATE POLICY "Lecturers read own timetable"
   ON timetable FOR SELECT TO authenticated
   USING (lecturer_id = auth.uid());
 
+-- Use helper (SECURITY DEFINER) to avoid recursion with enrollments/lecturer_courses
 CREATE POLICY "Students read timetable for enrolled courses"
   ON timetable FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM enrollments e
-      WHERE e.course_id = timetable.course_id
-        AND e.student_id = auth.uid()
-        AND e.is_active = true
-    )
-  );
+  USING (course_id IN (SELECT auth_student_enrolled_course_ids()));
 
 -- ── enrollments ──────────────────────────────────────────────────────────────
 
@@ -55,16 +79,10 @@ CREATE POLICY "Students read own enrollments"
   ON enrollments FOR SELECT TO authenticated
   USING (student_id = auth.uid());
 
+-- Use helper (SECURITY DEFINER) to avoid triggering RLS on lecturer_courses
 CREATE POLICY "Lecturers read enrollments for assigned courses"
   ON enrollments FOR SELECT TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM lecturer_courses lc
-      WHERE lc.course_id = enrollments.course_id
-        AND lc.lecturer_id = auth.uid()
-        AND lc.is_active = true
-    )
-  );
+  USING (course_id IN (SELECT auth_lecturer_course_ids()));
 
 CREATE POLICY "University admins manage enrollments"
   ON enrollments FOR ALL TO authenticated

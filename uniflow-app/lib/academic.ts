@@ -14,8 +14,10 @@ export function getCurrentSemester(date = new Date()): 1 | 2 {
 }
 
 export function getAcademicContext(date = new Date()) {
-  return {
+  const ctx = {
     academic_session: getCurrentAcademicSession(date),
     semester: getCurrentSemester(date),
   };
+  console.log('[getAcademicContext]', ctx);
+  return ctx;
 }

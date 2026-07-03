@@ -227,8 +227,10 @@ export default function StudentCourses() {
     if (!profile) return;
     try {
       const { courseIds, offeringIds } = await refreshEnrollments(true);
+      console.log('[StudentCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
       if (courseIds.length === 0) {
+        console.log('[StudentCourses] no courseIds, skipping courses query');
         setCourses([]);
         return;
       }
@@ -258,6 +260,11 @@ export default function StudentCourses() {
 
       const courseData = courseRes.data;
       const lecturerAssignments = lecturerRes.data;
+      console.log('[StudentCourses] courseData length:', courseData?.length, 'slots:', slots?.length, 'lecturerAssignments:', lecturerAssignments?.length);
+
+      if (courseData && courseData.length === 0) {
+        console.log('[StudentCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
+      }
 
       if (!courseData) return;
 
@@ -291,6 +298,7 @@ export default function StudentCourses() {
         ];
         return { ...course, slots: courseSlots, lecturerNames };
       });
+      console.log('[StudentCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
 
       setCourses(enriched);
     } catch (e) {
@@ -315,10 +323,12 @@ export default function StudentCourses() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
+  console.log('[StudentCourses] render courses.length:', courses.length);
   if (isLoading) return <CoursesSkeleton />;
 
   // ── Render ────────────────────────────────────────────────────────────
 
+  console.log('[StudentCourses] about to render, courses:', courses.length);
   const totalUnits = courses.reduce((sum, c) => sum + c.credit_units, 0);
   const totalSlots = courses.reduce((sum, c) => sum + c.slots.length, 0);
 
@@ -364,6 +374,7 @@ export default function StudentCourses() {
     </View>
   );
 
+  console.log('[StudentCourses] FlatList data:', courses.length);
   return (
     <View style={styles.root}>
       <FlatList

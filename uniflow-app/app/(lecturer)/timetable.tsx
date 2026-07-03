@@ -21,6 +21,7 @@ import {
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import { Theme } from "@/constants/Theme";
 import { CustomModal } from "@/components/CustomModal";
 import { ConfirmationModal } from "@/components/ConfirmationModal";
@@ -289,6 +290,8 @@ export default function LecturerTimetable() {
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
 
+  const { refresh: refreshLecturerContext } = useLecturerCourseIds();
+
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>(TODAY_KEY);
   const [allSlots, setAllSlots] = useState<TimetableSlot[]>([]);
   const [updates, setUpdates] = useState<Record<string, ClassUpdate>>({});
@@ -306,9 +309,11 @@ export default function LecturerTimetable() {
   const fetchData = useCallback(async () => {
     if (!profile) return;
     try {
+      const { offeringIds } = await refreshLecturerContext(true);
       const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const loadedSlots = await fetchTimetableSlots({
         lecturerId: profile.id,
+        offeringIds,
       });
       setAllSlots(loadedSlots);
 
