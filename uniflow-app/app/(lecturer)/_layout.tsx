@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     borderTopColor: C.borderPrimary,
     height: Platform.OS === "ios" ? 88 : 68,
     paddingBottom: Platform.OS === "ios" ? 24 : 10,
-    paddingTop: 8,
+    paddingTop: 16,
     elevation: 0,
     shadowOpacity: 0,
   },
