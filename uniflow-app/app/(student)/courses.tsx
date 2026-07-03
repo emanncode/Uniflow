@@ -253,7 +253,7 @@ export default function StudentCourses() {
               .eq("is_active", true)
           : supabase
               .from("lecturer_courses")
-              .select("course_id, profiles(full_name)")
+              .select("course_id, profiles:lecturer_id(full_name)")
               .in("course_id", courseIds)
               .eq("is_active", true),
       ]);

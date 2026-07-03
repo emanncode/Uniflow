@@ -51,9 +51,10 @@ const DAYS: { key: DayOfWeek; label: string; short: string }[] = [
   { key: "saturday", label: "Saturday", short: "Sat" },
 ];
 
-const TODAY_KEY = new Date()
-  .toLocaleDateString("en-US", { weekday: "long" })
-  .toLowerCase() as DayOfWeek;
+const getTodayKey = (): DayOfWeek =>
+  new Date()
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase() as DayOfWeek;
 
 const STATUS_ACTIONS: {
   status: ClassStatus;
@@ -328,7 +329,7 @@ export default function StudentTimetable() {
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
 
-  const [selectedDay, setSelectedDay] = useState<DayOfWeek>(TODAY_KEY);
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek>(() => getTodayKey());
   const [allSlots, setAllSlots] = useState<TimetableSlot[]>([]);
   const [updates, setUpdates] = useState<Record<string, ClassUpdate>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -519,8 +520,10 @@ export default function StudentTimetable() {
 
         setSheetVisible(false);
         setActiveSlot(null);
-      } catch {
-        setError("Could not submit report. Please try again.");
+      } catch (err: any) {
+        console.error("Class status report error:", err);
+        const msg = err?.message || err?.details || "Could not submit report. Please try again.";
+        setError(msg);
       } finally {
         setIsSubmitting(false);
       }
@@ -557,7 +560,7 @@ export default function StudentTimetable() {
       >
         {DAYS.map((day) => {
           const isSelected = selectedDay === day.key;
-          const isToday = day.key === TODAY_KEY;
+          const isToday = day.key === getTodayKey();
           const count = allSlots.filter(
             (s) => s.day_of_week === day.key,
           ).length;
@@ -608,7 +611,7 @@ export default function StudentTimetable() {
           <Text style={styles.dayLabel}>
             {DAYS.find((d) => d.key === selectedDay)?.label}
           </Text>
-          {selectedDay === TODAY_KEY && (
+          {selectedDay === getTodayKey() && (
             <View style={styles.todayTag}>
               <Text style={styles.todayTagText}>Today</Text>
             </View>
@@ -626,7 +629,7 @@ export default function StudentTimetable() {
               key={slot.id}
               slot={slot}
               update={updates[slot.id]}
-              isToday={selectedDay === TODAY_KEY}
+              isToday={selectedDay === getTodayKey()}
               onReport={handleReportStatus}
               onUpvote={handleUpvote}
             />

@@ -88,6 +88,40 @@ async function loadFromLegacy(
   return { courseIds, offeringIds: [] };
 }
 
+async function loadFromTimetable(
+  lecturerId: string,
+): Promise<LecturerTeachingContext> {
+  const { academic_session, semester } = getAcademicContext();
+
+  const { data, error } = await supabase
+    .from("timetable")
+    .select("course_id, course_offering_id")
+    .eq("lecturer_id", lecturerId)
+    .eq("is_active", true)
+    .eq("academic_session", academic_session)
+    .eq("semester", semester);
+
+  console.log('[loadFromTimetable] raw data length:', (data ?? []).length, 'for lecturer', lecturerId, 'session:', academic_session, semester);
+
+  if (error) throw error;
+
+  if ((data ?? []).length === 0) {
+    const { data: allTt } = await supabase
+      .from("timetable")
+      .select("course_id, academic_session, semester, course_offering_id")
+      .eq("lecturer_id", lecturerId)
+      .eq("is_active", true);
+    console.log('[loadFromTimetable] NO TIMETABLE FOR SESSION. All active timetable for lecturer:', allTt);
+  }
+
+  const courseIds = [...new Set((data ?? []).map((r) => r.course_id).filter(Boolean))];
+  const offeringIds = [...new Set(
+    (data ?? []).map((r) => r.course_offering_id).filter((id): id is string => Boolean(id))
+  )];
+
+  return { courseIds, offeringIds };
+}
+
 export async function fetchLecturerTeachingContext(
   lecturerId: string,
   force = false,
@@ -111,8 +145,32 @@ export async function fetchLecturerTeachingContext(
       if (next.courseIds.length === 0) {
         next = await loadFromLegacy(lecturerId);
       }
+      if (next.courseIds.length === 0) {
+        next = await loadFromTimetable(lecturerId);
+      }
     } catch {
-      next = await loadFromLegacy(lecturerId);
+      // Try legacy then timetable as last resort
+      try {
+        next = await loadFromLegacy(lecturerId);
+      } catch {
+        next = await loadFromTimetable(lecturerId);
+      }
+    }
+
+    if (next.courseIds.length === 0) {
+      // Last-ditch: any timetable for this lecturer (ignore session)
+      const { data: anyTt } = await supabase
+        .from("timetable")
+        .select("course_id, course_offering_id")
+        .eq("lecturer_id", lecturerId)
+        .eq("is_active", true);
+      next = {
+        courseIds: [...new Set((anyTt ?? []).map((r: any) => r.course_id).filter(Boolean))],
+        offeringIds: [...new Set((anyTt ?? []).map((r: any) => r.course_offering_id).filter(Boolean))],
+      };
+      if (next.courseIds.length > 0) {
+        console.warn('[fetchLecturerTeachingContext] Using any-session timetable fallback for course list');
+      }
     }
 
     cachedLecturerId = lecturerId;

@@ -41,9 +41,11 @@ const R = Theme.radius;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-const TODAY_NAME = new Date()
-  .toLocaleDateString("en-US", { weekday: "long" })
-  .toLowerCase();
+function getTodayName(): string {
+  return new Date()
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
+}
 
 const TODAY_LABEL = new Date().toLocaleDateString("en-US", {
   weekday: "long",
@@ -237,9 +239,10 @@ export default function StudentDashboard() {
         return;
       }
 
-      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME);
+      const todayName = getTodayName();
+      const today = allSlots.filter((s) => s.day_of_week === todayName);
       const upcoming = allSlots
-        .filter((s) => s.day_of_week !== TODAY_NAME)
+        .filter((s) => s.day_of_week !== todayName)
         .sort(
           (a, b) =>
             DAY_ORDER[a.day_of_week as DayOfWeek] -

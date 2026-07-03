@@ -39,9 +39,11 @@ const R = Theme.radius;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-const TODAY_NAME = new Date()
-  .toLocaleDateString("en-US", { weekday: "long" })
-  .toLowerCase();
+function getTodayName(): string {
+  return new Date()
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
+}
 
 const TODAY_LABEL = new Date().toLocaleDateString("en-US", {
   weekday: "long",
@@ -178,7 +180,12 @@ export default function LecturerDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
-  console.log('[LecturerHome] profile:', profile ? {id: profile.id, uni: profile.university_id, role: profile.role} : null);
+  console.log(
+    "[LecturerHome] profile:",
+    profile
+      ? { id: profile.id, uni: profile.university_id, role: profile.role }
+      : null,
+  );
 
   const { refresh: refreshLecturerContext } = useLecturerCourseIds();
 
@@ -203,7 +210,12 @@ export default function LecturerDashboard() {
         lecturerId: profile.id,
         offeringIds,
       });
-      console.log('[LecturerHome] fetched allSlots length:', allSlots.length, 'first:', allSlots[0]);
+      console.log(
+        "[LecturerHome] fetched allSlots length:",
+        allSlots.length,
+        "first:",
+        allSlots[0],
+      );
 
       if (!allSlots.length) {
         setTodaySlots([]);
@@ -213,9 +225,10 @@ export default function LecturerDashboard() {
         return;
       }
 
-      const today = allSlots.filter((s) => s.day_of_week === TODAY_NAME);
+      const todayName = getTodayName();
+      const today = allSlots.filter((s) => s.day_of_week === todayName);
       const upcoming = allSlots
-        .filter((s) => s.day_of_week !== TODAY_NAME)
+        .filter((s) => s.day_of_week !== todayName)
         .sort(
           (a, b) =>
             DAY_ORDER[a.day_of_week as DayOfWeek] -
@@ -322,7 +335,16 @@ export default function LecturerDashboard() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  console.log('[LecturerHome] render todaySlots:', todaySlots.length, 'upcoming:', upcomingSlots.length, 'totalCourses:', totalCourses, 'todaySlots[0]:', todaySlots[0]);
+  console.log(
+    "[LecturerHome] render todaySlots:",
+    todaySlots.length,
+    "upcoming:",
+    upcomingSlots.length,
+    "totalCourses:",
+    totalCourses,
+    "todaySlots[0]:",
+    todaySlots[0],
+  );
   if (isLoading) return <DashboardSkeleton />;
 
   const firstName = profile?.full_name ?? "Lecturer";
