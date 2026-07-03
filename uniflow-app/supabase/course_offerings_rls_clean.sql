@@ -58,6 +58,45 @@ AS $$
   );
 $$;
 
+-- ── RPC for safe community upvoting of class status reports (bypasses strict "own reporter" update RLS) ──
+-- Any student enrolled in the slot (per check_student_enrolled_by_course) can increment the counter.
+CREATE OR REPLACE FUNCTION public.upvote_class_update(p_update_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_timetable_id uuid;
+BEGIN
+  SELECT timetable_id INTO v_timetable_id
+  FROM class_updates
+  WHERE id = p_update_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'class_update not found';
+  END IF;
+
+  -- Authorization: must be enrolled for that timetable slot (same logic as insert/report)
+  IF NOT EXISTS (
+    SELECT 1
+    FROM timetable t
+    WHERE t.id = v_timetable_id
+      AND check_student_enrolled_by_course(t.course_id, t.course_offering_id)
+  ) THEN
+    RAISE EXCEPTION 'Not authorized to upvote this class update';
+  END IF;
+
+  UPDATE class_updates
+  SET upvotes = upvotes + 1
+  WHERE id = p_update_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.upvote_class_update(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.upvote_class_update(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.upvote_class_update(uuid) TO authenticated;
+
 -- ── course_offerings policies ──────────────────────────────────────────────────
 
 ALTER TABLE course_offerings ENABLE ROW LEVEL SECURITY;

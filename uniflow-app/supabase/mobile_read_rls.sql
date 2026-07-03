@@ -208,6 +208,47 @@ AS $$
   SELECT role FROM public.profiles WHERE id = auth.uid();
 $$;
 
+-- ── RPC for community "confirms" / upvotes on class_updates ──
+-- Allows any student who can see the slot (via the auth helper used by this file's timetable policy)
+-- to increment upvotes. Bypasses the "reported_by must match" update policy.
+CREATE OR REPLACE FUNCTION public.upvote_class_update(p_update_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_timetable_id uuid;
+  v_course_id uuid;
+BEGIN
+  SELECT timetable_id INTO v_timetable_id FROM class_updates WHERE id = p_update_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'class_update not found';
+  END IF;
+
+  SELECT course_id INTO v_course_id FROM timetable WHERE id = v_timetable_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'timetable slot not found';
+  END IF;
+
+  -- Authorization using course_id enrollment (consistent with mobile_read_rls student timetable policy)
+  IF NOT EXISTS (
+    SELECT 1 FROM enrollments e
+    WHERE e.student_id = auth.uid()
+      AND e.is_active = true
+      AND e.course_id = v_course_id
+  ) THEN
+    RAISE EXCEPTION 'Not authorized to upvote this class update';
+  END IF;
+
+  UPDATE class_updates SET upvotes = upvotes + 1 WHERE id = p_update_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.upvote_class_update(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.upvote_class_update(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.upvote_class_update(uuid) TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.auth_user_university_id()
 RETURNS uuid
 LANGUAGE sql

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   CalendarDays,
@@ -286,6 +286,15 @@ export default function StudentDashboard() {
     fetchData().finally(() => setIsLoading(false));
   }, [fetchData]);
 
+  // Refresh on focus so that "confirms" (upvotes) performed on the full schedule/timetable
+  // page are reflected here (and vice versa). Realtime helps for live, but focus covers
+  // navigation cases where one screen wasn't subscribed.
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await fetchData();
@@ -355,10 +364,9 @@ export default function StudentDashboard() {
       ...prev,
       [update.timetable_id]: { ...update, upvotes: newCount },
     }));
-    await supabase
-      .from("class_updates")
-      .update({ upvotes: newCount })
-      .eq("id", update.id);
+    // Use RPC so any enrolled student can "confirm" (upvote), not just the original reporter.
+    // The server-side function does the +1 after authorization.
+    await supabase.rpc("upvote_class_update", { p_update_id: update.id });
   }, []);
 
   console.log('[StudentHome] render todaySlots:', todaySlots.length, 'upcoming:', upcomingSlots.length, 'totalCourses:', totalCourses, 'todaySlots[0]:', todaySlots[0]);

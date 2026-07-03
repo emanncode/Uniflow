@@ -7,6 +7,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Clock,
@@ -388,6 +389,14 @@ export default function StudentTimetable() {
     fetchData().finally(() => setIsLoading(false));
   }, [fetchData]);
 
+  // Refresh on focus so confirms/upvotes done on the home dashboard are visible in the
+  // full schedule view (and realtime + focus together keep the two in sync).
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await fetchData();
@@ -458,10 +467,10 @@ export default function StudentTimetable() {
       [update.timetable_id]: { ...update, upvotes: newCount },
     }));
 
-    await supabase
-      .from("class_updates")
-      .update({ upvotes: newCount })
-      .eq("id", update.id);
+    // Use RPC so any enrolled student can "confirm" (upvote), not just the original reporter.
+    // The server-side function does the +1 after authorization. This also helps cross-page sync
+    // (home vs schedule) because the DB change triggers realtime for all subscribers.
+    await supabase.rpc("upvote_class_update", { p_update_id: update.id });
   }, []);
 
   const handleReportStatus = useCallback((slot: TimetableSlot) => {
