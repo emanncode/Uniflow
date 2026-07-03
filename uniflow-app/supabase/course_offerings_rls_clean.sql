@@ -1,7 +1,8 @@
 -- RLS for course_offerings + updated policies for offering-based reads.
 -- Run AFTER course_offerings_migration.sql
 -- Also ensure `class_updates_migration.sql` has been run (it adds the timetable_id column used in policies below).
--- Re-run this file if students get RLS errors (42501) when reporting class status.
+-- Re-run this file (and/or mobile_read_rls.sql) if students lose access to courses/timetable
+-- or get RLS errors (42501) when reporting/confirming class status.
 
 -- ── Helper: check if auth user is enrolled (bypasses RLS to avoid recursion) ──
 CREATE OR REPLACE FUNCTION public.check_student_enrolled(target_course_offering_id uuid)
@@ -15,6 +16,22 @@ AS $$
     WHERE e.course_offering_id = target_course_offering_id
       AND e.student_id = auth.uid()
       AND e.is_active = true
+  )
+  -- Fallback when no active enrollments: allow offerings whose course matches level+uni
+  OR (
+    target_course_offering_id IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM enrollments e2 WHERE e2.student_id = auth.uid() AND e2.is_active = true
+    )
+    AND EXISTS (
+      SELECT 1 FROM course_offerings co
+      JOIN courses c ON c.id = co.course_id
+      JOIN profiles p ON p.id = auth.uid()
+      WHERE co.id = target_course_offering_id
+        AND p.level IS NOT NULL
+        AND c.level = p.level
+        AND c.university_id = p.university_id
+    )
   );
 $$;
 
@@ -51,10 +68,25 @@ AS $$
         -- Match on offering if provided (for specific section)
         (target_course_offering_id IS NOT NULL AND e.course_offering_id = target_course_offering_id)
         -- Or always allow if course_id matches (handles legacy data, backfill mismatches,
-        -- or when timetable/enrollment use course-level linking). This makes student
-        -- status reporting work consistently with visible timetable slots.
+        -- or when timetable/enrollment use course-level linking).
         OR e.course_id = target_course_id
       )
+  )
+  -- Fallback (no active enrollments at all): allow level + uni matched courses
+  -- (keeps timetable visible for testing / incomplete enrollments, matches auth_* helpers)
+  OR (
+    NOT EXISTS (
+      SELECT 1 FROM enrollments e2
+      WHERE e2.student_id = auth.uid() AND e2.is_active = true
+    )
+    AND EXISTS (
+      SELECT 1 FROM courses c
+      JOIN profiles p ON p.id = auth.uid()
+      WHERE c.id = target_course_id
+        AND p.level IS NOT NULL
+        AND c.level = p.level
+        AND c.university_id = p.university_id
+    )
   );
 $$;
 
