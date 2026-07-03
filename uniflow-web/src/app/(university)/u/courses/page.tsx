@@ -388,9 +388,43 @@ export default function CoursesPage() {
         if (newSlotStart >= newSlotEnd) {
           throw new Error("End time must be after start time");
         }
+        const lecturerIdForSlot = newLecturerIds[0];
+        const slotSemester = parseInt(newSemester, 10) as 1 | 2;
+
+        // Create/find offering and link it
+        let offeringId: string | null = null;
+        const { data: existingOffering } = await supabase
+          .from("course_offerings")
+          .select("id")
+          .eq("course_id", courseId)
+          .eq("lecturer_id", lecturerIdForSlot)
+          .eq("academic_session", academicCtx.academic_session)
+          .eq("semester", slotSemester)
+          .maybeSingle();
+
+        if (existingOffering?.id) {
+          offeringId = existingOffering.id;
+        } else {
+          const { data: newOffering, error: offErr } = await supabase
+            .from("course_offerings")
+            .insert({
+              course_id: courseId,
+              lecturer_id: lecturerIdForSlot,
+              department_id: activeDept.id,
+              university_id: uniId,
+              academic_session: academicCtx.academic_session,
+              semester: slotSemester,
+              is_active: true,
+            })
+            .select("id")
+            .single();
+          if (!offErr && newOffering) offeringId = newOffering.id;
+        }
+
         const { error: slotError } = await supabase.from("timetable").insert({
           course_id: courseId,
-          lecturer_id: newLecturerIds[0],
+          lecturer_id: lecturerIdForSlot,
+          course_offering_id: offeringId,
           department_id: activeDept.id,
           university_id: uniId,
           venue: newSlotVenue.trim(),
@@ -398,7 +432,7 @@ export default function CoursesPage() {
           start_time: newSlotStart,
           end_time: newSlotEnd,
           academic_session: academicCtx.academic_session,
-          semester: parseInt(newSemester, 10),
+          semester: slotSemester,
           is_active: true,
         });
         if (slotError) throw new Error(slotError.message);

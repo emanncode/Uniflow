@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase-admin";
 import { canManageUniversity } from "@/lib/auth";
 import { getCurrentAcademicSession } from "@/lib/academic";
+import { upsertCourseOffering, syncLegacyLecturerCourse } from "@/lib/course-offerings-server";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -98,6 +99,36 @@ async function upsertAssignment(
     academicSession: string;
   },
 ) {
+  // Resolve department from the course (required for offerings)
+  const { data: course } = await supabase
+    .from("courses")
+    .select("department_id")
+    .eq("id", params.courseId)
+    .maybeSingle();
+
+  const deptId = course?.department_id || "";
+
+  // Keep course_offerings as source of truth for mobile
+  if (deptId) {
+    await upsertCourseOffering(supabase, {
+      course_id: params.courseId,
+      lecturer_id: params.lecturerId,
+      department_id: deptId,
+      university_id: params.universityId,
+      academic_session: params.academicSession,
+      semester: params.semester,
+    });
+  }
+
+  // Also keep legacy in sync
+  await syncLegacyLecturerCourse(supabase, {
+    course_id: params.courseId,
+    lecturer_id: params.lecturerId,
+    university_id: params.universityId,
+    academic_session: params.academicSession,
+    semester: params.semester,
+  });
+
   const { data: existing } = await supabase
     .from("lecturer_courses")
     .select("id")

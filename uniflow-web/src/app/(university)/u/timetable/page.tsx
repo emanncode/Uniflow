@@ -208,9 +208,42 @@ export default function TimetablePage() {
         throw new Error("Assign a lecturer to this course first");
       }
       const ctx = getAcademicContext();
+      const lecturerIdForSlot = course.assignedLecturers[0].id;
+
+      // Ensure a course_offering exists and link the timetable row to it (for mobile queries)
+      let offeringId: string | null = null;
+      const { data: existingOffering } = await supabase
+        .from("course_offerings")
+        .select("id")
+        .eq("course_id", courseId)
+        .eq("lecturer_id", lecturerIdForSlot)
+        .eq("academic_session", ctx.academic_session)
+        .eq("semester", course.semester)
+        .maybeSingle();
+
+      if (existingOffering?.id) {
+        offeringId = existingOffering.id;
+      } else {
+        const { data: newOffering, error: offErr } = await supabase
+          .from("course_offerings")
+          .insert({
+            course_id: courseId,
+            lecturer_id: lecturerIdForSlot,
+            department_id: deptId,
+            university_id: universityId,
+            academic_session: ctx.academic_session,
+            semester: course.semester,
+            is_active: true,
+          })
+          .select("id")
+          .single();
+        if (!offErr && newOffering) offeringId = newOffering.id;
+      }
+
       const { error: slotError } = await supabase.from("timetable").insert({
         course_id: courseId,
-        lecturer_id: course.assignedLecturers[0].id,
+        lecturer_id: lecturerIdForSlot,
+        course_offering_id: offeringId,
         department_id: deptId,
         university_id: universityId,
         venue: quickSlotVenue.trim(),
