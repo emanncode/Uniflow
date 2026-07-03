@@ -218,15 +218,10 @@ export default function StudentDashboard() {
       const { courseIds, offeringIds } = await refreshEnrollments(true);
       console.log('[StudentHome] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
-      if (courseIds.length === 0) {
-        setTodaySlots([]);
-        setUpcomingSlots([]);
-        setTotalCourses(0);
-        setTodayUpdates({});
-        return;
-      }
-
-      setTotalCourses(courseIds.length);
+      // Do not bail here even if courseIds is empty from enrollments.
+      // fetchTimetableSlots will query broadly and RLS (plus any level-based fallback policy) will limit results.
+      // This mirrors the lecturer fallback behavior so timetable can show when enrollments are missing or for different semester.
+      let effectiveTotal = courseIds.length;
 
       const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const allSlots = await fetchTimetableSlots({ offeringIds, courseIds });
@@ -236,8 +231,14 @@ export default function StudentDashboard() {
         setTodaySlots([]);
         setUpcomingSlots([]);
         setTodayUpdates({});
+        setTotalCourses(effectiveTotal);
         return;
       }
+
+      if (effectiveTotal === 0) {
+        effectiveTotal = new Set(allSlots.map((s) => s.course_id)).size;
+      }
+      setTotalCourses(effectiveTotal);
 
       const todayName = getTodayName();
       const today = allSlots.filter((s) => s.day_of_week === todayName);

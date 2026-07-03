@@ -199,7 +199,18 @@ export default function StudentResources() {
   const fetchData = useCallback(async () => {
     if (!profile) return
     try {
-      const { courseIds } = await refreshEnrollments(true)
+      let { courseIds } = await refreshEnrollments(true)
+
+      if (courseIds.length === 0 && profile?.level != null && profile?.university_id) {
+        // Fallback to level-based courses so resources can still be discovered
+        const { data: levelCourses } = await supabase
+          .from('courses')
+          .select('id')
+          .eq('university_id', profile.university_id)
+          .eq('level', profile.level)
+          .eq('is_active', true)
+        courseIds = (levelCourses || []).map((c: any) => c.id)
+      }
 
       if (courseIds.length === 0) {
         setResources([])

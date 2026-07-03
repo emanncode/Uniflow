@@ -229,7 +229,26 @@ export default function StudentCourses() {
       const { courseIds, offeringIds } = await refreshEnrollments(true);
       console.log('[StudentCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
-      if (courseIds.length === 0) {
+      let effectiveCourseIds = courseIds;
+      let effectiveOfferingIds = offeringIds;
+
+      if (effectiveCourseIds.length === 0 && profile?.level != null && profile?.university_id) {
+        // Fallback: load courses by student's level and university (for testing / when no enrollments)
+        console.log('[StudentCourses] no enrollments, falling back to courses by level', profile.level);
+        const { data: levelCourses } = await supabase
+          .from("courses")
+          .select("*")
+          .eq("university_id", profile.university_id)
+          .eq("level", profile.level)
+          .eq("is_active", true)
+          .order("code");
+        if (levelCourses && levelCourses.length > 0) {
+          effectiveCourseIds = levelCourses.map((c: any) => c.id);
+          // offerings may be empty, will use legacy for names
+        }
+      }
+
+      if (effectiveCourseIds.length === 0) {
         console.log('[StudentCourses] no courseIds, skipping courses query');
         setCourses([]);
         return;
@@ -241,20 +260,20 @@ export default function StudentCourses() {
         supabase
           .from("courses")
           .select("*")
-          .in("id", courseIds)
+          .in("id", effectiveCourseIds)
           .eq("is_active", true)
           .order("code"),
-        fetchTimetableSlots({ offeringIds, courseIds }),
-        offeringIds.length > 0
+        fetchTimetableSlots({ offeringIds: effectiveOfferingIds, courseIds: effectiveCourseIds }),
+        effectiveOfferingIds.length > 0
           ? supabase
               .from("course_offerings")
               .select("course_id, profiles:lecturer_id(full_name)")
-              .in("id", offeringIds)
+              .in("id", effectiveOfferingIds)
               .eq("is_active", true)
           : supabase
               .from("lecturer_courses")
               .select("course_id, profiles:lecturer_id(full_name)")
-              .in("course_id", courseIds)
+              .in("course_id", effectiveCourseIds)
               .eq("is_active", true),
       ]);
 

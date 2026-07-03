@@ -350,12 +350,8 @@ export default function StudentTimetable() {
     try {
       const { courseIds, offeringIds } = await refreshEnrollments(true);
 
-      if (courseIds.length === 0) {
-        setAllSlots([]);
-        setUpdates({});
-        return;
-      }
-
+      // Do not bail on empty courseIds. Broad query + RLS will return allowed rows
+      // (enrolled or level-matched via updated policy). Matches lecturer fallback behavior.
       const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const loadedSlots = await fetchTimetableSlots({ offeringIds, courseIds });
       setAllSlots(loadedSlots);
