@@ -127,3 +127,5 @@ Server libs:
 - Remove `syncLegacyLecturerCourse()` from import API
 
 See `docs/CONTINUATION.md` for full handoff checklist.
+
+**Related:** `docs/timetable-courses-resources-fixes.md` — details the mobile consumption bugs and resource upload fixes discovered after the redesign shipped.

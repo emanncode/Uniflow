@@ -287,6 +287,8 @@ cd uniflow-app && npx expo export --platform android  # optional
 5. Update `docs/uniflow-workflow.md` courses section.
 6. Phase 2 cleanup: remove `lecturer_courses` dependencies.
 
+**Note:** After the initial course offering work, significant mobile-side hardening was required for timetable, courses, dashboards and resource uploads to actually function. See `docs/timetable-courses-resources-fixes.md`.
+
 ---
 
 ## 11. Prompt to give another AI
