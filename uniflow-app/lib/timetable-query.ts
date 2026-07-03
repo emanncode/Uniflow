@@ -14,7 +14,9 @@ export async function fetchTimetableSlots(params: {
   // course_offering_id may be null for manually-created or legacy slots.
   let query = supabase
     .from("timetable")
-    .select("*, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)")
+    .select(
+      "*, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)",
+    )
     .eq("is_active", true)
     .eq("academic_session", academic_session)
     .eq("semester", semester)
@@ -29,13 +31,18 @@ export async function fetchTimetableSlots(params: {
     query = query.in("course_id", params.courseIds);
   } else if (params.offeringIds && params.offeringIds.length > 0) {
     query = query.in("course_offering_id", params.offeringIds);
-  } else {
-    return [];
   }
+  // If none of the above, we query with only academic + is_active filters.
+  // RLS policies are expected to further restrict results (e.g. students only see enrolled or level-matched courses).
 
   const { data, error } = await query;
   if (error) throw error;
-  console.log('[fetchTimetableSlots] returned', (data ?? []).length, 'slots for params:', params);
+  console.log(
+    "[fetchTimetableSlots] returned",
+    (data ?? []).length,
+    "slots for params:",
+    params,
+  );
 
   let result = (data ?? []) as TimetableSlot[];
 
@@ -47,7 +54,9 @@ export async function fetchTimetableSlots(params: {
     // (common during dev when data was created for the other semester in the session)
     let fallbackQuery = supabase
       .from("timetable")
-      .select("*, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)")
+      .select(
+        "*, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)",
+      )
       .eq("is_active", true)
       .eq("academic_session", academic_session)
       .order("day_of_week")
@@ -58,7 +67,10 @@ export async function fetchTimetableSlots(params: {
     } else if (params.courseIds && params.courseIds.length > 0) {
       fallbackQuery = fallbackQuery.in("course_id", params.courseIds);
     } else if (params.offeringIds && params.offeringIds.length > 0) {
-      fallbackQuery = fallbackQuery.in("course_offering_id", params.offeringIds);
+      fallbackQuery = fallbackQuery.in(
+        "course_offering_id",
+        params.offeringIds,
+      );
     }
 
     const { data: fallbackData } = await fallbackQuery;
@@ -66,9 +78,11 @@ export async function fetchTimetableSlots(params: {
 
     if (fallback.length > 0) {
       console.warn(
-        '[fetchTimetableSlots] 0 results for current session/semester',
+        "[fetchTimetableSlots] 0 results for current session/semester",
         { academic_session, semester },
-        '— falling back to', fallback.length, 'slots (relaxed semester filter)'
+        "— falling back to",
+        fallback.length,
+        "slots (relaxed semester filter)",
       );
       result = fallback;
     }
@@ -77,10 +91,15 @@ export async function fetchTimetableSlots(params: {
     if (params.lecturerId) {
       const { data: allTimetable } = await supabase
         .from("timetable")
-        .select("id, academic_session, semester, is_active, lecturer_id, course_offering_id")
+        .select(
+          "id, academic_session, semester, is_active, lecturer_id, course_offering_id",
+        )
         .eq("lecturer_id", params.lecturerId)
         .eq("is_active", true);
-      console.log('[fetchTimetableSlots] DEBUG all active timetable for lecturer (any session):', allTimetable);
+      console.log(
+        "[fetchTimetableSlots] DEBUG all active timetable for lecturer (any session):",
+        allTimetable,
+      );
     }
   }
 

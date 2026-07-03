@@ -41,7 +41,7 @@ export async function fetchStudentEnrollmentContext(
   inflight = (async () => {
     const { academic_session, semester } = getAcademicContext();
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("enrollments")
       .select("course_id, course_offering_id")
       .eq("student_id", studentId)
@@ -53,14 +53,40 @@ export async function fetchStudentEnrollmentContext(
 
     if (error) throw error;
 
-    // Debug: if empty, check ignoring session
+    let usedFallback = false;
+
+    // Debug + fallback: if no enrollments for current session/semester, try broader
+    // (helps when enrollments were created for the other semester in the same academic year)
     if ((data ?? []).length === 0) {
-      const { data: allEnr } = await supabase
+      // Try same session but any semester first (most common mismatch)
+      let { data: fallbackEnr } = await supabase
         .from("enrollments")
         .select("course_id, course_offering_id, academic_session, semester, is_active")
         .eq("student_id", studentId)
-        .eq("is_active", true);
-      console.log('[fetchStudentEnrollmentContext] NO ENROLLMENTS FOR CURRENT SESSION. All active for student (ignoring session):', allEnr);
+        .eq("is_active", true)
+        .eq("academic_session", academic_session);
+
+      if ((fallbackEnr ?? []).length === 0) {
+        // Last resort: any enrollments
+        const { data: allEnr } = await supabase
+          .from("enrollments")
+          .select("course_id, course_offering_id, academic_session, semester, is_active")
+          .eq("student_id", studentId)
+          .eq("is_active", true);
+        fallbackEnr = allEnr;
+      }
+
+      console.log('[fetchStudentEnrollmentContext] NO ENROLLMENTS FOR CURRENT SESSION. Fallback enrollments:', fallbackEnr);
+
+      if ((fallbackEnr ?? []).length > 0) {
+        console.warn(
+          '[fetchStudentEnrollmentContext] 0 enrollments for current session/semester',
+          { academic_session, semester },
+          '— falling back to', fallbackEnr.length, 'enrollments (relaxed semester)'
+        );
+        data = fallbackEnr;
+        usedFallback = true;
+      }
     }
 
     const courseIds = [
@@ -73,6 +99,10 @@ export async function fetchStudentEnrollmentContext(
           .filter((id): id is string => Boolean(id)),
       ),
     ];
+
+    if (usedFallback && courseIds.length > 0) {
+      console.warn('[fetchStudentEnrollmentContext] using fallback enrollments for context (different semester data may be shown)');
+    }
 
     cachedStudentId = studentId;
     cachedContext = { courseIds, offeringIds };
