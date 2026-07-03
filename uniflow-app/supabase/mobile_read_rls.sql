@@ -14,9 +14,21 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
+  -- Primary: enrolled courses
   SELECT course_id FROM enrollments
   WHERE student_id = auth.uid()
-    AND is_active = true;
+    AND is_active = true
+  UNION
+  -- Fallback (no enrollments at all): courses matching the student's level + university
+  -- This allows timetable to be visible for testing / when enrollments not yet created for the session
+  SELECT c.id FROM courses c
+  JOIN profiles p ON p.id = auth.uid()
+  WHERE p.level IS NOT NULL
+    AND c.level = p.level
+    AND c.university_id = p.university_id
+    AND NOT EXISTS (
+      SELECT 1 FROM enrollments e WHERE e.student_id = auth.uid() AND e.is_active = true
+    );
 $$;
 
 REVOKE ALL ON FUNCTION public.auth_student_enrolled_course_ids() FROM PUBLIC;
