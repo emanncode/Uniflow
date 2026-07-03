@@ -92,7 +92,7 @@ courses (catalog)
 ### What is NOT done yet (next AI should do)
 
 1. **Run SQL migrations** in Supabase SQL Editor (order matters):
-   - `class_updates_migration.sql` (if you see "column class_updates.timetable_id does not exist")
+   - `class_updates_migration.sql` (if you see "column class_updates.timetable_id does not exist" or "Could not find the 'delay_minutes' column of 'class_updates' in the schema cache")
    - `course_offerings_migration.sql`
    - `course_offerings_rls.sql` (or `course_offerings_rls_clean.sql`)
 
@@ -156,7 +156,7 @@ Execute SQL files in `uniflow-app/supabase/` in Supabase Dashboard → SQL Edito
 2. `department_levels.sql`
 3. `timetable_department_fk.sql`
 4. `profiles_rls_fix.sql`
-5. **`class_updates_migration.sql`** ← ensures timetable_id + other columns exist (fixes 42703 errors)
+5. **`class_updates_migration.sql`** ← ensures timetable_id + other columns (including delay_minutes) exist (fixes 42703 / PGRST204 schema cache errors)
 6. `mobile_read_rls.sql`  (re-run to fix recursion in lecturer_courses policies)
 7. **`course_offerings_migration.sql`** ← new
 8. **`course_offerings_rls.sql`** / `course_offerings_rls_clean.sql`  (re-run; includes safe lecturer_courses policies)
@@ -305,7 +305,7 @@ Read first:
 
 The Course Offering redesign is partially implemented. SQL migrations in
 uniflow-app/supabase/ MUST be run in Supabase before things work in production.
-In particular run `class_updates_migration.sql` if you see errors about timetable_id column.
+In particular run `class_updates_migration.sql` if you see errors about timetable_id column or missing columns like delay_minutes / schema cache errors (PGRST204). After running, the migration includes a NOTIFY to reload PostgREST schema.
 
 Your tasks:
 1. [Specify task from section 10 above]

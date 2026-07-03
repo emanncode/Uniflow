@@ -447,10 +447,6 @@ export default function LecturerTimetable() {
               reported_by: profile.id,
               university_id: profile.university_id,
               status,
-              message: null,
-              new_venue: null,
-              new_start_time: null,
-              delay_minutes: null,
               update_date: todayDate,
             })
             .select()

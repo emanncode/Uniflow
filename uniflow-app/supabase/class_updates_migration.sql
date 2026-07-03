@@ -1,6 +1,7 @@
 -- class_updates: per-day status / reports on timetable slots (ongoing, delayed, canceled, etc.)
 -- Run this BEFORE mobile_read_rls.sql and course_offerings_rls_clean.sql
 -- if you get "column class_updates.timetable_id does not exist"
+-- if you get "Could not find the 'delay_minutes' column of 'class_updates' in the schema cache" (or similar) -- re-run this migration.
 
 -- Create the table if it does not exist at all
 CREATE TABLE IF NOT EXISTS class_updates (
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS class_updates (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- If the table already existed but was missing the timetable_id column (common cause of 42703)
+-- If the table already existed but was missing columns (common cause of 42703 / PGRST204 schema cache errors)
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -33,7 +34,7 @@ BEGIN
       ADD COLUMN timetable_id uuid REFERENCES timetable(id) ON DELETE CASCADE;
   END IF;
 
-  -- Add other core columns defensively if someone created a minimal table
+  -- Add other core columns defensively if someone created a minimal/older table
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'university_id'
@@ -61,6 +62,55 @@ BEGIN
   ) THEN
     ALTER TABLE public.class_updates ADD COLUMN status text;
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'message'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN message text;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'new_venue'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN new_venue text;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'new_start_time'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN new_start_time text;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'delay_minutes'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN delay_minutes integer;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'upvotes'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN upvotes integer NOT NULL DEFAULT 0;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'is_verified'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN is_verified boolean NOT NULL DEFAULT false;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'class_updates' AND column_name = 'created_at'
+  ) THEN
+    ALTER TABLE public.class_updates ADD COLUMN created_at timestamptz NOT NULL DEFAULT now();
+  END IF;
 END $$;
 
 -- Indexes for the queries we actually run (by uni + date + in(timetable_ids))
@@ -81,3 +131,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_class_updates_timetable_update_date
 ALTER TABLE class_updates ENABLE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE class_updates IS 'Daily class status reports/updates attached to timetable slots. Used for live "ongoing / delayed / canceled" info on mobile.';
+
+-- Force PostgREST to reload its schema cache so that any newly added columns (e.g. delay_minutes)
+-- are immediately visible. Run this migration in the Supabase SQL editor; the NOTIFY will take effect.
+NOTIFY pgrst, 'reload schema';
