@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { Building2, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { universityPortalHost } from "@/lib/domain";
+import { queryKeys } from "@/lib/queryClient";
 
 export const dynamic = "force-dynamic";
 interface Stats {
@@ -23,11 +25,7 @@ interface Registration {
   created_at: string;
 }
 
-const fetchData = async (
-  setStats: React.Dispatch<React.SetStateAction<Stats>>,
-  setRecent: React.Dispatch<React.SetStateAction<Registration[]>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-) => {
+async function fetchRegistrationsData() {
   const [
     { count: pending },
     { count: approved },
@@ -53,29 +51,26 @@ const fetchData = async (
       .limit(5),
   ]);
 
-  setStats({
-    pending: pending ?? 0,
-    approved: approved ?? 0,
-    rejected: rejected ?? 0,
-    total: (pending ?? 0) + (approved ?? 0) + (rejected ?? 0),
-  });
-  setRecent((recentData as Registration[]) ?? []);
-  setLoading(false);
-};
+  return {
+    stats: {
+      pending: pending ?? 0,
+      approved: approved ?? 0,
+      rejected: rejected ?? 0,
+      total: (pending ?? 0) + (approved ?? 0) + (rejected ?? 0),
+    },
+    recent: (recentData as Registration[]) ?? [],
+  };
+}
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats>({
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    total: 0,
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.registrations(),
+    queryFn: fetchRegistrationsData,
+    staleTime: 1000 * 30,
   });
-  const [recent, setRecent] = useState<Registration[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData(setStats, setRecent, setLoading);
-  }, []);
+  const stats = data?.stats ?? { pending: 0, approved: 0, rejected: 0, total: 0 };
+  const recent = data?.recent ?? [];
 
   const statCards = [
     {
@@ -194,7 +189,7 @@ export default function DashboardPage() {
                   lineHeight: 1,
                 }}
               >
-                {loading ? "—" : card.value}
+                {isLoading ? "—" : card.value}
               </div>
             </motion.div>
           );
@@ -244,7 +239,7 @@ export default function DashboardPage() {
           </a>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div
             style={{
               padding: "40px",

@@ -32,7 +32,7 @@ export default function NotificationsPage() {
       if (!session) return;
       const { data } = await supabase
         .from("notifications")
-        .select("*")
+        .select("id, title, body, message, created_at, is_read, type, data, user_id, reference_id")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false })
         .limit(50);

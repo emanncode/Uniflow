@@ -124,7 +124,7 @@ export default function TimetablePage() {
       // Fetch timetable entries (without relying on FK join)
       const { data: ttData, error: ttError } = await supabase
         .from("timetable")
-        .select("*")
+        .select("id, course_id, day_of_week, start_time, end_time, venue, semester, academic_session, is_active")
         .eq("university_id", universityId)
         .eq("department_id", dept.id)
         .eq("is_active", true)

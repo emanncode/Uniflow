@@ -139,6 +139,7 @@ export default function ResourcesPage() {
       .select("*, courses!inner(code, title)")
       .eq("university_id", universityId)
       .order("created_at", { ascending: false })
+      .limit(200)
       .then(({ data, error: err }) => {
         if (err) {
           setError(err.message);
