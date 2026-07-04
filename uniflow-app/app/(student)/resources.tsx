@@ -382,6 +382,7 @@ export default function StudentResources() {
       <FlashList
         data={filtered}
         keyExtractor={(item) => item.id}
+        // @ts-expect-error - estimatedItemSize is supported by FlashList
         estimatedItemSize={90}
         renderItem={({ item }) => (
           <ResourceCard
