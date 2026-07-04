@@ -1,13 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   ScrollView,
-  FlatList,
-
   StyleSheet,
   RefreshControl,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   BookOpen,
@@ -58,7 +57,7 @@ interface CourseCardProps {
   onPress: (course: EnrolledCourse) => void;
 }
 
-function CourseCard({ course, onPress }: CourseCardProps) {
+const CourseCard = React.memo(function CourseCard({ course, onPress }: CourseCardProps) {
   return (
     <ScalePressable
       style={styles.card}
@@ -108,7 +107,7 @@ function CourseCard({ course, onPress }: CourseCardProps) {
       </View>
     </ScalePressable>
   );
-}
+});
 
 // ─── Course Detail Modal ───────────────────────────────────────────────────
 
@@ -237,7 +236,7 @@ export default function StudentCourses() {
         console.log('[StudentCourses] no enrollments, falling back to courses by level', profile.level);
         const { data: levelCourses } = await supabase
           .from("courses")
-          .select("*")
+          .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
           .eq("university_id", profile.university_id)
           .eq("level", profile.level)
           .eq("is_active", true)
@@ -259,7 +258,7 @@ export default function StudentCourses() {
       const [courseRes, slots, lecturerRes] = await Promise.all([
         supabase
           .from("courses")
-          .select("*")
+          .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
           .in("id", effectiveCourseIds)
           .eq("is_active", true)
           .order("code"),
@@ -393,10 +392,10 @@ export default function StudentCourses() {
     </View>
   );
 
-  console.log('[StudentCourses] FlatList data:', courses.length);
+  console.log('[StudentCourses] FlashList data:', courses.length);
   return (
     <View style={styles.root}>
-      <FlatList
+      <FlashList
         data={courses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
@@ -416,6 +415,8 @@ export default function StudentCourses() {
             tintColor={C.brand}
           />
         }
+        // @ts-expect-error - estimatedItemSize is supported by FlashList
+        estimatedItemSize={120}
       />
 
       {/* Detail modal */}

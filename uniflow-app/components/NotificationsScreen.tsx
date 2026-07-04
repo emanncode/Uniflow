@@ -158,7 +158,7 @@ export function NotificationsScreen({ role }: NotificationsScreenProps) {
     try {
       const { data } = await supabase
         .from("notifications")
-        .select("*")
+        .select("id, title, body, message, created_at, is_read, type, data, university_id, user_id, reference_id")
         .eq("user_id", profile.id)
         .order("created_at", { ascending: false })
         .limit(50);

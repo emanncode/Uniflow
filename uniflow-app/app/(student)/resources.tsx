@@ -3,13 +3,12 @@ import {
   View,
   Text,
   ScrollView,
-  FlatList,
-
   StyleSheet,
   RefreshControl,
   Linking,
   Alert,
 } from 'react-native'
+import { FlashList } from "@shopify/flash-list"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   FolderDown,
@@ -380,9 +379,10 @@ export default function StudentResources() {
 
   return (
     <View style={styles.root}>
-      <FlatList
+      <FlashList
         data={filtered}
         keyExtractor={(item) => item.id}
+        estimatedItemSize={90}
         renderItem={({ item }) => (
           <ResourceCard
             resource={item}

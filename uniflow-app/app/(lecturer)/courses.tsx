@@ -248,7 +248,7 @@ export default function LecturerCourses() {
       const [courseRes, slots, enrollmentsRes] = await Promise.all([
         supabase
           .from("courses")
-          .select("*")
+          .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
           .in("id", courseIds)
           .eq("is_active", true)
           .order("code"),

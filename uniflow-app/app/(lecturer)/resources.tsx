@@ -645,13 +645,13 @@ export default function LecturerResources() {
       const [courseRes, resourceRes] = await Promise.all([
         supabase
           .from("courses")
-          .select("*")
+          .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
           .in("id", courseIds)
           .eq("is_active", true)
           .order("code"),
         supabase
           .from("resources")
-          .select("*")
+          .select("id, title, description, file_url, file_type, downloads, is_approved, course_id, created_at, uploaded_by, university_id, resource_type, academic_session")
           .eq("uploaded_by", profile.id)
           .in("course_id", courseIds)
           .order("created_at", { ascending: false }),

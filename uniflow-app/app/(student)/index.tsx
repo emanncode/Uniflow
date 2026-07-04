@@ -263,7 +263,7 @@ export default function StudentDashboard() {
       const todayDate = new Date().toISOString().split("T")[0];
       const { data: updates } = await supabase
         .from("class_updates")
-        .select("*")
+        .select("id, timetable_id, status, message, new_venue, update_date, upvotes, created_by, university_id, reported_by, title, new_start_time, new_end_time, delay_minutes, is_verified, created_at")
         .eq("university_id", profile.university_id)
         .eq("update_date", todayDate)
         .in("timetable_id", todayIds);
