@@ -15,7 +15,7 @@ export async function fetchTimetableSlots(params: {
   let query = supabase
     .from("timetable")
     .select(
-      "*, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)",
+      "id, university_id, created_at, day_of_week, start_time, end_time, venue, course_id, course_offering_id, lecturer_id, is_active, academic_session, semester, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)",
     )
     .eq("is_active", true)
     .eq("academic_session", academic_session)
@@ -44,7 +44,7 @@ export async function fetchTimetableSlots(params: {
     params,
   );
 
-  let result = (data ?? []) as TimetableSlot[];
+  let result = (data ?? []) as unknown as TimetableSlot[];
 
   // If we got nothing for the current academic context, try a broader query
   // (helps when imported/created data has different session strings or semester)
@@ -55,7 +55,7 @@ export async function fetchTimetableSlots(params: {
     let fallbackQuery = supabase
       .from("timetable")
       .select(
-        "*, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)",
+        "id, day_of_week, start_time, end_time, venue, course_id, course_offering_id, lecturer_id, is_active, academic_session, semester, profiles:lecturer_id(full_name), courses(id, title, code, credit_units)",
       )
       .eq("is_active", true)
       .eq("academic_session", academic_session)
@@ -74,7 +74,7 @@ export async function fetchTimetableSlots(params: {
     }
 
     const { data: fallbackData } = await fallbackQuery;
-    const fallback = (fallbackData ?? []) as TimetableSlot[];
+    const fallback = (fallbackData ?? []) as unknown as TimetableSlot[];
 
     if (fallback.length > 0) {
       console.warn(
