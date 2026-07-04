@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { getAcademicContext } from "@/lib/academic";
 import { useAuthStore } from "@/store/useAuthStore";
+import { queryKeys } from "@/lib/queryClient";
 
 const CACHE_TTL_MS = 60_000;
 
@@ -204,58 +206,35 @@ export function prefetchLecturerCourseIds(lecturerId: string) {
 export function useLecturerCourseIds() {
   const profile = useAuthStore((s) => s.profile);
   const lecturerId = profile?.id;
+  const queryClient = useQueryClient();
 
-  const [context, setContext] = useState<LecturerTeachingContext>(() =>
-    lecturerId && cachedLecturerId === lecturerId
-      ? cachedContext
-      : { courseIds: [], offeringIds: [] },
-  );
-  const [isLoading, setIsLoading] = useState(
-    () => !(lecturerId && cachedLecturerId === lecturerId),
-  );
+  const query = useQuery({
+    queryKey: queryKeys.lecturerContext(lecturerId),
+    queryFn: () => fetchLecturerTeachingContext(lecturerId!, true),
+    enabled: !!lecturerId,
+    staleTime: 1000 * 45,
+  });
 
   const refresh = useCallback(
     async (force = true) => {
-      if (!lecturerId) {
-        setContext({ courseIds: [], offeringIds: [] });
-        return { courseIds: [], offeringIds: [] };
+      if (!lecturerId) return { courseIds: [], offeringIds: [] };
+      if (force) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.lecturerContext(lecturerId) });
       }
-      const next = await fetchLecturerTeachingContext(lecturerId, force);
-      console.log('[useLecturerCourseIds] refreshed context:', next, 'for lecturer', lecturerId);
-      setContext(next);
+      const result = await query.refetch();
+      const next = result.data ?? { courseIds: [], offeringIds: [] };
+      console.log('[useLecturerCourseIds] refreshed via RQ:', next, 'for lecturer', lecturerId);
       return next;
     },
-    [lecturerId],
+    [lecturerId, queryClient, query],
   );
 
-  useEffect(() => {
-    if (!lecturerId) {
-      setContext({ courseIds: [], offeringIds: [] });
-      setIsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoading(true);
-
-    fetchLecturerTeachingContext(lecturerId)
-      .then((next) => {
-        if (!cancelled) setContext(next);
-      })
-      .catch((e) => console.error("Lecturer offerings fetch error:", e))
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [lecturerId]);
+  const context = query.data ?? { courseIds: [], offeringIds: [] };
 
   return {
     courseIds: context.courseIds,
     offeringIds: context.offeringIds,
-    isLoading,
+    isLoading: query.isLoading || query.isFetching,
     refresh,
   };
 }

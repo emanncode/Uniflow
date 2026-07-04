@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { getAcademicContext } from "@/lib/academic";
 import { useAuthStore } from "@/store/useAuthStore";
+import { queryKeys } from "@/lib/queryClient";
 
 const CACHE_TTL_MS = 60_000;
 
@@ -78,7 +80,7 @@ export async function fetchStudentEnrollmentContext(
 
       console.log('[fetchStudentEnrollmentContext] NO ENROLLMENTS FOR CURRENT SESSION. Fallback enrollments:', fallbackEnr);
 
-      if ((fallbackEnr ?? []).length > 0) {
+      if (fallbackEnr && fallbackEnr.length > 0) {
         console.warn(
           '[fetchStudentEnrollmentContext] 0 enrollments for current session/semester',
           { academic_session, semester },
@@ -125,60 +127,38 @@ export function prefetchStudentEnrollments(studentId: string) {
 
 export function useStudentEnrollments() {
   const profile = useAuthStore((s) => s.profile);
-  const studentId =
-    profile?.role === "student" ? profile.id : undefined;
+  const studentId = profile?.role === "student" ? profile.id : undefined;
+  const queryClient = useQueryClient();
 
-  const [context, setContext] = useState<StudentEnrollmentContext>(() =>
-    studentId && cachedStudentId === studentId
-      ? cachedContext
-      : { courseIds: [], offeringIds: [] },
-  );
-  const [isLoading, setIsLoading] = useState(
-    () => !(studentId && cachedStudentId === studentId),
-  );
+  const query = useQuery({
+    queryKey: queryKeys.studentEnrollments(studentId),
+    queryFn: () => fetchStudentEnrollmentContext(studentId!, true),
+    enabled: !!studentId,
+    staleTime: 1000 * 45,
+  });
 
   const refresh = useCallback(
     async (force = true) => {
-      if (!studentId) {
-        setContext({ courseIds: [], offeringIds: [] });
-        return { courseIds: [], offeringIds: [] };
+      if (!studentId) return { courseIds: [], offeringIds: [] };
+      if (force) {
+        await queryClient.invalidateQueries({ queryKey: queryKeys.studentEnrollments(studentId) });
       }
-      const next = await fetchStudentEnrollmentContext(studentId, force);
-      console.log('[useStudentEnrollments] refreshed context:', next, 'for student', studentId);
-      setContext(next);
+      // Trigger a refetch and return latest
+      const result = await query.refetch();
+      const next = result.data ?? { courseIds: [], offeringIds: [] };
+      console.log('[useStudentEnrollments] refreshed via RQ:', next, 'for student', studentId);
       return next;
     },
-    [studentId],
+    [studentId, queryClient, query],
   );
 
-  useEffect(() => {
-    if (!studentId) {
-      setContext({ courseIds: [], offeringIds: [] });
-      setIsLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    setIsLoading(true);
-
-    fetchStudentEnrollmentContext(studentId)
-      .then((next) => {
-        if (!cancelled) setContext(next);
-      })
-      .catch((e) => console.error("Student enrollments fetch error:", e))
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [studentId]);
+  // Back-compat: still expose context shape
+  const context = query.data ?? { courseIds: [], offeringIds: [] };
 
   return {
     courseIds: context.courseIds,
     offeringIds: context.offeringIds,
-    isLoading,
+    isLoading: query.isLoading || query.isFetching,
     refresh,
   };
 }
