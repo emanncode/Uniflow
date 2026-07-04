@@ -4,6 +4,7 @@ import { View, StyleSheet } from "react-native";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as ExpoSplash from "expo-splash-screen";
+import { QueryClientProvider } from "@tanstack/react-query";
 import {
   useAuthStore,
   useIsHydrated,
@@ -15,6 +16,7 @@ import { SplashEntrance } from "@/components/SplashEntrance";
 import { SpeedInsightsWeb } from "@/components/SpeedInsightsWeb";
 import { Theme } from "@/constants/Theme";
 import { isSplashAnimationFinished } from "@/lib/splash-session";
+import { queryClient } from "@/lib/queryClient";
 
 ExpoSplash.preventAutoHideAsync().catch(() => {});
 
@@ -72,13 +74,15 @@ export default function RootLayout() {
   const appReady = splashDone && isHydrated;
 
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" backgroundColor={C.bgDeep} />
-      <AuthGuard />
-      {appReady ? <Slot /> : null}
-      {!appReady ? <SplashEntrance onFinish={handleSplashFinish} /> : null}
-      <SpeedInsightsWeb />
-    </View>
+    <QueryClientProvider client={queryClient}>
+      <View style={styles.root}>
+        <StatusBar style="light" backgroundColor={C.bgDeep} />
+        <AuthGuard />
+        {appReady ? <Slot /> : null}
+        {!appReady ? <SplashEntrance onFinish={handleSplashFinish} /> : null}
+        <SpeedInsightsWeb />
+      </View>
+    </QueryClientProvider>
   );
 }
 
