@@ -42,6 +42,13 @@ CREATE INDEX IF NOT EXISTS idx_timetable_uni_dept_active
 CREATE INDEX IF NOT EXISTS idx_timetable_course_id
   ON public.timetable (course_id);
 
+-- Composite for the most common filtered query pattern
+CREATE INDEX IF NOT EXISTS idx_timetable_session_semester_lecturer
+  ON public.timetable (academic_session, semester, lecturer_id, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_timetable_session_semester_course
+  ON public.timetable (academic_session, semester, course_id, is_active);
+
 -- ── course_offerings ────────────────────────────────────────────────────────
 
 CREATE INDEX IF NOT EXISTS idx_course_offerings_course_id
@@ -57,6 +64,13 @@ CREATE INDEX IF NOT EXISTS idx_enrollments_student_id
 
 CREATE INDEX IF NOT EXISTS idx_enrollments_course_id
   ON public.enrollments (course_id);
+
+-- Common filtered queries for enrollments + offerings
+CREATE INDEX IF NOT EXISTS idx_enrollments_session_semester_student
+  ON public.enrollments (academic_session, semester, student_id, is_active);
+
+CREATE INDEX IF NOT EXISTS idx_class_updates_date_university
+  ON public.class_updates (update_date, university_id);
 
 -- ── class_updates ───────────────────────────────────────────────────────────
 -- Make sure class_updates_migration.sql has been run first (otherwise these will fail with 42703 if timetable_id missing).
