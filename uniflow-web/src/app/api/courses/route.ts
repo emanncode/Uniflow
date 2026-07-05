@@ -1,21 +1,37 @@
 import { createAdminClient } from "@/lib/supabase-admin";
-import { canManageUniversity } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { safeErrorResponse } from "@/lib/utils";
+import { requireUniversityAdmin } from "@/lib/api-auth";
+import { z } from "zod";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
-type CoursePayload = {
-  university_id: string;
-  department_id: string;
-  title: string;
-  code: string;
-  level: number;
-  semester: 1 | 2;
-  credit_units: number;
-  description?: string | null;
-};
+const courseCreateSchema = z.object({
+  university_id: z.string().min(1),
+  department_id: z.string().min(1),
+  title: z.string().min(1).max(200),
+  code: z.string().min(1).max(20),
+  level: z.number().int().min(100).max(500),
+  semester: z.union([z.literal(1), z.literal(2)]),
+  credit_units: z.number().int().min(1).max(10),
+  description: z.string().max(1000).nullable().optional(),
+});
+
+const courseUpdateSchema = z.object({
+  university_id: z.string().min(1),
+  course_id: z.string().min(1),
+  is_active: z.boolean().optional(),
+});
+
+const courseDeleteSchema = z.object({
+  university_id: z.string().min(1),
+  course_id: z.string().min(1),
+});
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as CoursePayload;
+    const rawBody = await req.json();
+    const parsed = courseCreateSchema.parse(rawBody);
+
     const {
       university_id,
       department_id,
@@ -25,18 +41,14 @@ export async function POST(req: Request) {
       semester,
       credit_units,
       description,
-    } = body;
+    } = parsed;
 
-    if (!university_id || !department_id || !title?.trim() || !code?.trim()) {
-      return NextResponse.json(
-        { error: "university_id, department_id, title, and code are required" },
-        { status: 400 },
-      );
-    }
+    const authError = await requireUniversityAdmin(university_id);
+    if (authError) return authError;
 
-    if (!(await canManageUniversity(university_id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const ip = await getClientIp();
+    const rateError = await rateLimit(`courses-create:${university_id}:${ip}`, 5, 60_000);
+    if (rateError) return rateError;
 
     const supabase = createAdminClient();
 
@@ -84,23 +96,13 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const body = await req.json();
-    const { university_id, course_id, is_active } = body as {
-      university_id?: string;
-      course_id?: string;
-      is_active?: boolean;
-    };
+    const rawBody = await req.json();
+    const parsed = courseUpdateSchema.parse(rawBody);
 
-    if (!university_id || !course_id) {
-      return NextResponse.json(
-        { error: "university_id and course_id are required" },
-        { status: 400 },
-      );
-    }
+    const { university_id, course_id, is_active } = parsed;
 
-    if (!(await canManageUniversity(university_id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const authError = await requireUniversityAdmin(university_id);
+    if (authError) return authError;
 
     const supabase = createAdminClient();
 
@@ -130,22 +132,13 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const body = await req.json();
-    const { university_id, course_id } = body as {
-      university_id?: string;
-      course_id?: string;
-    };
+    const rawBody = await req.json();
+    const parsed = courseDeleteSchema.parse(rawBody);
 
-    if (!university_id || !course_id) {
-      return NextResponse.json(
-        { error: "university_id and course_id are required" },
-        { status: 400 },
-      );
-    }
+    const { university_id, course_id } = parsed;
 
-    if (!(await canManageUniversity(university_id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const authError = await requireUniversityAdmin(university_id);
+    if (authError) return authError;
 
     const supabase = createAdminClient();
 
@@ -210,8 +203,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to delete course";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const safe = safeErrorResponse(err, "Failed to delete course");
+    return NextResponse.json(safe, { status: 500 });
   }
 }
