@@ -1,21 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
-
-// Shared QueryClient for the admin/university web app.
-// Tuned for dashboard-style usage with moderate freshness.
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 30, // 30s (slightly fresher for admin views)
-      gcTime: 1000 * 60 * 10,
-      retry: 1,
-      refetchOnWindowFocus: true,
-    },
-    mutations: {
-      retry: 0,
-    },
-  },
-});
-
+// Query keys used across the app with TanStack Query.
+// The actual QueryClient is created inside <Providers /> (client component)
+// to avoid passing class instances across Server/Client Component boundary.
 export const queryKeys = {
   profile: (userId?: string) => ['profile', userId] as const,
   universityStats: (uniId?: string) => ['universityStats', uniId] as const,
