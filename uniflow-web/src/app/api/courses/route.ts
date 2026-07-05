@@ -88,6 +88,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, course: data });
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input data", details: err.issues }, { status: 400 });
+    }
     const message =
       err instanceof Error ? err.message : "Failed to create course";
     return NextResponse.json({ error: message }, { status: 500 });
