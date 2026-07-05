@@ -57,8 +57,9 @@ export async function POST(req: Request) {
     if (resetError) throw resetError
 
     return NextResponse.json({ success: true, message: 'Password reset link sent.' })
-  } catch (err: any) {
-    console.error('Reset Password Error:', err.message)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Reset password failed'
+    console.error('Reset Password Error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
