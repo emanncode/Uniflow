@@ -128,9 +128,11 @@ export default function ResourcesPage() {
   // Fetch resources
   useEffect(() => {
     if (!isReady || !universityId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError("");
 

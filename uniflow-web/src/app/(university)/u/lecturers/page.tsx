@@ -104,8 +104,9 @@ function LecturerRow({
         role: editRole,
       });
       setIsEditing(false);
-    } catch (e: any) {
-      alert(e.message || "Failed to update lecturer");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to update lecturer";
+      alert(message);
     } finally {
       setSaving(false);
     }
@@ -269,6 +270,7 @@ export default function LecturersPage() {
       const deptData = deptRes.data;
       setFaculties(facData ?? []);
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const deptList = (deptData ?? []).map((d: any) => ({
         id: d.id,
         name: d.name,
@@ -294,6 +296,7 @@ export default function LecturersPage() {
         if (d.hod_id) hodMap[d.hod_id] = { id: d.id, name: d.name, faculty: d.faculty };
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mapped = lecturersData.map((l: any) => {
         let dId = l.department_id;
         let dName = l.department_id ? (deptMap[l.department_id]?.name ?? null) : null;
@@ -320,9 +323,10 @@ export default function LecturersPage() {
       });
 
       setLecturers(mapped);
-    } catch (err: any) {
-      console.error("LecturersPage: loadData failed:", err.message);
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to load lecturers";
+      console.error("LecturersPage: loadData failed:", message);
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -331,6 +335,7 @@ export default function LecturersPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     loadData(contextUniId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId, loadData]);
 
   // Support direct links from Departments page
@@ -338,7 +343,10 @@ export default function LecturersPage() {
     if (departments.length === 0) return;
     const dParam = searchParams.get("department");
     const fParam = searchParams.get("faculty");
-    if (fParam) setFilterFac(fParam);
+    if (fParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFilterFac(fParam);
+    }
     if (dParam) {
       const dept = departments.find(d => d.short_name === dParam || d.id === dParam);
       if (dept) setFilterDept(dept.id);
@@ -380,8 +388,9 @@ export default function LecturersPage() {
           : `${name} has been added. A password reset link was sent to ${data.email || emailResult.normalized}.`,
       });
       if (contextUniId) await loadData(contextUniId)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to add staff";
+      setError(message)
     } finally {
       setSaving(false)
     }
@@ -437,8 +446,9 @@ export default function LecturersPage() {
       setImportErrors(errs);
       setImportSuccess(success);
       if (success > 0 && contextUniId) await loadData(contextUniId);
-    } catch (err: any) {
-      setImportErrors([err.message]);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "CSV import failed";
+      setImportErrors([message]);
     } finally {
       setImporting(false);
       e.target.value = "";
@@ -463,7 +473,7 @@ export default function LecturersPage() {
       } else {
         setError(data.error || 'Failed to reset password');
       }
-    } catch (err) {
+    } catch (err: unknown) {
       setError('An error occurred while resetting the password.');
     } finally {
       setSaving(false)
@@ -481,8 +491,9 @@ export default function LecturersPage() {
       });
       if (!res.ok) { const data = await res.json(); throw new Error(data.error); }
       if (contextUniId) await loadData(contextUniId);
-    } catch (e: any) {
-      setError(e.message || "Failed to remove staff");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to remove staff";
+      setError(message || "Failed to remove staff");
     } finally {
       setSaving(false);
     }

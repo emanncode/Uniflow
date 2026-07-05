@@ -266,7 +266,7 @@ export default function LecturerDashboard() {
     } catch (e) {
       console.error("Dashboard fetch error:", e);
     }
-  }, [profile]);
+  }, [profile, refreshLecturerContext]);
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false));

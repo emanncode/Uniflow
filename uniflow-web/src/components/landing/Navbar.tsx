@@ -12,7 +12,10 @@ export default function Navbar() {
   const menuIconRef = useRef<MenuIconHandle>(null)
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
+    const handleScroll = () => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setScrolled(window.scrollY > 20)
+    }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])

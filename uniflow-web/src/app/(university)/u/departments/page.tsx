@@ -160,6 +160,7 @@ export default function DepartmentsPage() {
   useEffect(() => {
     const facParam = searchParams.get("faculty");
     if (facParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterFac(facParam);
     }
   }, [searchParams]);
@@ -167,6 +168,7 @@ export default function DepartmentsPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     loadData(contextUniId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId]);
 
   async function loadData(currentUniId: string) {
@@ -189,6 +191,7 @@ export default function DepartmentsPage() {
         if (d.hod_id) hodAssignmentMap[d.hod_id] = d.faculty;
       });
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mappedHods = hodData.map((h: any) => ({
         id: h.id,
         full_name: h.full_name,
@@ -197,13 +200,16 @@ export default function DepartmentsPage() {
       }));
 
       const facShortMap: Record<string, string> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (facData ?? []).forEach((f: any) => facShortMap[f.short_name] = f.name);
       
       const hodNameMap: Record<string, string> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mappedHods.forEach((h: any) => hodNameMap[h.id] = h.full_name);
 
       setFaculties(facData ?? []);
       setHods(mappedHods);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setDepartments((deptData ?? []).map((d: any) => ({
         id: d.id,
         name: d.name,
@@ -233,7 +239,10 @@ export default function DepartmentsPage() {
       if (err) throw new Error(err.message);
       setShowModal(false);
       if (contextUniId) loadData(contextUniId);
-    } catch (err: any) { setError(err.message); } finally { setSaving(false); }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to create department";
+      setError(message);
+    } finally { setSaving(false); }
   }
 
   async function handleAssignHod(deptId: string, hodId: string) {

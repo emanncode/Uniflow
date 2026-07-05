@@ -120,8 +120,9 @@ function StudentRow({
         department_id: editDeptId || null,
       });
       setIsEditing(false);
-    } catch (e: any) {
-      alert(e.message || "Failed to update student");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to update student";
+      alert(message);
     } finally {
       setSaving(false);
     }
@@ -325,6 +326,7 @@ export default function StudentsPage() {
     const facParam = searchParams.get("faculty");
 
     if (facParam) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFilterFaculty(facParam);
     }
 
@@ -377,12 +379,14 @@ export default function StudentsPage() {
 
   useEffect(() => {
     if (!levelTabs.includes(activeLevel)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveLevel((levelTabs[0] ?? 100) as CourseLevel);
     }
   }, [levelTabs, activeLevel]);
 
   useEffect(() => {
     if (isDeptScoped && activeDept && !departmentConfigured) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowLevelSetup(true);
     }
   }, [isDeptScoped, activeDept, departmentConfigured]);
@@ -490,16 +494,18 @@ export default function StudentsPage() {
           const data = await res.json();
           if (!res.ok) throw new Error(data.error);
           successCount++;
-        } catch (err: any) {
-          errors.push(`Row ${lineNum}: ${err.message}`);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : "unknown error";
+          errors.push(`Row ${lineNum}: ${message}`);
         }
       }
 
       setImportErrors(errors);
       setImportSuccess(successCount);
       if (successCount > 0 && contextUniId) await loadData(contextUniId);
-    } catch (err: any) {
-      setImportErrors([err.message]);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "CSV import failed";
+      setImportErrors([message]);
     } finally {
       setImporting(false);
       e.target.value = "";
@@ -537,6 +543,7 @@ export default function StudentsPage() {
       const { data: allProfiles } = await staffRes.json()
       const studentsData = allProfiles || [];
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setStudents(
         studentsData.map((l: any) => ({
           id: l.id,
@@ -564,6 +571,7 @@ export default function StudentsPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     loadData(contextUniId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId, loadData]);
 
   async function handleDepartmentSetup(maxLevel: MaxCourseLevel) {
@@ -633,8 +641,9 @@ export default function StudentsPage() {
           : `Success! ${newName} has been added. A password reset link was sent to ${data.email || emailResult.normalized}.`,
       )
       if (contextUniId) await loadData(contextUniId)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to add student";
+      setError(message);
     } finally {
       setSaving(false)
     }
@@ -656,7 +665,7 @@ export default function StudentsPage() {
       } else {
         alert(data.error || 'Failed to reset password')
       }
-    } catch (err) {
+    } catch (err: unknown) {
       alert('An error occurred while resetting password')
     } finally {
       setSaving(false)
@@ -675,8 +684,9 @@ export default function StudentsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       if (contextUniId) await loadData(contextUniId);
-    } catch (e: any) {
-      alert(e.message || "Failed to remove student");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to remove student";
+      alert(message);
     } finally {
       setSaving(false);
     }

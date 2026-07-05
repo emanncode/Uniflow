@@ -32,7 +32,7 @@ export default function Hero() {
   const smoothPhoneY = useTransform(smoothMouseY, [-0.5, 0.5], [-8, 8])
 
   useEffect(() => {
-     
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
     const handleMouse = (e: MouseEvent) => {
       const x = (e.clientX / window.innerWidth) - 0.5

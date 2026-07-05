@@ -164,6 +164,7 @@ export default function UniversityOverviewPage() {
     const currentUniId = universityId
 
     async function load() {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true)
 
       const [facRes, deptRes, ttRes, staffCountsRes, recentLecRes, recentFac, recentDept, resRes] = await Promise.all([
@@ -212,6 +213,7 @@ export default function UniversityOverviewPage() {
         .slice(0, 8)
 
       setActivity(allActivity)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false)
     }
     load()

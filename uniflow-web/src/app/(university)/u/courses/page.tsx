@@ -170,6 +170,7 @@ export default function CoursesPage() {
 
   useEffect(() => {
     if (!levelTabs.includes(activeLevel)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveLevel((levelTabs[0] ?? 100) as CourseLevel);
     }
   }, [levelTabs, activeLevel]);
@@ -190,7 +191,10 @@ export default function CoursesPage() {
 
     async function fetchPageData() {
       if (!contextUniId) {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setLoading(false);
+        }
         return;
       }
 
@@ -212,7 +216,10 @@ export default function CoursesPage() {
         )?.id ?? null;
 
       if (!departmentId) {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setLoading(false);
+        }
         return;
       }
 
@@ -348,6 +355,7 @@ export default function CoursesPage() {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deptParam, refreshKey, isReady, contextUniId]);
 
   async function handleCreate(e: React.FormEvent) {

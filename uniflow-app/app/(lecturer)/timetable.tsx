@@ -344,7 +344,7 @@ export default function LecturerTimetable() {
     } catch (e) {
       console.error("Timetable fetch error:", e);
     }
-  }, [profile]);
+  }, [profile, refreshLecturerContext]);
 
   useEffect(() => {
     fetchData().finally(() => setIsLoading(false));

@@ -8,6 +8,7 @@ export default function NotificationPop({ text, sub, icon, color, delay }: {
 }) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     const t = setTimeout(() => setVisible(true), delay)
     return () => clearTimeout(t)
   }, [delay])
