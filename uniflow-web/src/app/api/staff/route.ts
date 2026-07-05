@@ -1,7 +1,30 @@
 import { createAdminClient } from '@/lib/supabase-admin'
 import { NextResponse } from 'next/server'
 import { normalizeOrThrow } from '@/lib/email'
-import { canManageUniversity } from '@/lib/auth'
+import { requireUniversityAdmin } from '@/lib/api-auth'
+import { z } from 'zod'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
+
+const staffQuerySchema = z.object({
+  university_id: z.string().min(1),
+  count_only: z.string().optional(),
+  role: z.string().optional(),
+  limit: z.string().optional(),
+})
+
+const staffPatchSchema = z.object({
+  id: z.string().min(1),
+  full_name: z.string().optional(),
+  email: z.string().email().optional(),
+  department_id: z.string().nullable().optional(),
+  status: z.string().optional(),
+  role: z.string().optional(),
+  level: z.union([z.number(), z.string(), z.null()]).optional(),
+})
+
+const staffDeleteSchema = z.object({
+  id: z.string().min(1),
+})
 
 const LECTURER_ROLES = ['lecturer', 'dean', 'hod']
 
@@ -17,20 +40,21 @@ function parseRoles(roleParam: string | null): string[] | null {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
-    const universityId = searchParams.get('university_id')
-    const countOnly = searchParams.get('count_only') === 'true'
-    const roles = parseRoles(searchParams.get('role'))
-    const limitParam = searchParams.get('limit')
+    const parsedQuery = staffQuerySchema.parse({
+      university_id: searchParams.get('university_id'),
+      count_only: searchParams.get('count_only'),
+      role: searchParams.get('role'),
+      limit: searchParams.get('limit'),
+    })
+
+    const universityId = parsedQuery.university_id
+    const countOnly = parsedQuery.count_only === 'true'
+    const roles = parseRoles(parsedQuery.role || null)
+    const limitParam = parsedQuery.limit
     const limit = limitParam ? Math.min(Math.max(parseInt(limitParam, 10), 1), 100) : null
 
-    if (!universityId) {
-      return NextResponse.json({ error: 'University ID is required' }, { status: 400 })
-    }
-
-    const isAuthorized = await canManageUniversity(universityId)
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
+    const authError = await requireUniversityAdmin(universityId)
+    if (authError) return authError
 
     const supabase = createAdminClient()
 
@@ -130,8 +154,9 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const { id, full_name, email, department_id, status, role, level } = await req.json()
-    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    const rawBody = await req.json()
+    const parsed = staffPatchSchema.parse(rawBody)
+    const { id, full_name, email, department_id, status, role, level } = parsed
 
     const supabase = createAdminClient()
 
@@ -145,10 +170,12 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
     }
 
-    const isAuthorized = await canManageUniversity(currentProfile.university_id)
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
+    const authError = await requireUniversityAdmin(currentProfile.university_id)
+    if (authError) return authError
+
+    const ip = await getClientIp()
+    const rateError = await rateLimit(`staff-update:${currentProfile.university_id}:${ip}`, 10, 60_000)
+    if (rateError) return rateError
 
     const updates: Record<string, unknown> = {}
     if (full_name !== undefined) updates.full_name = full_name
@@ -197,8 +224,8 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const { id } = await req.json()
-    if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    const rawBody = await req.json()
+    const { id } = staffDeleteSchema.parse(rawBody)
 
     const supabase = createAdminClient()
 
@@ -212,14 +239,16 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Staff member not found' }, { status: 404 })
     }
 
-    const isAuthorized = await canManageUniversity(currentProfile.university_id)
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    }
+    const authError = await requireUniversityAdmin(currentProfile.university_id)
+    if (authError) return authError
 
-    const { error: authError } = await supabase.auth.admin.deleteUser(id)
-    if (authError) {
-      console.warn('API Staff DELETE: Auth delete failed:', authError.message)
+    const ip = await getClientIp()
+    const rateError = await rateLimit(`staff-delete:${currentProfile.university_id}:${ip}`, 5, 60_000)
+    if (rateError) return rateError
+
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(id)
+    if (deleteAuthError) {
+      console.warn('API Staff DELETE: Auth delete failed:', deleteAuthError.message)
     }
 
     const { error: profileError } = await supabase
