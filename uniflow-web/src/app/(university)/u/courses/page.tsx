@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
+
+// Force dynamic rendering. This page uses useSearchParams + client-side data fetching
+// and must not be statically prerendered at build time.
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
