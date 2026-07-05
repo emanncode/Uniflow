@@ -11,6 +11,7 @@ import {
   Alert,
   TextInput,
   Linking,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -25,7 +26,6 @@ import {
   Layers,
 } from "lucide-react-native";
 import * as DocumentPicker from "expo-document-picker";
-import { Platform } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { uriToUint8Array } from "@/lib/avatar";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
