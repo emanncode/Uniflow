@@ -1,5 +1,4 @@
 import { createAdminClient } from "@/lib/supabase-admin";
-import { canManageUniversity } from "@/lib/auth";
 import {
   getAcademicContext,
   displayDayToDb,
@@ -17,6 +16,20 @@ import {
 import { autoEnrollDepartment } from "@/lib/enrollments-server";
 import { validateAndNormalizeEmail } from "@/lib/email";
 import { NextResponse } from "next/server";
+import { safeErrorResponse } from "@/lib/utils";
+import { requireUniversityAdmin } from "@/lib/api-auth";
+import { z } from "zod";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const timetableImportSchema = z.object({
+  university_id: z.string().min(1),
+  department_id: z.string().min(1),
+  csv_text: z.string().min(1).max(500 * 1024), // 500KB max
+  mode: z.enum(["preview", "commit"]).optional().default("preview"),
+  academic_session: z.string().optional(),
+  semester: z.union([z.literal(1), z.literal(2)]).optional(),
+  auto_enroll: z.boolean().optional().default(true),
+});
 
 type PreviewRow = {
   line: number;
@@ -36,35 +49,25 @@ type SkippedLecturer = {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = timetableImportSchema.parse(rawBody);
+
     const {
       university_id,
       department_id,
       csv_text,
-      mode = "preview",
+      mode,
       academic_session: sessionOverride,
       semester: semesterOverride,
-      auto_enroll = true,
-    } = body as {
-      university_id?: string;
-      department_id?: string;
-      csv_text?: string;
-      mode?: "preview" | "commit";
-      academic_session?: string;
-      semester?: 1 | 2;
-      auto_enroll?: boolean;
-    };
+      auto_enroll,
+    } = parsed;
 
-    if (!university_id || !department_id || !csv_text?.trim()) {
-      return NextResponse.json(
-        { error: "university_id, department_id, and csv_text are required" },
-        { status: 400 },
-      );
-    }
+    const authError = await requireUniversityAdmin(university_id);
+    if (authError) return authError;
 
-    if (!(await canManageUniversity(university_id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const ip = await getClientIp();
+    const rateError = await rateLimit(`timetable-import:${university_id}:${ip}`, 3, 60_000);
+    if (rateError) return rateError;
 
     const ctx = getAcademicContext();
     const academic_session = sessionOverride ?? ctx.academic_session;
@@ -324,7 +327,7 @@ export async function POST(req: Request) {
       semester,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Import failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const safe = safeErrorResponse(err, "Import failed");
+    return NextResponse.json(safe, { status: 500 });
   }
 }

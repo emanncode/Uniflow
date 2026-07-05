@@ -42,12 +42,30 @@ export function parseCombinedTimetableCsv(text: string): {
     return { headers: [], rows: [] };
   }
 
-  const headers = lines[0]
-    .toLowerCase()
-    .split(",")
-    .map((h) => h.trim());
+  // Basic CSV parsing that handles simple quoted fields to reduce
+  // data corruption / column shift attacks from commas in titles etc.
+  function parseCsvLine(line: string): string[] {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
   const rows = lines.slice(1).map((line) => {
-    const vals = line.split(",").map((v) => v.trim());
+    const vals = parseCsvLine(line);
     const row: Record<string, string> = {};
     headers.forEach((h, idx) => {
       row[h] = vals[idx] ?? "";
