@@ -147,6 +147,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data: flattened })
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input data', details: err.issues }, { status: 400 })
+    }
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
   }
@@ -217,6 +220,9 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input data', details: err.issues }, { status: 400 })
+    }
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
   }
@@ -260,6 +266,9 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input data', details: err.issues }, { status: 400 })
+    }
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
   }
