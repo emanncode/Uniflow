@@ -327,6 +327,9 @@ export async function POST(req: Request) {
       semester,
     });
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input data", details: err.issues }, { status: 400 });
+    }
     const safe = safeErrorResponse(err, "Import failed");
     return NextResponse.json(safe, { status: 500 });
   }
