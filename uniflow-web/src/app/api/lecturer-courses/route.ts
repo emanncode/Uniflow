@@ -1,25 +1,40 @@
 import { createAdminClient } from "@/lib/supabase-admin";
-import { canManageUniversity } from "@/lib/auth";
 import { getCurrentAcademicSession } from "@/lib/academic";
 import { upsertCourseOffering, syncLegacyLecturerCourse } from "@/lib/course-offerings-server";
 import { NextResponse } from "next/server";
+import { requireUniversityAdmin } from "@/lib/api-auth";
+import { z } from "zod";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const lecturerCoursesQuerySchema = z.object({
+  university_id: z.string().min(1),
+  course_ids: z.string().optional(),
+  academic_session: z.string().optional(),
+});
+
+const lecturerCoursesBodySchema = z.object({
+  university_id: z.string().min(1),
+  course_id: z.string().min(1),
+  semester: z.union([z.literal(1), z.literal(2)]),
+  lecturer_ids: z.array(z.string()).optional(),
+  lecturer_id: z.string().optional(),
+  academic_session: z.string().optional(),
+});
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const universityId = searchParams.get("university_id");
-    const courseIdsParam = searchParams.get("course_ids");
+    const parsed = lecturerCoursesQuerySchema.parse({
+      university_id: searchParams.get("university_id"),
+      course_ids: searchParams.get("course_ids"),
+      academic_session: searchParams.get("academic_session"),
+    });
 
-    if (!universityId) {
-      return NextResponse.json(
-        { error: "university_id is required" },
-        { status: 400 },
-      );
-    }
+    const universityId = parsed.university_id;
+    const courseIdsParam = parsed.course_ids;
 
-    if (!(await canManageUniversity(universityId))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const authError = await requireUniversityAdmin(universityId);
+    if (authError) return authError;
 
     const courseIds =
       courseIdsParam
@@ -27,7 +42,7 @@ export async function GET(req: Request) {
         .map((id) => id.trim())
         .filter(Boolean) ?? [];
     const academicSession =
-      searchParams.get("academic_session") ?? getCurrentAcademicSession();
+      parsed.academic_session ?? getCurrentAcademicSession();
 
     const supabase = createAdminClient();
 
@@ -169,7 +184,9 @@ async function upsertAssignment(
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = lecturerCoursesBodySchema.parse(rawBody);
+
     const {
       university_id,
       course_id,
@@ -177,25 +194,14 @@ export async function POST(req: Request) {
       lecturer_ids,
       lecturer_id,
       academic_session,
-    } = body as {
-      university_id?: string;
-      course_id?: string;
-      semester?: 1 | 2;
-      lecturer_ids?: string[];
-      lecturer_id?: string;
-      academic_session?: string;
-    };
+    } = parsed;
 
-    if (!university_id || !course_id || !semester) {
-      return NextResponse.json(
-        { error: "university_id, course_id, and semester are required" },
-        { status: 400 },
-      );
-    }
+    const authError = await requireUniversityAdmin(university_id);
+    if (authError) return authError;
 
-    if (!(await canManageUniversity(university_id))) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
+    const ip = await getClientIp();
+    const rateError = await rateLimit(`lecturer-courses:${university_id}:${ip}`, 10, 60_000);
+    if (rateError) return rateError;
 
     const session = academic_session ?? getCurrentAcademicSession();
     const supabase = createAdminClient();
