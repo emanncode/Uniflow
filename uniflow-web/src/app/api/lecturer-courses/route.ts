@@ -98,6 +98,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ data });
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input data", details: err.issues }, { status: 400 });
+    }
     const message =
       err instanceof Error ? err.message : "Failed to load assignments";
     return NextResponse.json({ error: message }, { status: 500 });
@@ -260,6 +263,9 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input data", details: err.issues }, { status: 400 });
+    }
     const message =
       err instanceof Error ? err.message : "Failed to update assignments";
     return NextResponse.json({ error: message }, { status: 500 });
