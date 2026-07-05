@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Modal from './Modal';
-import { AlertTriangle, Info, CheckCircle2, LucideIcon } from 'lucide-react';
+import { AlertTriangle, Info, LucideIcon } from 'lucide-react';
 
 interface ConfirmationModalProps {
   visible: boolean;

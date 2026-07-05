@@ -41,7 +41,7 @@ export default function NotificationsPage() {
           No new notifications
         </h3>
         <p style={{ color: 'var(--text-muted)', fontSize: '13px', maxWidth: '300px' }}>
-          You're all caught up! New registration requests and system alerts will appear here.
+          You&apos;re all caught up! New registration requests and system alerts will appear here.
         </p>
       </div>
     </div>

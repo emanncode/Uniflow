@@ -156,7 +156,7 @@ export default function Pricing() {
               maxWidth: '480px',
             }}
           >
-            Start free. Upgrade when you're ready.
+            Start free. Upgrade when you&apos;re ready.
             No hidden fees, no long-term contracts.
           </motion.p>
         </motion.div>

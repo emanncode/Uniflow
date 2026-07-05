@@ -12,7 +12,7 @@ function UnauthorizedContent() {
   const message =
     reason === "wrong-portal"
       ? "This account belongs to a different university portal. Sign in on the correct subdomain for your institution."
-      : "You don't have permission to access this portal. University portals require a university admin account.";
+      : "You don&apos;t have permission to access this portal. University portals require a university admin account.";
 
   return (
     <main
