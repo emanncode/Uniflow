@@ -20,6 +20,7 @@ import {
   AlertCircle,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import { Theme } from "@/constants/Theme";
@@ -311,7 +312,6 @@ export default function LecturerTimetable() {
     if (!profile) return;
     try {
       const { offeringIds } = await refreshLecturerContext(true);
-      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const loadedSlots = await fetchTimetableSlots({
         lecturerId: profile.id,
         offeringIds,

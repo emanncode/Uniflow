@@ -18,6 +18,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import { Theme } from "@/constants/Theme";
@@ -180,7 +181,7 @@ export default function LecturerDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
-  console.log(
+  __DEV__ && console.log(
     "[LecturerHome] profile:",
     profile
       ? { id: profile.id, uni: profile.university_id, role: profile.role }
@@ -205,12 +206,11 @@ export default function LecturerDashboard() {
     try {
       // Use the shared offering-aware + session-filtered fetch for consistency with Timetable tab
       const { offeringIds } = await refreshLecturerContext(true);
-      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const allSlots = await fetchTimetableSlots({
         lecturerId: profile.id,
         offeringIds,
       });
-      console.log(
+      __DEV__ && console.log(
         "[LecturerHome] fetched allSlots length:",
         allSlots.length,
         "first:",
@@ -335,7 +335,7 @@ export default function LecturerDashboard() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  console.log(
+  __DEV__ && console.log(
     "[LecturerHome] render todaySlots:",
     todaySlots.length,
     "upcoming:",

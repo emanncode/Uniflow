@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   Calendar,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
 import { countByCourseId } from "@/lib/enrollmentCounts";
@@ -69,7 +70,7 @@ interface CourseCardProps {
   onPress: (course: CourseWithMeta) => void;
 }
 
-function CourseCard({ course, onPress }: CourseCardProps) {
+const CourseCard = React.memo(function CourseCard({ course, onPress }: CourseCardProps) {
   return (
     <ScalePressable
       style={styles.card}
@@ -116,7 +117,7 @@ function CourseCard({ course, onPress }: CourseCardProps) {
       </View>
     </ScalePressable>
   );
-}
+});
 
 // ─── Course Detail Modal ───────────────────────────────────────────────────
 
@@ -235,15 +236,15 @@ export default function LecturerCourses() {
     if (!profile) return;
     try {
       const { courseIds, offeringIds } = await refreshCourseIds(true);
-      console.log('[LecturerCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
+      __DEV__ && console.log('[LecturerCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
       if (courseIds.length === 0) {
-        console.log('[LecturerCourses] no courseIds, skipping courses query');
+        __DEV__ && console.log('[LecturerCourses] no courseIds, skipping courses query');
         setCourses([]);
         return;
       }
 
-      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+
 
       const [courseRes, slots, enrollmentsRes] = await Promise.all([
         supabase
@@ -268,10 +269,10 @@ export default function LecturerCourses() {
 
       const courseData = courseRes.data;
       const enrollmentCounts = countByCourseId(enrollmentsRes.data ?? []);
-      console.log('[LecturerCourses] courseData length:', courseData?.length, 'slots length:', slots?.length, 'enrollmentsRes:', enrollmentsRes.data?.length);
+      __DEV__ && console.log('[LecturerCourses] courseData length:', courseData?.length, 'slots length:', slots?.length, 'enrollmentsRes:', enrollmentsRes.data?.length);
 
       if (courseData && courseData.length === 0) {
-        console.log('[LecturerCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
+        __DEV__ && console.log('[LecturerCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
       }
 
       if (!courseData) return;
@@ -286,7 +287,7 @@ export default function LecturerCourses() {
           studentCount: enrollmentCounts[course.id] ?? 0,
         };
       });
-      console.log('[LecturerCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
+      __DEV__ && console.log('[LecturerCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
 
       setCourses(enriched);
     } catch (e) {
@@ -313,12 +314,12 @@ export default function LecturerCourses() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  console.log('[LecturerCourses] render courses.length:', courses.length);
+  __DEV__ && console.log('[LecturerCourses] render courses.length:', courses.length);
   if (isLoading) return <CoursesSkeleton />;
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  console.log('[LecturerCourses] about to render, courses:', courses.length);
+  __DEV__ && console.log('[LecturerCourses] about to render, courses:', courses.length);
   const renderHeader = () => (
     <>
       {/* Header */}
