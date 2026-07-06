@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -72,7 +72,7 @@ export default function DashboardPage() {
   const stats = data?.stats ?? { pending: 0, approved: 0, rejected: 0, total: 0 };
   const recent = data?.recent ?? [];
 
-  const statCards = [
+  const statCards = useMemo(() => [
     {
       label: "Total Applications",
       value: stats.total,
@@ -101,7 +101,7 @@ export default function DashboardPage() {
       color: "var(--danger)",
       bg: "var(--danger-muted)",
     },
-  ];
+  ], [stats.total, stats.pending, stats.approved, stats.rejected]);
 
   return (
     <div>

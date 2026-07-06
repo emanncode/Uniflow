@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import {
@@ -70,11 +70,11 @@ export default function UniversitiesPage() {
     }
   }
 
-  const filtered = universities.filter(u =>
+  const filtered = useMemo(() => universities.filter(u =>
     u.university_name.toLowerCase().includes(search.toLowerCase()) ||
     u.short_name.toLowerCase().includes(search.toLowerCase()) ||
     u.country.toLowerCase().includes(search.toLowerCase())
-  )
+  ), [universities, search])
 
   return (
     <div>

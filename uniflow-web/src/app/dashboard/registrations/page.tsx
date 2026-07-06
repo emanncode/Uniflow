@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import RejectModal from '@/components/registrations/RejectModal'
 import RegistrationRow from '@/components/registrations/RegistrationRow'
-import { Building2, Mail, Loader2, AlertTriangle } from 'lucide-react'
+import { Building2, Mail, Loader2 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
@@ -110,12 +110,15 @@ export default function RegistrationsPage() {
     ? registrations
     : registrations.filter(r => r.status === filter)
 
-  const counts = {
-    all: registrations.length,
-    pending: registrations.filter(r => r.status === 'pending').length,
-    approved: registrations.filter(r => r.status === 'approved').length,
-    rejected: registrations.filter(r => r.status === 'rejected').length,
-  }
+  const counts = useMemo(() => {
+    const c = { all: registrations.length, pending: 0, approved: 0, rejected: 0 };
+    for (const r of registrations) {
+      if (r.status === "pending") c.pending++;
+      else if (r.status === "approved") c.approved++;
+      else if (r.status === "rejected") c.rejected++;
+    }
+    return c;
+  }, [registrations])
 
   return (
     <>
