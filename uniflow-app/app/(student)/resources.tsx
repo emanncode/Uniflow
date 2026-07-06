@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   RefreshControl,
-  Linking,
   Alert,
 } from 'react-native'
 import { FlashList } from "@shopify/flash-list"
@@ -14,12 +13,13 @@ import {
   FolderDown,
   FileText,
   Image,
-  File,
+  File as FileIcon,
   BookOpen,
   Download,
   HelpCircle,
   StickyNote,
 } from 'lucide-react-native'
+import { File, Paths } from 'expo-file-system'
 import { supabase } from '@/lib/supabase'
 import { ResourcesSkeleton } from '@/components/SkeletonLoader'
 import { ScreenPageHeader } from '@/components/ScreenPageHeader'
@@ -67,7 +67,7 @@ const FILE_TYPE_CONFIG: Record<FileType, {
     label: 'Doc',
   },
   other: {
-    icon: <File size={20} color={C.textMuted} strokeWidth={1.8} />,
+    icon: <FileIcon size={20} color={C.textMuted} strokeWidth={1.8} />,
     color: C.textMuted,
     background: 'rgba(148, 163, 184, 0.1)',
     label: 'File',
@@ -91,7 +91,7 @@ const RESOURCE_TYPE_CONFIG: Record<ResourceType, {
     label: 'Material',
   },
   other: {
-    icon: <File size={12} color={C.textMuted} strokeWidth={1.8} />,
+    icon: <FileIcon size={12} color={C.textMuted} strokeWidth={1.8} />,
     label: 'Other',
   },
 }
@@ -252,13 +252,15 @@ export default function StudentResources() {
   const handleDownload = useCallback(async (resource: ResourceWithCourse) => {
     setDownloadingId(resource.id)
     try {
-      const supported = await Linking.canOpenURL(resource.file_url)
-      if (!supported) {
-        Alert.alert('Error', 'Cannot open this file URL.')
-        return
-      }
+      const fileName = resource.file_url.split('/').pop() || `resource-${resource.id}`
+      const localFile = new File(Paths.cache, fileName)
+      await File.downloadFileAsync(resource.file_url, localFile, { idempotent: true })
 
-      await Linking.openURL(resource.file_url)
+      Alert.alert(
+        'Download Complete',
+        `${resource.title} has been saved to your device.`,
+        [{ text: 'OK' }],
+      )
 
       // Increment download count
       await supabase
@@ -273,7 +275,7 @@ export default function StudentResources() {
         )
       )
     } catch {
-      Alert.alert('Error', 'Could not open file. Please try again.')
+      Alert.alert('Error', 'Could not download file. Please try again.')
     } finally {
       setDownloadingId(null)
     }
