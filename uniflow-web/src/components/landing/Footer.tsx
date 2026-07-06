@@ -129,8 +129,8 @@ export default function Footer() {
                 >
                   <Image
                     alt="Uniflow - The campus always knew. Now your phone does too. | Product Hunt"
-                    width="250"
-                    height="54"
+                    width={250}
+                    height={54}
                     src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1180285&amp;theme=light&amp;t=1782329958231"
                   />
                 </a>
