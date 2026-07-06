@@ -18,6 +18,7 @@ import {
   Calendar,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
 import { Theme } from "@/constants/Theme";
@@ -226,14 +227,14 @@ export default function StudentCourses() {
     if (!profile) return;
     try {
       const { courseIds, offeringIds } = await refreshEnrollments(true);
-      console.log('[StudentCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
+      __DEV__ && console.log('[StudentCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
       let effectiveCourseIds = courseIds;
       let effectiveOfferingIds = offeringIds;
 
       if (effectiveCourseIds.length === 0 && profile?.level != null && profile?.university_id) {
         // Fallback: load courses by student's level and university (for testing / when no enrollments)
-        console.log('[StudentCourses] no enrollments, falling back to courses by level', profile.level);
+        __DEV__ && console.log('[StudentCourses] no enrollments, falling back to courses by level', profile.level);
         const { data: levelCourses } = await supabase
           .from("courses")
           .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
@@ -248,12 +249,12 @@ export default function StudentCourses() {
       }
 
       if (effectiveCourseIds.length === 0) {
-        console.log('[StudentCourses] no courseIds, skipping courses query');
+        __DEV__ && console.log('[StudentCourses] no courseIds, skipping courses query');
         setCourses([]);
         return;
       }
 
-      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
+
 
       const [courseRes, slots, lecturerRes] = await Promise.all([
         supabase
@@ -278,10 +279,10 @@ export default function StudentCourses() {
 
       const courseData = courseRes.data;
       const lecturerAssignments = lecturerRes.data;
-      console.log('[StudentCourses] courseData length:', courseData?.length, 'slots:', slots?.length, 'lecturerAssignments:', lecturerAssignments?.length);
+      __DEV__ && console.log('[StudentCourses] courseData length:', courseData?.length, 'slots:', slots?.length, 'lecturerAssignments:', lecturerAssignments?.length);
 
       if (courseData && courseData.length === 0) {
-        console.log('[StudentCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
+        __DEV__ && console.log('[StudentCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
       }
 
       if (!courseData) return;
@@ -316,7 +317,7 @@ export default function StudentCourses() {
         ];
         return { ...course, slots: courseSlots, lecturerNames };
       });
-      console.log('[StudentCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
+      __DEV__ && console.log('[StudentCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
 
       setCourses(enriched);
     } catch (e) {
@@ -341,12 +342,12 @@ export default function StudentCourses() {
 
   // ── Loading ───────────────────────────────────────────────────────────
 
-  console.log('[StudentCourses] render courses.length:', courses.length);
+  __DEV__ && console.log('[StudentCourses] render courses.length:', courses.length);
   if (isLoading) return <CoursesSkeleton />;
 
   // ── Render ────────────────────────────────────────────────────────────
 
-  console.log('[StudentCourses] about to render, courses:', courses.length);
+  __DEV__ && console.log('[StudentCourses] about to render, courses:', courses.length);
   const totalUnits = courses.reduce((sum, c) => sum + c.credit_units, 0);
   const totalSlots = courses.reduce((sum, c) => sum + c.slots.length, 0);
 
@@ -392,7 +393,7 @@ export default function StudentCourses() {
     </View>
   );
 
-  console.log('[StudentCourses] FlashList data:', courses.length);
+  __DEV__ && console.log('[StudentCourses] FlashList data:', courses.length);
   return (
     <View style={styles.root}>
       <FlashList

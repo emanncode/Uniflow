@@ -23,6 +23,7 @@ import {
   ThumbsUp,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
 import { Theme } from "@/constants/Theme";
@@ -353,7 +354,6 @@ export default function StudentTimetable() {
 
       // Do not bail on empty courseIds. Broad query + RLS will return allowed rows
       // (enrolled or level-matched via updated policy). Matches lecturer fallback behavior.
-      const { fetchTimetableSlots } = await import("@/lib/timetable-query");
       const loadedSlots = await fetchTimetableSlots({ offeringIds, courseIds });
       setAllSlots(loadedSlots);
 
@@ -385,15 +385,11 @@ export default function StudentTimetable() {
     }
   }, [profile, refreshEnrollments]);
 
-  useEffect(() => {
-    fetchData().finally(() => setIsLoading(false));
-  }, [fetchData]);
-
   // Refresh on focus so confirms/upvotes done on the home dashboard are visible in the
   // full schedule view (and realtime + focus together keep the two in sync).
   useFocusEffect(
     useCallback(() => {
-      fetchData();
+      fetchData().finally(() => setIsLoading(false));
     }, [fetchData])
   );
 
