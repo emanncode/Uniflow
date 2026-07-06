@@ -718,20 +718,36 @@ export default function LecturerResources() {
       <FadeSlideIn index={1}>
       <View style={styles.filterSection}>
         <Text style={styles.filterLabel}>Filter by course</Text>
-        <FlatList
+        <ScrollView
           horizontal
-          data={[{ id: "all", code: "All" }, ...courses]}
-          keyExtractor={(item) => item.id}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterStrip}
-          renderItem={({ item }) => (
+        >
           <ScalePressable
             style={[
               styles.filterChip,
-              selectedCourseId === item.id && styles.filterChipActive,
+              selectedCourseId === "all" && styles.filterChipActive,
             ]}
-            onPress={() => setSelectedCourseId(item.id)}
+            onPress={() => setSelectedCourseId("all")}
           >
+            <Text
+              style={[
+                styles.filterChipText,
+                selectedCourseId === "all" && styles.filterChipTextActive,
+              ]}
+            >
+              All
+            </Text>
+          </ScalePressable>
+          {courses.map((item) => (
+            <ScalePressable
+              key={item.id}
+              style={[
+                styles.filterChip,
+                selectedCourseId === item.id && styles.filterChipActive,
+              ]}
+              onPress={() => setSelectedCourseId(item.id)}
+            >
               <Text
                 style={[
                   styles.filterChipText,
@@ -741,8 +757,8 @@ export default function LecturerResources() {
                 {item.code}
               </Text>
             </ScalePressable>
-          )}
-        />
+          ))}
+        </ScrollView>
       </View>
       </FadeSlideIn>
     </>
