@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import { FlashList } from "@shopify/flash-list"
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   FolderDown,
   FileText,
@@ -19,8 +20,9 @@ import {
   HelpCircle,
   StickyNote,
 } from 'lucide-react-native'
-import { File, Paths } from 'expo-file-system'
+import { downloadFileAsync, cacheDirectory } from 'expo-file-system'
 import { supabase } from '@/lib/supabase'
+import { queryKeys } from '@/lib/queryClient'
 import { ResourcesSkeleton } from '@/components/SkeletonLoader'
 import { ScreenPageHeader } from '@/components/ScreenPageHeader'
 import { FadeSlideIn } from '@/components/FadeSlideIn'
@@ -174,13 +176,50 @@ function ResourceCard({ resource, onDownload }: ResourceCardProps) {
 export default function StudentResources() {
   const insets = useSafeAreaInsets()
   const profile = useAuthStore((s) => s.profile)
+  const queryClient = useQueryClient()
+  const { refresh: refreshEnrollments } = useStudentEnrollments()
 
-  const [resources, setResources] = useState<ResourceWithCourse[]>([])
   const [courseFilter, setCourseFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<ResourceType | 'all'>('all')
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
+  const resourcesKey = queryKeys.resources(profile?.id ? [profile.id] : undefined)
+
+  const { data: resources = [], isLoading, refetch, isRefetching } = useQuery({
+    queryKey: resourcesKey,
+    queryFn: async () => {
+      if (!profile) return []
+      let { courseIds } = await refreshEnrollments(true)
+
+      if (courseIds.length === 0 && profile?.level != null && profile?.university_id) {
+        const { data: levelCourses } = await supabase
+          .from('courses')
+          .select('id')
+          .eq('university_id', profile.university_id)
+          .eq('level', profile.level)
+          .eq('is_active', true)
+        courseIds = (levelCourses || []).map((c: any) => c.id)
+      }
+
+      if (courseIds.length === 0) return []
+
+      const { data: resourceData } = await supabase
+        .from('resources')
+        .select('*, courses(code, title)')
+        .in('course_id', courseIds)
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+
+      if (!resourceData) return []
+
+      return resourceData.map((r) => ({
+        ...r,
+        courseCode: (r.courses as any)?.code ?? '—',
+        courseTitle: (r.courses as any)?.title ?? '',
+      }))
+    },
+    enabled: !!profile,
+  })
 
   // Unique courses for filter chips
   const courseOptions = [
@@ -191,61 +230,10 @@ export default function StudentResources() {
     ),
   ]
 
-  // ── Fetch ─────────────────────────────────────────────────────────────
-
-  const { refresh: refreshEnrollments } = useStudentEnrollments()
-
-  const fetchData = useCallback(async () => {
-    if (!profile) return
-    try {
-      let { courseIds } = await refreshEnrollments(true)
-
-      if (courseIds.length === 0 && profile?.level != null && profile?.university_id) {
-        // Fallback to level-based courses so resources can still be discovered
-        const { data: levelCourses } = await supabase
-          .from('courses')
-          .select('id')
-          .eq('university_id', profile.university_id)
-          .eq('level', profile.level)
-          .eq('is_active', true)
-        courseIds = (levelCourses || []).map((c: any) => c.id)
-      }
-
-      if (courseIds.length === 0) {
-        setResources([])
-        return
-      }
-
-      const { data: resourceData } = await supabase
-        .from('resources')
-        .select('*, courses(code, title)')
-        .in('course_id', courseIds)
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false })
-
-      if (!resourceData) return
-
-      const enriched: ResourceWithCourse[] = resourceData.map((r) => ({
-        ...r,
-        courseCode: (r.courses as any)?.code ?? '—',
-        courseTitle: (r.courses as any)?.title ?? '',
-      }))
-
-      setResources(enriched)
-    } catch (e) {
-      console.error('Resources fetch error:', e)
-    }
-  }, [profile, refreshEnrollments])
-
-  useEffect(() => {
-    fetchData().finally(() => setIsLoading(false))
-  }, [fetchData])
-
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true)
-    await fetchData()
-    setIsRefreshing(false)
-  }, [fetchData])
+    await refreshEnrollments(true)
+    await refetch()
+  }, [refreshEnrollments, refetch])
 
   // ── Download ──────────────────────────────────────────────────────────
 
@@ -253,8 +241,8 @@ export default function StudentResources() {
     setDownloadingId(resource.id)
     try {
       const fileName = resource.file_url.split('/').pop() || `resource-${resource.id}`
-      const localFile = new File(Paths.cache, fileName)
-      await File.downloadFileAsync(resource.file_url, localFile, { idempotent: true })
+      const localUri = cacheDirectory + fileName
+      await downloadFileAsync(resource.file_url, localUri)
 
       Alert.alert(
         'Download Complete',
@@ -262,15 +250,13 @@ export default function StudentResources() {
         [{ text: 'OK' }],
       )
 
-      // Increment download count
       await supabase
         .from('resources')
         .update({ downloads: resource.downloads + 1 })
         .eq('id', resource.id)
 
-      // Optimistic local update
-      setResources((prev) =>
-        prev.map((r) =>
+      queryClient.setQueryData<ResourceWithCourse[]>(resourcesKey, (prev) =>
+        prev?.map((r) =>
           r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r
         )
       )
@@ -279,7 +265,7 @@ export default function StudentResources() {
     } finally {
       setDownloadingId(null)
     }
-  }, [])
+  }, [resourcesKey, queryClient])
 
   // ── Filter ────────────────────────────────────────────────────────────
 
@@ -405,7 +391,7 @@ export default function StudentResources() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
+            refreshing={isRefetching}
             onRefresh={onRefresh}
             tintColor={C.brand}
           />

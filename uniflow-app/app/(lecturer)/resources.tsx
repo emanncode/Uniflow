@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
   Image as ImageIcon,
@@ -27,6 +28,7 @@ import {
 } from "lucide-react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryClient";
 import { uriToUint8Array } from "@/lib/avatar";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/config";
 import { ResourcesSkeleton } from "@/components/SkeletonLoader";
@@ -619,60 +621,61 @@ function UploadSheet({
 export default function LecturerResources() {
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
-
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [uploadVisible, setUploadVisible] = useState(false);
-
-  // ── Fetch ─────────────────────────────────────────────────────────────
-
+  const queryClient = useQueryClient();
   const { refresh: refreshCourseIds } = useLecturerCourseIds();
 
-  const fetchData = useCallback(async () => {
-    if (!profile) return;
-    try {
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("all");
+  const [uploadVisible, setUploadVisible] = useState(false);
+
+  const resourceKey = queryKeys.resources(profile?.id ? [profile.id] : undefined);
+  const coursesKey = queryKeys.courses(profile?.id ? [profile.id] : undefined);
+
+  const { data: resources = [], isLoading: resourcesLoading, isRefetching: resourcesRefetching } = useQuery({
+    queryKey: resourceKey,
+    queryFn: async () => {
+      if (!profile) return [];
       const { courseIds } = await refreshCourseIds(true);
+      if (courseIds.length === 0) return [];
 
-      if (courseIds.length === 0) {
-        setCourses([]);
-        setResources([]);
-        return;
-      }
+      const { data: resourceData } = await supabase
+        .from("resources")
+        .select("id, title, description, file_url, file_type, downloads, is_approved, course_id, created_at, uploaded_by, university_id, resource_type, academic_session")
+        .eq("uploaded_by", profile.id)
+        .in("course_id", courseIds)
+        .order("created_at", { ascending: false });
 
-      const [courseRes, resourceRes] = await Promise.all([
-        supabase
-          .from("courses")
-          .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
-          .in("id", courseIds)
-          .eq("is_active", true)
-          .order("code"),
-        supabase
-          .from("resources")
-          .select("id, title, description, file_url, file_type, downloads, is_approved, course_id, created_at, uploaded_by, university_id, resource_type, academic_session")
-          .eq("uploaded_by", profile.id)
-          .in("course_id", courseIds)
-          .order("created_at", { ascending: false }),
-      ]);
+      return (resourceData as Resource[]) ?? [];
+    },
+    enabled: !!profile,
+  });
 
-      if (courseRes.data) setCourses(courseRes.data);
-      if (resourceRes.data) setResources(resourceRes.data);
-    } catch (e) {
-      console.error("Resources fetch error:", e);
-    }
-  }, [profile, refreshCourseIds]);
+  const { data: courses = [], isLoading: coursesLoading, isRefetching: coursesRefetching } = useQuery({
+    queryKey: coursesKey,
+    queryFn: async () => {
+      if (!profile) return [];
+      const { courseIds } = await refreshCourseIds(true);
+      if (courseIds.length === 0) return [];
 
-  useEffect(() => {
-    fetchData().finally(() => setIsLoading(false));
-  }, [fetchData]);
+      const { data } = await supabase
+        .from("courses")
+        .select("id, code, title, level, semester, credit_units, description, is_active, university_id, department_id, created_at")
+        .in("id", courseIds)
+        .eq("is_active", true)
+        .order("code");
+
+      return (data as Course[]) ?? [];
+    },
+    enabled: !!profile,
+  });
+
+  const isLoading = resourcesLoading || coursesLoading;
+  const isRefreshing = resourcesRefetching || coursesRefetching;
 
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchData();
-    setIsRefreshing(false);
-  }, [fetchData]);
+    await refreshCourseIds(true);
+    queryClient.invalidateQueries({ queryKey: resourceKey });
+    queryClient.invalidateQueries({ queryKey: coursesKey });
+  }, [refreshCourseIds, queryClient, resourceKey, coursesKey]);
 
   // ── Filtered resources ────────────────────────────────────────────────
 
@@ -801,7 +804,10 @@ export default function LecturerResources() {
         visible={uploadVisible}
         courses={courses}
         onClose={() => setUploadVisible(false)}
-        onUploaded={fetchData}
+        onUploaded={() => {
+          queryClient.invalidateQueries({ queryKey: resourceKey });
+          queryClient.invalidateQueries({ queryKey: coursesKey });
+        }}
       />
     </View>
   );

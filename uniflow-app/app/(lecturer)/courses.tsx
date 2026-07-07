@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   ScrollView,
-
   StyleSheet,
   RefreshControl,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   Users,
@@ -19,6 +19,7 @@ import {
   Calendar,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryClient";
 import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLecturerCourseIds } from "@/hooks/useLecturerCourseIds";
@@ -219,32 +220,26 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
 export default function LecturerCourses() {
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
+  const { refresh: refreshCourseIds } = useLecturerCourseIds();
 
-  const [courses, setCourses] = useState<CourseWithMeta[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseWithMeta | null>(
     null,
   );
   const [modalVisible, setModalVisible] = useState(false);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────
+  const coursesKey = queryKeys.courses(profile?.id ? [profile.id] : undefined);
 
-  const { refresh: refreshCourseIds } = useLecturerCourseIds();
-
-  const fetchData = useCallback(async () => {
-    if (!profile) return;
-    try {
+  const { data: courses = [], isLoading, refetch, isRefetching } = useQuery({
+    queryKey: coursesKey,
+    queryFn: async () => {
+      if (!profile) return [];
       const { courseIds, offeringIds } = await refreshCourseIds(true);
       __DEV__ && console.log('[LecturerCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
       if (courseIds.length === 0) {
         __DEV__ && console.log('[LecturerCourses] no courseIds, skipping courses query');
-        setCourses([]);
-        return;
+        return [];
       }
-
-
 
       const [courseRes, slots, enrollmentsRes] = await Promise.all([
         supabase
@@ -271,13 +266,9 @@ export default function LecturerCourses() {
       const enrollmentCounts = countByCourseId(enrollmentsRes.data ?? []);
       __DEV__ && console.log('[LecturerCourses] courseData length:', courseData?.length, 'slots length:', slots?.length, 'enrollmentsRes:', enrollmentsRes.data?.length);
 
-      if (courseData && courseData.length === 0) {
-        __DEV__ && console.log('[LecturerCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
-      }
+      if (!courseData) return [];
 
-      if (!courseData) return;
-
-      const enriched: CourseWithMeta[] = courseData.map((course) => {
+      return (courseData as Course[]).map((course) => {
         const courseSlots = (slots ?? []).filter(
           (s) => s.course_id === course.id,
         );
@@ -285,25 +276,16 @@ export default function LecturerCourses() {
           ...course,
           slots: courseSlots,
           studentCount: enrollmentCounts[course.id] ?? 0,
-        };
+        } as CourseWithMeta;
       });
-      __DEV__ && console.log('[LecturerCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
-
-      setCourses(enriched);
-    } catch (e) {
-      console.error("Courses fetch error:", e);
-    }
-  }, [profile, refreshCourseIds]);
-
-  useEffect(() => {
-    fetchData().finally(() => setIsLoading(false));
-  }, [fetchData]);
+    },
+    enabled: !!profile,
+  });
 
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchData();
-    setIsRefreshing(false);
-  }, [fetchData]);
+    await refreshCourseIds(true);
+    await refetch();
+  }, [refreshCourseIds, refetch]);
 
   // ── Handlers ──────────────────────────────────────────────────────────
 
@@ -385,7 +367,7 @@ export default function LecturerCourses() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
+            refreshing={isRefetching}
             onRefresh={onRefresh}
             tintColor={C.brand}
           />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   Award,
@@ -18,6 +19,7 @@ import {
   Calendar,
 } from "lucide-react-native";
 import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryClient";
 import { fetchTimetableSlots } from "@/lib/timetable-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useStudentEnrollments } from "@/hooks/useStudentEnrollments";
@@ -210,22 +212,19 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
 export default function StudentCourses() {
   const insets = useSafeAreaInsets();
   const profile = useAuthStore((s) => s.profile);
+  const { refresh: refreshEnrollments } = useStudentEnrollments();
 
-  const [courses, setCourses] = useState<EnrolledCourse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<EnrolledCourse | null>(
     null,
   );
   const [modalVisible, setModalVisible] = useState(false);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────
+  const coursesKey = queryKeys.courses(profile?.id ? [profile.id] : undefined);
 
-  const { refresh: refreshEnrollments } = useStudentEnrollments();
-
-  const fetchData = useCallback(async () => {
-    if (!profile) return;
-    try {
+  const { data: courses = [], isLoading, refetch, isRefetching } = useQuery({
+    queryKey: coursesKey,
+    queryFn: async () => {
+      if (!profile) return [];
       const { courseIds, offeringIds } = await refreshEnrollments(true);
       __DEV__ && console.log('[StudentCourses] fetched courseIds:', courseIds, 'offeringIds:', offeringIds);
 
@@ -233,7 +232,6 @@ export default function StudentCourses() {
       let effectiveOfferingIds = offeringIds;
 
       if (effectiveCourseIds.length === 0 && profile?.level != null && profile?.university_id) {
-        // Fallback: load courses by student's level and university (for testing / when no enrollments)
         __DEV__ && console.log('[StudentCourses] no enrollments, falling back to courses by level', profile.level);
         const { data: levelCourses } = await supabase
           .from("courses")
@@ -244,17 +242,13 @@ export default function StudentCourses() {
           .order("code");
         if (levelCourses && levelCourses.length > 0) {
           effectiveCourseIds = levelCourses.map((c: any) => c.id);
-          // offerings may be empty, will use legacy for names
         }
       }
 
       if (effectiveCourseIds.length === 0) {
         __DEV__ && console.log('[StudentCourses] no courseIds, skipping courses query');
-        setCourses([]);
-        return;
+        return [];
       }
-
-
 
       const [courseRes, slots, lecturerRes] = await Promise.all([
         supabase
@@ -281,21 +275,17 @@ export default function StudentCourses() {
       const lecturerAssignments = lecturerRes.data;
       __DEV__ && console.log('[StudentCourses] courseData length:', courseData?.length, 'slots:', slots?.length, 'lecturerAssignments:', lecturerAssignments?.length);
 
-      if (courseData && courseData.length === 0) {
-        __DEV__ && console.log('[StudentCourses] courses query returned 0 even with courseIds - possible RLS or no matching courses');
-      }
-
-      if (!courseData) return;
+      if (!courseData) return [];
 
       const lecturerMap: Record<string, string[]> = {};
       for (const row of lecturerAssignments ?? []) {
-        const profile = row.profiles as
+        const prof = row.profiles as
           | { full_name: string }
           | { full_name: string }[]
           | null;
-        const name = Array.isArray(profile)
-          ? profile[0]?.full_name
-          : profile?.full_name;
+        const name = Array.isArray(prof)
+          ? prof[0]?.full_name
+          : prof?.full_name;
         if (!name) continue;
         if (!lecturerMap[row.course_id]) lecturerMap[row.course_id] = [];
         if (!lecturerMap[row.course_id].includes(name)) {
@@ -303,8 +293,7 @@ export default function StudentCourses() {
         }
       }
 
-      // 5. Build enriched courses
-      const enriched: EnrolledCourse[] = courseData.map((course) => {
+      return (courseData as Course[]).map((course) => {
         const courseSlots = (slots ?? []).filter(
           (s) => s.course_id === course.id,
         );
@@ -315,25 +304,16 @@ export default function StudentCourses() {
         const lecturerNames = [
           ...new Set([...assignedLecturers, ...slotLecturers]),
         ];
-        return { ...course, slots: courseSlots, lecturerNames };
+        return { ...course, slots: courseSlots, lecturerNames } as EnrolledCourse;
       });
-      __DEV__ && console.log('[StudentCourses] enriched courses:', enriched.length, 'first:', enriched[0]);
-
-      setCourses(enriched);
-    } catch (e) {
-      console.error("Student courses fetch error:", e);
-    }
-  }, [profile, refreshEnrollments]);
-
-  useEffect(() => {
-    fetchData().finally(() => setIsLoading(false));
-  }, [fetchData]);
+    },
+    enabled: !!profile,
+  });
 
   const onRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await fetchData();
-    setIsRefreshing(false);
-  }, [fetchData]);
+    await refreshEnrollments(true);
+    await refetch();
+  }, [refreshEnrollments, refetch]);
 
   const handleCoursePress = useCallback((course: EnrolledCourse) => {
     setSelectedCourse(course);
@@ -411,7 +391,7 @@ export default function StudentCourses() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
+            refreshing={isRefetching}
             onRefresh={onRefresh}
             tintColor={C.brand}
           />
