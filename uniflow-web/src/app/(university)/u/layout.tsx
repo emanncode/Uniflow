@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -286,22 +286,15 @@ export default function UniversityPortalLayout({
   const [universityId, setUniversityId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);  
   const [loading, setLoading] = useState(true);
-  const sessionLoaded = useRef(false);
 
   useEffect(() => {
-    const isPublic = isUniversityPublicPath(pathname);
-
-    // Skip re-fetch when navigating between protected pages
-    if (sessionLoaded.current && !isPublic) return;
-
     async function loadSession() {
-      if (isPublic) {
+      if (isUniversityPublicPath(pathname)) {
         setUser(null);
         setUniversity(null);
         setUniversityId(null);
         setSidebarOpen(false);
         setLoading(false);
-        sessionLoaded.current = false;
         return;
       }
 
@@ -354,7 +347,6 @@ export default function UniversityPortalLayout({
         });
         setUniversityId(adminRecord.university_id);
         setUniversity(uni);
-        sessionLoaded.current = true;
       } catch (err) {
         console.error("Critical error in UniversityPortalLayout:", err);
       } finally {
@@ -362,7 +354,7 @@ export default function UniversityPortalLayout({
       }
     }
     loadSession();
-  }, [pathname]);
+  }, [pathname, router]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
