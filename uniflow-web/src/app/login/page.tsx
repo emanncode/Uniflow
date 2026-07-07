@@ -7,6 +7,7 @@ import { verifyPortalAccess } from "@/lib/verify-portal-client";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { BASE_DOMAIN } from "@/lib/domain";
 import UniflowLogo from "@/components/ui/UniflowLogo";
+import { CapsLockWarning } from "@/components/ui/CapsLockWarning";
 
 export const dynamic = "force-dynamic";
 
@@ -210,6 +211,7 @@ export default function LoginPage() {
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
+                  <CapsLockWarning />
                 </div>
 
                 <button

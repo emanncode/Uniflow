@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { User, Mail, Shield, Save, Eye, EyeOff } from 'lucide-react'
+import { CapsLockWarning } from '@/components/ui/CapsLockWarning'
 
 const fetchProfile = async (
   setProfile: React.Dispatch<React.SetStateAction<{ full_name: string, email: string }>>,
@@ -330,6 +331,7 @@ export default function SettingsPage() {
                     }
                   </button>
                 </div>
+                <CapsLockWarning />
               </div>
             ))}
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { User, Shield, Save, Eye, EyeOff, Loader2, GraduationCap } from "lucide-react";
+import { CapsLockWarning } from "@/components/ui/CapsLockWarning";
 
 export default function UniversitySettingsPage() {
   const [profile, setProfile] = useState({ full_name: "", email: "" });
@@ -432,6 +433,7 @@ export default function UniversitySettingsPage() {
                     )}
                   </button>
                 </div>
+                <CapsLockWarning />
               </div>
             ))}
             <button

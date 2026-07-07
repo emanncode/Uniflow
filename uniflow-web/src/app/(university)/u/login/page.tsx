@@ -13,6 +13,7 @@ import {
   EyeOff,
 } from 'lucide-react'
 import UniflowLogo from '@/components/ui/UniflowLogo'
+import { CapsLockWarning } from '@/components/ui/CapsLockWarning'
 
 type Step = 'credentials' | 'otp'
 
@@ -176,6 +177,7 @@ export default function UniversityLoginPage() {
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
+                  <CapsLockWarning />
                 </div>
 
                 <button

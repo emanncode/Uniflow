@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { CapsLockWarning } from "@/components/ui/CapsLockWarning";
 import {
   usePasswordRecoverySession,
   type RecoveryState,
@@ -253,6 +254,7 @@ export function ResetPasswordForm({
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
+          <CapsLockWarning />
         </div>
 
         <div>
@@ -272,6 +274,7 @@ export function ResetPasswordForm({
               autoComplete="new-password"
             />
           </div>
+          <CapsLockWarning />
         </div>
 
         <button type="submit" disabled={loading} className="btn-primary w-full">
