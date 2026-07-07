@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryClient";
 import { useUniversity } from "@/context/UniversityContext";
 import {
   FolderOpen,
@@ -14,7 +16,6 @@ import {
   FileText,
   Image,
   File,
-  MoreHorizontal,
 } from "lucide-react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
@@ -97,60 +98,116 @@ function ResourceTypeLabel({ type }: { type: ResourceType }) {
 }
 
 export default function ResourcesPage() {
+  const queryClient = useQueryClient();
   const { universityId, isReady } = useUniversity();
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [filterCourse, setFilterCourse] = useState<string>("all");
   const [filterType, setFilterType] = useState<ResourceType | "all">("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [confirmDelete, setConfirmDelete] = useState<Resource | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  const triggerRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const enabled = isReady && !!universityId;
 
-  // Fetch courses for filter
-  useEffect(() => {
-    if (!isReady || !universityId) return;
-    supabase
-      .from("courses")
-      .select("id, code, title")
-      .eq("university_id", universityId)
-      .eq("is_active", true)
-      .order("code")
-      .then(({ data }) => {
-        if (data) setCourses(data);
-      });
-  }, [isReady, universityId]);
+  const { data: resources = [], isLoading } = useQuery({
+    queryKey: queryKeys.resources(universityId ?? undefined),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("resources")
+        .select("*, courses!inner(code, title)")
+        .eq("university_id", universityId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data as unknown as Resource[]) ?? [];
+    },
+    enabled,
+  });
 
-  // Fetch resources
-  useEffect(() => {
-    if (!isReady || !universityId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(false);
-      return;
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    setError("");
+  const { data: courses = [] } = useQuery({
+    queryKey: queryKeys.courses({ university_id: universityId, is_active: true }),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("courses")
+        .select("id, code, title")
+        .eq("university_id", universityId)
+        .eq("is_active", true)
+        .order("code");
+      return (data as Course[]) ?? [];
+    },
+    enabled,
+  });
 
-    supabase
-      .from("resources")
-      .select("*, courses!inner(code, title)")
-      .eq("university_id", universityId)
-      .order("created_at", { ascending: false })
-      .limit(200)
-      .then(({ data, error: err }) => {
-        if (err) {
-          setError(err.message);
-        } else {
-          setResources((data as unknown as Resource[]) || []);
-        }
-        setLoading(false);
-      });
-  }, [isReady, universityId, refreshKey]);
+  const resourceKey = queryKeys.resources(universityId ?? undefined);
+
+  const toggleApproval = useMutation({
+    mutationFn: async ({ id, is_approved }: { id: string; is_approved: boolean }) => {
+      const newVal = !is_approved;
+      const { error } = await supabase
+        .from("resources")
+        .update({ is_approved: newVal })
+        .eq("id", id);
+      if (error) throw error;
+      return { id, newVal };
+    },
+    onMutate: async ({ id, is_approved }) => {
+      await queryClient.cancelQueries({ queryKey: resourceKey });
+      const prev = queryClient.getQueryData<Resource[]>(resourceKey);
+      queryClient.setQueryData<Resource[]>(resourceKey, (old) =>
+        old?.map((r) => (r.id === id ? { ...r, is_approved: !is_approved } : r)),
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(resourceKey, ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: resourceKey }),
+  });
+
+  const deleteResource = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("resources").delete().eq("id", id);
+      if (error) throw error;
+      return id;
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: resourceKey });
+      const prev = queryClient.getQueryData<Resource[]>(resourceKey);
+      queryClient.setQueryData<Resource[]>(resourceKey, (old) =>
+        old?.filter((r) => r.id !== id),
+      );
+      setConfirmDelete(null);
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(resourceKey, ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: resourceKey }),
+  });
+
+  const downloadResource = useMutation({
+    mutationFn: async (resource: Resource) => {
+      const { error } = await supabase
+        .from("resources")
+        .update({ downloads: resource.downloads + 1 })
+        .eq("id", resource.id);
+      if (error) throw error;
+      return resource.id;
+    },
+    onMutate: async (resource) => {
+      await queryClient.cancelQueries({ queryKey: resourceKey });
+      const prev = queryClient.getQueryData<Resource[]>(resourceKey);
+      queryClient.setQueryData<Resource[]>(resourceKey, (old) =>
+        old?.map((r) =>
+          r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r,
+        ),
+      );
+      return { prev };
+    },
+    onError: (_err, _resource, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(resourceKey, ctx.prev);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: resourceKey }),
+  });
 
   const filtered = useMemo(() => {
     let result = resources;
@@ -182,52 +239,8 @@ export default function ResourcesPage() {
     return result;
   }, [resources, search, filterCourse, filterType, filterStatus]);
 
-  async function handleToggleApproval(resource: Resource) {
-    const newVal = !resource.is_approved;
-    const { error: err } = await supabase
-      .from("resources")
-      .update({ is_approved: newVal })
-      .eq("id", resource.id);
-
-    if (err) {
-      setError(err.message);
-      return;
-    }
-    setResources((prev) =>
-      prev.map((r) => (r.id === resource.id ? { ...r, is_approved: newVal } : r))
-    );
-  }
-
-  async function handleDelete() {
-    if (!confirmDelete) return;
-    const { error: err } = await supabase
-      .from("resources")
-      .delete()
-      .eq("id", confirmDelete.id);
-
-    if (err) {
-      setError(err.message);
-      setConfirmDelete(null);
-      return;
-    }
-    setResources((prev) => prev.filter((r) => r.id !== confirmDelete.id));
-    setConfirmDelete(null);
-  }
-
-  async function handleDownload(resource: Resource) {
-    const { error: err } = await supabase
-      .from("resources")
-      .update({ downloads: resource.downloads + 1 })
-      .eq("id", resource.id);
-
-    if (!err) {
-      setResources((prev) =>
-        prev.map((r) =>
-          r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r,
-        ),
-      );
-    }
-
+  async function handleDownloadClick(resource: Resource) {
+    downloadResource.mutate(resource);
     const a = document.createElement("a");
     a.href = resource.file_url;
     a.target = "_blank";
@@ -269,7 +282,7 @@ export default function ResourcesPage() {
         </div>
       </div>
 
-      {error && (
+      {toggleApproval.error || deleteResource.error ? (
         <div
           style={{
             background: "var(--danger-muted)",
@@ -281,9 +294,9 @@ export default function ResourcesPage() {
             marginBottom: "20px",
           }}
         >
-          {error}
+          {toggleApproval.error?.message || deleteResource.error?.message}
         </div>
-      )}
+      ) : null}
 
       {/* Filters */}
       <div
@@ -387,7 +400,7 @@ export default function ResourcesPage() {
       </div>
 
       {/* Loading */}
-      {loading && (
+      {isLoading && (
         <div
           style={{
             display: "flex",
@@ -405,7 +418,7 @@ export default function ResourcesPage() {
       )}
 
       {/* Empty state */}
-      {!loading && filtered.length === 0 && (
+      {!isLoading && filtered.length === 0 && (
         <div
           style={{
             textAlign: "center",
@@ -432,7 +445,7 @@ export default function ResourcesPage() {
       )}
 
       {/* Resources list */}
-      {!loading && filtered.length > 0 && (
+      {!isLoading && filtered.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {filtered.map((resource) => (
             <div
@@ -566,7 +579,7 @@ export default function ResourcesPage() {
               >
                 <button
                   type="button"
-                  onClick={() => handleToggleApproval(resource)}
+                  onClick={() => toggleApproval.mutate(resource)}
                   title={resource.is_approved ? "Revoke approval" : "Approve"}
                   style={{
                     padding: "6px 12px",
@@ -589,7 +602,7 @@ export default function ResourcesPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleDownload(resource)}
+                  onClick={() => handleDownloadClick(resource)}
                   title="Download file"
                   style={{
                     padding: "6px",
@@ -638,7 +651,7 @@ export default function ResourcesPage() {
         message={`Are you sure you want to delete "${confirmDelete?.title}"? This action cannot be undone.`}
         confirmText="Delete"
         isDestructive
-        onConfirm={handleDelete}
+                onConfirm={() => deleteResource.mutate(confirmDelete!.id)}
         onClose={() => setConfirmDelete(null)}
       />
     </div>
