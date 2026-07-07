@@ -214,6 +214,29 @@ export default function ResourcesPage() {
     setConfirmDelete(null);
   }
 
+  async function handleDownload(resource: Resource) {
+    const { error: err } = await supabase
+      .from("resources")
+      .update({ downloads: resource.downloads + 1 })
+      .eq("id", resource.id);
+
+    if (!err) {
+      setResources((prev) =>
+        prev.map((r) =>
+          r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r,
+        ),
+      );
+    }
+
+    const a = document.createElement("a");
+    a.href = resource.file_url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
   return (
     <div>
       {/* Header */}
@@ -562,6 +585,26 @@ export default function ResourcesPage() {
                   }}
                 >
                   {resource.is_approved ? "Revoke" : "Approve"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownload(resource)}
+                  title="Download file"
+                  style={{
+                    padding: "6px",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid var(--border-primary)",
+                    background: "transparent",
+                    cursor: "pointer",
+                    color: "var(--text-muted)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all var(--transition)",
+                  }}
+                >
+                  <Download size={14} />
                 </button>
 
                 <button
