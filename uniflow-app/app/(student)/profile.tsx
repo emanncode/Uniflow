@@ -37,6 +37,7 @@ import {
 } from "@/lib/enrichProfile";
 import { getMobileRoleLabel } from "@/lib/roleLabel";
 import { ProfileBackHeader } from "@/components/ProfileBackHeader";
+import { useCapsLock } from "@/hooks/useCapsLock";
 
 const C = Theme.colors;
 const R = Theme.radius;
@@ -124,6 +125,7 @@ function ChangePasswordModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const { capsLock, checkCapsLock } = useCapsLock();
 
   const reset = () => {
     setCurrent("");
@@ -235,13 +237,23 @@ function ChangePasswordModal({
                   placeholder={field.placeholder}
                   placeholderTextColor={C.textMuted}
                   value={field.value}
-                  onChangeText={field.onChange}
+                  onChangeText={(t) => {
+                    checkCapsLock(t, field.value);
+                    field.onChange(t);
+                  }}
                   secureTextEntry
                   autoCapitalize="none"
                   editable={!isLoading}
                 />
               </View>
             ))}
+            {capsLock ? (
+              <View style={styles.capsLockWarning}>
+                <Text style={styles.capsLockWarningText}>
+                  Caps Lock is on — passwords are case-sensitive
+                </Text>
+              </View>
+            ) : null}
 
             <TouchableOpacity
               style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
@@ -586,6 +598,18 @@ const styles = StyleSheet.create({
   },
 
   sheetBody: { gap: 14 },
+  capsLockWarning: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.25)',
+    borderRadius: R.sm,
+    padding: 10,
+  },
+  capsLockWarningText: {
+    color: C.warning,
+    fontSize: 12,
+    fontWeight: '600',
+  },
   errorBanner: {
     backgroundColor: C.dangerMuted,
     borderWidth: 1,

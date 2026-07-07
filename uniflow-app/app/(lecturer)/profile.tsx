@@ -34,6 +34,7 @@
   } from "@/lib/enrichProfile";
   import { getMobileRoleLabel } from "@/lib/roleLabel";
   import { ProfileBackHeader } from "@/components/ProfileBackHeader";
+  import { useCapsLock } from "@/hooks/useCapsLock";
 
   const C = Theme.colors;
   const R = Theme.radius;
@@ -128,6 +129,7 @@
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
+    const { capsLock, checkCapsLock } = useCapsLock();
 
     const reset = useCallback(() => {
       setCurrent("");
@@ -227,7 +229,10 @@
                   placeholder="Enter current password"
                   placeholderTextColor={C.textMuted}
                   value={current}
-                  onChangeText={setCurrent}
+                  onChangeText={(t) => {
+                    checkCapsLock(t, current);
+                    setCurrent(t);
+                  }}
                   secureTextEntry
                   autoCapitalize="none"
                   editable={!isLoading}
@@ -242,7 +247,10 @@
                   placeholder="Min. 6 characters"
                   placeholderTextColor={C.textMuted}
                   value={next}
-                  onChangeText={setNext}
+                  onChangeText={(t) => {
+                    checkCapsLock(t, next);
+                    setNext(t);
+                  }}
                   secureTextEntry
                   autoCapitalize="none"
                   editable={!isLoading}
@@ -257,7 +265,10 @@
                   placeholder="Repeat new password"
                   placeholderTextColor={C.textMuted}
                   value={confirm}
-                  onChangeText={setConfirm}
+                  onChangeText={(t) => {
+                    checkCapsLock(t, confirm);
+                    setConfirm(t);
+                  }}
                   secureTextEntry
                   autoCapitalize="none"
                   editable={!isLoading}
@@ -265,6 +276,14 @@
                   onSubmitEditing={handleSubmit}
                 />
               </View>
+
+              {capsLock ? (
+                <View style={styles.capsLockWarning}>
+                  <Text style={styles.capsLockWarningText}>
+                    Caps Lock is on — passwords are case-sensitive
+                  </Text>
+                </View>
+              ) : null}
 
               <TouchableOpacity
                 style={[styles.submitBtn, isLoading && { opacity: 0.6 }]}
@@ -641,6 +660,18 @@
 
     sheetBody: {
       gap: 14,
+    },
+    capsLockWarning: {
+      backgroundColor: 'rgba(245, 158, 11, 0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(245, 158, 11, 0.2)',
+      borderRadius: R.sm,
+      padding: 10,
+    },
+    capsLockWarningText: {
+      color: C.warning,
+      fontSize: 12,
+      fontWeight: '600',
     },
 
     // Error

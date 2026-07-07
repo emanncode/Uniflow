@@ -20,6 +20,7 @@ import { Theme } from "@/constants/Theme";
 
 import { FadeSlideIn } from "@/components/FadeSlideIn";
 import { ScalePressable } from "@/components/ScalePressable";
+import { useCapsLock } from "@/hooks/useCapsLock";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<FieldError>({});
+  const { capsLock, checkCapsLock } = useCapsLock();
 
   // ── Validation ─────────────────────────────────────────────────────────
   const validate = (): boolean => {
@@ -163,6 +165,7 @@ export default function LoginScreen() {
                   placeholderTextColor={Theme.colors.textMuted}
                   value={password}
                   onChangeText={(t) => {
+                    checkCapsLock(t, password);
                     setPassword(t);
                     if (errors.password)
                       setErrors((e) => ({ ...e, password: undefined }));
@@ -187,6 +190,11 @@ export default function LoginScreen() {
               </View>
               {errors.password ? (
                 <Text style={styles.fieldError}>{errors.password}</Text>
+              ) : null}
+              {capsLock ? (
+                <Text style={styles.capsLockWarning}>
+                  Caps Lock is on — passwords are case-sensitive
+                </Text>
               ) : null}
             </View>
 
@@ -391,6 +399,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.2,
+  },
+
+  capsLockWarning: {
+    color: Theme.colors.warning,
+    fontSize: 12,
+    marginTop: 6,
   },
 
   // ── Help & Footer ──
