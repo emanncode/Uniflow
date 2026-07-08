@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowRight,
@@ -136,7 +135,6 @@ export function ResetPasswordForm({
   loginLabel = "Back to sign in",
   badge,
 }: ResetPasswordFormProps) {
-  const router = useRouter();
   const { state, error: recoveryError, confirmToken } =
     usePasswordRecoverySession();
 
@@ -172,7 +170,6 @@ export function ResetPasswordForm({
 
       await supabase.auth.signOut();
       setSuccess(true);
-      setTimeout(() => router.push(loginHref), 2500);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to update password.";
@@ -212,9 +209,12 @@ export function ResetPasswordForm({
           <ShieldCheck size={28} color="#22c55e" />
         </div>
         <h2 className="text-xl font-bold text-primary mb-2">Password updated</h2>
-        <p className="text-secondary text-sm">
-          Redirecting you to sign in...
+        <p className="text-secondary text-sm mb-6">
+          Your password has been reset successfully.
         </p>
+        <Link href={loginHref} className="btn-primary inline-block">
+          {loginLabel}
+        </Link>
       </div>
     );
   }
