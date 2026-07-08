@@ -479,7 +479,9 @@ export default function FacultiesPage() {
       ]);
       const facData = facRes.data;
       const deptCounts = deptRes.data;
-      const { data: deanData } = await staffRes.json();
+      const { data: deanData } = (await staffRes.json()) as {
+        data?: { id: string; full_name: string; email: string; faculty: string | null }[];
+      };
 
       const countMap: Record<string, number> = {};
       (deptCounts ?? []).forEach((d: { faculty?: string }) => {
@@ -493,7 +495,7 @@ export default function FacultiesPage() {
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mappedDeans = deanData.map((d: any) => ({
+      const mappedDeans = (deanData ?? []).map((d: any) => ({
         id: d.id,
         full_name: d.full_name,
         email: d.email,
@@ -505,15 +507,14 @@ export default function FacultiesPage() {
         deanNameMap[d.id] = d.full_name;
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setFaculties(
-        (facData ?? []).map((f: any) => ({
+        (facData ?? []).map((f: { id: string; name: string; short_name: string; dean_id: string | null; created_at: string }) => ({
           id: f.id,
           name: f.name,
           short_name: f.short_name,
           dean_id: f.dean_id,
           dean_name: f.dean_id ? (deanNameMap[f.dean_id] ?? null) : null,
-          dept_count: countMap[f.short_name] ?? 0,   // departments.faculty stores the short_name
+          dept_count: countMap[f.short_name] ?? 0,
           created_at: f.created_at,
         })),
       );
