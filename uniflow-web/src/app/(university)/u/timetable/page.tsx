@@ -85,11 +85,10 @@ export default function TimetablePage() {
 
   useEffect(() => {
     if (!isReady || !universityId || !deptParam) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
-    setLoading(true);
-    setError("");
+    queueMicrotask(() => setError(""));
 
     (async () => {
       const { data: dept } = await supabase

@@ -245,9 +245,7 @@ export default function LecturersPage() {
 
   // ── Load Data ────────────────────────────────────────────────────────────
   const loadData = useCallback(async (currentUniId: string) => {
-    setLoading(true);
-    setError("");
-    setUniId(currentUniId);
+    queueMicrotask(() => { setError(""); setUniId(currentUniId); });
 
     try {
       const [staffRes, facRes, deptRes] = await Promise.all([
@@ -334,9 +332,10 @@ export default function LecturersPage() {
 
   useEffect(() => {
     if (!isReady || !contextUniId) return;
-    loadData(contextUniId);
+    setTimeout(() => loadData(contextUniId), 0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId, loadData]);
+
 
   // Support direct links from Departments page
   useEffect(() => {
@@ -714,7 +713,7 @@ export default function LecturersPage() {
               <div>
                 <label className="label" style={{ display: "block", marginBottom: "8px" }}>Role</label>
                 <div style={{ position: "relative" }}>
-                  <select value={newRole} onChange={(e) => setNewRole(e.target.value as any)} className="select" style={{ width: "100%", paddingRight: "32px", boxSizing: "border-box" }}>
+                  <select value={newRole} onChange={(e) => setNewRole(e.target.value as 'lecturer' | 'dean' | 'hod')} className="select" style={{ width: "100%", paddingRight: "32px", boxSizing: "border-box" }}>
                     <option value="lecturer">Lecturer</option>
                     <option value="dean">Dean</option>
                     <option value="hod">Head of Department (HOD)</option>

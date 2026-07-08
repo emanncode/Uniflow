@@ -543,9 +543,8 @@ export default function StudentsPage() {
       const { data: allProfiles } = await staffRes.json()
       const studentsData = allProfiles || [];
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setStudents(
-        studentsData.map((l: any) => ({
+        studentsData.map((l: { id: string; full_name: string; email: string; role: string; department_id: string | null; level: number | null; status: string; created_at: string }) => ({
           id: l.id,
           full_name: l.full_name,
           email: l.email,
