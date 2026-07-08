@@ -88,8 +88,7 @@ async function getUploadFilePart(
         return new FileCtor([blob], displayName, { type: contentType || blob.type });
       }
       return blob;
-    } catch (e) {
-      // fall through to byte reader below in caller
+    } catch {
       throw new Error("Could not read selected file for web upload.");
     }
   }
