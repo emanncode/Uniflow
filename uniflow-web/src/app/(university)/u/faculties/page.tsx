@@ -553,10 +553,10 @@ export default function FacultiesPage() {
   }
 
   async function handleAssignDean(facultyId: string, deanId: string) {
-    await supabase
-      .from("faculties")
-      .update({ dean_id: deanId })
-      .eq("id", facultyId);
+    await Promise.all([
+      supabase.from("faculties").update({ dean_id: deanId }).eq("id", facultyId),
+      supabase.from("profiles").update({ role: "dean" }).eq("id", deanId),
+    ]);
     if (contextUniId) await loadData(contextUniId);
   }
 
