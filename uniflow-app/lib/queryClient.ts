@@ -29,5 +29,7 @@ export const queryKeys = {
   notifications: (userId?: string) => ['notifications', userId] as const,
   resources: (courseIds?: string[]) => ['resources', courseIds] as const,
   courses: (ids?: string[]) => ['courses', ids] as const,
+  lecturerCourses: (lecturerId?: string) => ['lecturerCourses', lecturerId] as const,
+  studentCourses: (studentId?: string) => ['studentCourses', studentId] as const,
   classUpdates: (date?: string, slotIds?: string[]) => ['classUpdates', date, slotIds] as const,
 };

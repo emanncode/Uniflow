@@ -219,7 +219,7 @@ export default function StudentCourses() {
   );
   const [modalVisible, setModalVisible] = useState(false);
 
-  const coursesKey = queryKeys.courses(profile?.id ? [profile.id] : undefined);
+  const coursesKey = queryKeys.studentCourses(profile?.id);
 
   const { data: courses = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: coursesKey,

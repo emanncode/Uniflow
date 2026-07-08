@@ -112,7 +112,7 @@ const CourseCard = React.memo(function CourseCard({ course, onPress }: CourseCar
         <View style={styles.statItem}>
           <Layers size={13} color={C.textMuted} strokeWidth={1.8} />
           <Text style={styles.statText}>
-            {course.slots.length} slot{course.slots.length !== 1 ? "s" : ""}
+            {(course.slots?.length ?? 0)} slot{course.slots?.length !== 1 ? "s" : ""}
           </Text>
         </View>
       </View>
@@ -179,14 +179,14 @@ function CourseDetailModal({ course, visible, onClose }: DetailModalProps) {
         {/* Timetable slots */}
         <View style={styles.slotsSection}>
           <Text style={styles.sectionLabel}>
-            Schedule ({course.slots.length} slot
-            {course.slots.length !== 1 ? "s" : ""})
+            Schedule ({course.slots?.length ?? 0} slot
+            {course.slots?.length !== 1 ? "s" : ""})
           </Text>
 
-          {course.slots.length === 0 ? (
+          {(course.slots?.length ?? 0) === 0 ? (
             <Text style={styles.noSlots}>No timetable slots yet</Text>
           ) : (
-            course.slots.map((slot) => (
+            (course.slots ?? []).map((slot) => (
               <View key={slot.id} style={styles.slotRow}>
                 <View style={styles.slotDayTag}>
                   <Text style={styles.slotDayText}>
@@ -227,7 +227,7 @@ export default function LecturerCourses() {
   );
   const [modalVisible, setModalVisible] = useState(false);
 
-  const coursesKey = queryKeys.courses(profile?.id ? [profile.id] : undefined);
+  const coursesKey = queryKeys.lecturerCourses(profile?.id);
 
   const { data: courses = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: coursesKey,
@@ -331,7 +331,7 @@ export default function LecturerCourses() {
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>
-              {courses.reduce((sum, c) => sum + c.slots.length, 0)}
+              {courses.reduce((sum, c) => sum + (c.slots?.length ?? 0), 0)}
             </Text>
             <Text style={styles.summaryLabel}>Weekly Slots</Text>
           </View>
