@@ -456,11 +456,9 @@ export default function FacultiesPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     loadData(contextUniId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId]);
 
   async function loadData(currentUniId: string) {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setUniId(currentUniId);
 
@@ -479,7 +477,9 @@ export default function FacultiesPage() {
       ]);
       const facData = facRes.data;
       const deptCounts = deptRes.data;
-      const { data: deanData } = (await staffRes.json()) as {
+      const staffJson = await staffRes.json();
+      if (!staffRes.ok) throw new Error(staffJson.error || "Failed to fetch staff");
+      const { data: deanData } = staffJson as {
         data?: { id: string; full_name: string; email: string; faculty: string | null }[];
       };
 
@@ -525,7 +525,6 @@ export default function FacultiesPage() {
       console.error("Data loading failed:", message);
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(false);
   }
 

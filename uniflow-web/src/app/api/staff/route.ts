@@ -7,9 +7,9 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit'
 
 const staffQuerySchema = z.object({
   university_id: z.string().min(1),
-  count_only: z.string().optional(),
-  role: z.string().optional(),
-  limit: z.string().optional(),
+  count_only: z.string().nullish(),
+  role: z.string().nullish(),
+  limit: z.string().nullish(),
 })
 
 const staffPatchSchema = z.object({
