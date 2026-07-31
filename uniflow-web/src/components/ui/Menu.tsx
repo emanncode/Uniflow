@@ -35,7 +35,7 @@ const LINE_VARIANTS: Variants = {
 };
 
 const MenuIcon = forwardRef<MenuIconHandle, MenuIconProps>(
-  ({ onClick, onMouseLeave, className, size = 28, ...props }, ref) => {
+  ({ onClick, className, size = 28, ...props }, ref) => {
     const controls = useAnimation();
     const isAnimating = useRef(false);
     const isControlledRef = useRef(false);

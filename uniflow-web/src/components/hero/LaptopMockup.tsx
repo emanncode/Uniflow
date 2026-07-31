@@ -106,7 +106,7 @@ export default function LaptopMockup() {
                 Today&apos;s Timetable
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                {classes.map((cls, i) => {
+                {classes.map((cls) => {
                   const s = statusConfig[cls.status]
                   return (
                     <div key={cls.code} style={{

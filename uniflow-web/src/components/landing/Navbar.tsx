@@ -13,7 +13,6 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setScrolled(window.scrollY > 20)
     }
     window.addEventListener('scroll', handleScroll)

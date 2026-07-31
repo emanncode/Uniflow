@@ -76,7 +76,7 @@ export default function PhoneMockup() {
             Today
           </div>
 
-          {classes.slice(0, 3).map((cls, i) => {
+          {classes.slice(0, 3).map((cls) => {
             const s = statusConfig[cls.status]
             return (
               <div key={cls.code} style={{
