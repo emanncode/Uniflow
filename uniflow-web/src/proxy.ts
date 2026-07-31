@@ -8,15 +8,6 @@ import {
 import { getProfileForUser } from "@/lib/profile-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 
-const publicRoutes = [
-  "/",
-  "/register",
-  "/login",
-  "/reset-password",
-  "/auth/callback",
-];
-const authRoutes = ["/login", "/register"];
-
 /** Share auth cookies across localhost and *.localhost in local dev. */
 function withLocalCookieDomain(
   hostname: string,

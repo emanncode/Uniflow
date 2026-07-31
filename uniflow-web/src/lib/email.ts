@@ -11,20 +11,6 @@ import { APP_URL, BASE_DOMAIN } from "@/lib/domain";
 
 const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Common correct domains we care about protecting.
-const POPULAR_DOMAINS = [
-  "gmail.com",
-  "yahoo.com",
-  "yahoo.co.uk",
-  "hotmail.com",
-  "outlook.com",
-  "live.com",
-  "icloud.com",
-  "aol.com",
-  "proton.me",
-  "protonmail.com",
-] as const;
-
 // Explicit typo → correction map (domain part only, lowercase, no @).
 // Keep this focused on high-frequency real-world typos.
 const DOMAIN_TYPO_CORRECTIONS: Record<string, string> = {

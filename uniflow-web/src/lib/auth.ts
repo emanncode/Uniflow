@@ -1,7 +1,6 @@
 import { createSupabaseServer } from "./supabase-server";
 import { createAdminClient } from "./supabase-admin";
 import { getProfileForUser } from "./profile-server";
-import type { UserRole } from "@/lib/role-access";
 
 export type { UserRole } from "@/lib/role-access";
 
