@@ -11,17 +11,12 @@ import { staffApiUrl } from "@/lib/staff-api";
 import {
   Building2,
   Plus,
-  Search,
-  X,
   Loader2,
   Trash2,
   UserCheck,
-  ChevronDown,
   BookOpen,
   ArrowLeft,
   GraduationCap,
-  LayoutGrid,
-  List,
   CalendarDays,
 } from "lucide-react";
 
@@ -140,12 +135,12 @@ export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [hods, setHods] = useState<Profile[]>([]);
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [filterFac, setFilterFac] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
 
   const [newName, setNewName] = useState("");
@@ -168,7 +163,6 @@ export default function DepartmentsPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     loadData(contextUniId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId]);
 
   async function loadData(currentUniId: string) {

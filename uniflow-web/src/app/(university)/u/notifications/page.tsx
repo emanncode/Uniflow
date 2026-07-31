@@ -13,13 +13,6 @@ interface Notification {
   created_at: string;
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  class_update: "#f59e0b",
-  resource: "#22c55e",
-  general: "#60a5fa",
-  system: "#8b5cf6",
-};
-
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);

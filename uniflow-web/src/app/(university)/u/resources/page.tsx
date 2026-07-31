@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
 import {
@@ -14,7 +14,6 @@ import {
   FileText,
   Image,
   File,
-  MoreHorizontal,
 } from "lucide-react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
@@ -63,7 +62,7 @@ function ResourceTypeIcon({ type }: { type: FileType }) {
     case "pdf":
       return <FileText size={14} style={{ color: "var(--danger)" }} />;
     case "image":
-      return <Image size={14} style={{ color: "var(--info)" }} />;
+      return <Image size={14} style={{ color: "var(--info)" }} alt="" />;
     case "doc":
       return <FileText size={14} style={{ color: "var(--brand)" }} />;
     default:
@@ -107,9 +106,7 @@ export default function ResourcesPage() {
   const [filterType, setFilterType] = useState<ResourceType | "all">("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [confirmDelete, setConfirmDelete] = useState<Resource | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const triggerRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const [refreshKey] = useState(0);
 
   // Fetch courses for filter
   useEffect(() => {
@@ -127,29 +124,32 @@ export default function ResourcesPage() {
 
   // Fetch resources
   useEffect(() => {
-    if (!isReady || !universityId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoading(false);
-      return;
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    setError("");
+    let cancelled = false;
 
-    supabase
-      .from("resources")
-      .select("*, courses!inner(code, title)")
-      .eq("university_id", universityId)
-      .order("created_at", { ascending: false })
-      .limit(200)
-      .then(({ data, error: err }) => {
-        if (err) {
-          setError(err.message);
-        } else {
-          setResources((data as unknown as Resource[]) || []);
-        }
-        setLoading(false);
-      });
+    async function loadResources() {
+      if (!isReady || !universityId) return;
+      setLoading(true);
+      setError("");
+
+      const { data, error: err } = await supabase
+        .from("resources")
+        .select("*, courses!inner(code, title)")
+        .eq("university_id", universityId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (cancelled) return;
+
+      if (err) {
+        setError(err.message);
+      } else {
+        setResources((data as unknown as Resource[]) || []);
+      }
+      setLoading(false);
+    }
+
+    loadResources();
+    return () => { cancelled = true; };
   }, [isReady, universityId, refreshKey]);
 
   const filtered = useMemo(() => {

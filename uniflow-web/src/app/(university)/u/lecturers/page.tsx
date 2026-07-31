@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
 import { LECTURER_ROLES, staffApiUrl } from "@/lib/staff-api";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   Users,
   Plus,
@@ -17,7 +17,6 @@ import {
   Trash2,
   Mail,
   User,
-  Building2,
   ChevronDown,
   AlertCircle,
   Key,
@@ -226,7 +225,7 @@ export default function LecturersPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [, setImportErrors] = useState<string[]>([]);
   const [importSuccess, setImportSuccess] = useState(0);
   const [error, setError] = useState("");
   const [uniId, setUniId] = useState<string | null>(null);
@@ -333,7 +332,6 @@ export default function LecturersPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     setTimeout(() => loadData(contextUniId), 0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId, loadData]);
 
 
@@ -472,7 +470,7 @@ export default function LecturersPage() {
       } else {
         setError(data.error || 'Failed to reset password');
       }
-    } catch (err: unknown) {
+    } catch {
       setError('An error occurred while resetting the password.');
     } finally {
       setSaving(false)
@@ -526,16 +524,6 @@ export default function LecturersPage() {
       };
     }
     return result;
-  }
-
-  function downloadTemplate() {
-    const blob = new Blob([CSV_TEMPLATE], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "staff_template.csv";
-    a.click();
-    URL.revokeObjectURL(url);
   }
 
   // ── Derived Data ─────────────────────────────────────────────────────────

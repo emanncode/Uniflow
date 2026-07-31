@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
 import { staffApiUrl } from "@/lib/staff-api";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   GraduationCap,
   Plus,
@@ -22,8 +22,7 @@ import {
   ChevronDown,
   AlertCircle,
   Key,
-  Copy,
-  Check,
+
   AlertTriangle,
   Edit2,
   ArrowLeft
@@ -570,7 +569,6 @@ export default function StudentsPage() {
   useEffect(() => {
     if (!isReady || !contextUniId) return;
     loadData(contextUniId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, contextUniId, loadData]);
 
   async function handleDepartmentSetup(maxLevel: MaxCourseLevel) {
@@ -664,7 +662,7 @@ export default function StudentsPage() {
       } else {
         alert(data.error || 'Failed to reset password')
       }
-    } catch (err: unknown) {
+    } catch {
       alert('An error occurred while resetting password')
     } finally {
       setSaving(false)
