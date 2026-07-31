@@ -63,7 +63,7 @@ export default function UniversitiesPage() {
       } else {
         setResetError(data.error || 'Failed to reset password')
       }
-    } catch (err) {
+    } catch {
       setResetError('An error occurred while resetting password')
     } finally {
       setResettingId(null)

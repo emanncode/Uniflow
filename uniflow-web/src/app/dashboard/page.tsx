@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -9,13 +9,6 @@ import { universityPortalHost } from "@/lib/domain";
 import { queryKeys } from "@/lib/queryClient";
 
 export const dynamic = "force-dynamic";
-interface Stats {
-  pending: number;
-  approved: number;
-  rejected: number;
-  total: number;
-}
-
 interface Registration {
   id: string;
   university_name: string;
