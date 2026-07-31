@@ -2,9 +2,8 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Wifi } from 'lucide-react'
 import UniflowLogo from '@/components/ui/UniflowLogo'
-
+import { ArrowLeft, Wifi } from 'lucide-react'
 export const dynamic = 'force-dynamic'
 
 export default function NotFound() {

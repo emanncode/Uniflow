@@ -3,7 +3,7 @@
 
 export const dynamic = 'force-dynamic'
 
-export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
+export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
     <html>
       <body>

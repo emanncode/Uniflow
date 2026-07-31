@@ -8,7 +8,7 @@ import { useUniversityResetContext } from "@/hooks/useUniversityResetContext";
 export const dynamic = "force-dynamic";
 
 export default function UniversityNotFound() {
-  const { university, loginHref } = useUniversityResetContext();
+  useUniversityResetContext();
 
   return (
     <div
