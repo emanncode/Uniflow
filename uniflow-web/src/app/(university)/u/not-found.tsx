@@ -44,7 +44,7 @@ export default function UniversityNotFound() {
           width: "600px",
           height: "400px",
           background:
-            "radial-gradient(ellipse, rgba(29,78,216,0.08) 0%, transparent 65%)",
+            "radial-gradient(ellipse, rgba(0, 135, 81,0.08) 0%, transparent 65%)",
           pointerEvents: "none",
         }}
       />
@@ -88,13 +88,13 @@ export default function UniversityNotFound() {
             width: "72px",
             height: "72px",
             borderRadius: "20px",
-            backgroundColor: "rgba(29,78,216,0.08)",
-            border: "1px solid rgba(29,78,216,0.2)",
+            backgroundColor: "rgba(0, 135, 81,0.08)",
+            border: "1px solid rgba(0, 135, 81,0.2)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             margin: "0 auto 32px",
-            boxShadow: "0 0 40px rgba(29,78,216,0.12)",
+            boxShadow: "0 0 40px rgba(0, 135, 81,0.12)",
           }}
         >
           <motion.div
@@ -115,8 +115,8 @@ export default function UniversityNotFound() {
             gap: "6px",
             padding: "4px 14px",
             borderRadius: "999px",
-            border: "1px solid rgba(29,78,216,0.2)",
-            backgroundColor: "rgba(29,78,216,0.06)",
+            border: "1px solid rgba(0, 135, 81,0.2)",
+            backgroundColor: "rgba(0, 135, 81,0.06)",
             fontSize: "11px",
             fontWeight: 700,
             color: "var(--brand)",

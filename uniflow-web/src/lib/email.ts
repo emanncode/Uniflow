@@ -215,11 +215,11 @@ export async function sendEmail(to: string, subject: string, html: string) {
 export function registrationReceivedEmail(universityName: string) {
   const name = escapeHtml(universityName);
   return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #172032; color: #ffffff; border-radius: 16px;">
-  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #1D4ED8;">flow</span></h1>
+  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #008751;">flow</span></h1>
   <p style="font-size: 12px; color: #666666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 32px;">Registration Received</p>
   <p style="font-size: 15px; color: #a1a1a1; margin: 0 0 8px;">Application received ✓</p>
   <p style="font-size: 13px; color: #666666; margin: 0 0 24px;">Thank you for registering <strong style="color: #ffffff;">${name}</strong> on Uniflow. Our team will review your application and get back to you within <strong style="color: #a1a1a1;">48 hours</strong>.</p>
-  <div style="background: rgba(29,78,216,0.08); border: 1px solid rgba(29,78,216,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
+  <div style="background: rgba(0, 135, 81,0.08); border: 1px solid rgba(0, 135, 81,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
     <p style="font-size: 12px; color: #666666; margin: 0 0 4px;">What happens next:</p>
     <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">① Our team reviews your application</p>
     <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">② You receive an approval or rejection email</p>
@@ -242,16 +242,16 @@ export function universityApprovedEmail(
   const safeResetUrl = escapeHtml(resetUrl);
 
   return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #172032; color: #ffffff; border-radius: 16px;">
-  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #1D4ED8;">flow</span></h1>
+  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #008751;">flow</span></h1>
   <p style="font-size: 12px; color: #666666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 32px;">Application Approved</p>
   <p style="font-size: 15px; color: #a1a1a1; margin: 0 0 8px;">Welcome to Uniflow, <strong style="color: #ffffff;">${name}</strong> 🎓</p>
   <p style="font-size: 13px; color: #666666; margin: 0 0 24px;">Your university has been approved. Your portal is live. Set your password to access your dashboard.</p>
-  <div style="background: rgba(29,78,216,0.08); border: 1px solid rgba(29,78,216,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
+  <div style="background: rgba(0, 135, 81,0.08); border: 1px solid rgba(0, 135, 81,0.2); border-radius: 12px; padding: 16px 20px; margin: 0 0 24px;">
     <p style="font-size: 12px; color: #666666; margin: 0 0 8px;">Your portal details:</p>
-    <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">Portal: <strong style="color: #1D4ED8; font-family: monospace;">${portal}</strong></p>
+    <p style="font-size: 13px; color: #a1a1a1; margin: 0 0 4px;">Portal: <strong style="color: #008751; font-family: monospace;">${portal}</strong></p>
     <p style="font-size: 13px; color: #a1a1a1; margin: 0;">Login email: <strong style="color: #ffffff;">${loginEmail}</strong></p>
   </div>
-  <a href="${safeResetUrl}" style="display: inline-block; background: #1D4ED8; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 10px; text-decoration: none; margin: 0 0 24px;">Set Password &amp; Get Started →</a>
+  <a href="${safeResetUrl}" style="display: inline-block; background: #008751; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 10px; text-decoration: none; margin: 0 0 24px;">Set Password &amp; Get Started →</a>
   <p style="font-size: 13px; color: #666666; margin: 24px 0 8px;">This link expires in <strong style="color: #a1a1a1;">24 hours</strong>.</p>
   <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 24px;" />
   <p style="font-size: 12px; color: #444444; margin: 0;">© Uniflow · ${BASE_DOMAIN}</p>
@@ -267,7 +267,7 @@ export function universityRejectedEmail(
   const registerUrl = escapeHtml(`${APP_URL}/register`);
 
   return `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #172032; color: #ffffff; border-radius: 16px;">
-  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #1D4ED8;">flow</span></h1>
+  <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 4px;">uni<span style="color: #008751;">flow</span></h1>
   <p style="font-size: 12px; color: #666666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 32px;">Application Update</p>
   <p style="font-size: 15px; color: #a1a1a1; margin: 0 0 8px;">We couldn't approve your application.</p>
   <p style="font-size: 13px; color: #666666; margin: 0 0 24px;">After reviewing the registration for <strong style="color: #ffffff;">${name}</strong>, we were unable to approve it at this time.</p>
@@ -275,7 +275,7 @@ export function universityRejectedEmail(
     <p style="font-size: 12px; color: #666666; margin: 0 0 6px;">Reason:</p>
     <p style="font-size: 13px; color: #a1a1a1; margin: 0; line-height: 1.6;">${safeReason}</p>
   </div>
-  <a href="${registerUrl}" style="display: inline-block; background: #1D4ED8; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 10px; text-decoration: none; margin: 0 0 24px;">Reapply →</a>
+  <a href="${registerUrl}" style="display: inline-block; background: #008751; color: #ffffff; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 10px; text-decoration: none; margin: 0 0 24px;">Reapply →</a>
   <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 0 0 24px;" />
   <p style="font-size: 12px; color: #444444; margin: 0;">© Uniflow · ${BASE_DOMAIN}</p>
 </div>`;

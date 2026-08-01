@@ -52,7 +52,7 @@ export default function Footer() {
           right: 0,
           height: "1px",
           background:
-            "linear-gradient(90deg, transparent, rgba(29,78,216,0.4), transparent)",
+            "linear-gradient(90deg, transparent, rgba(0, 135, 81,0.4), transparent)",
         }}
       />
 

@@ -19,7 +19,7 @@ export default function StepIndicator({ step }: { step: Step }) {
             color: step >= s ? '#fff' : 'var(--text-muted)',
             border: step >= s ? 'none' : '1px solid var(--border-primary)',
             transition: 'all var(--transition)',
-            boxShadow: step >= s ? '0 0 16px rgba(29,78,216,0.3)' : 'none',
+            boxShadow: step >= s ? '0 0 16px rgba(0, 135, 81,0.3)' : 'none',
           }}>
             {step > s ? <CheckCircle2 size={16} /> : s}
           </div>

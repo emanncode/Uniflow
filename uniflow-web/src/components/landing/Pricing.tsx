@@ -102,8 +102,8 @@ export default function Pricing() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '5px 14px', borderRadius: '999px',
-            border: '1px solid rgba(29,78,216,0.2)',
-            backgroundColor: 'rgba(29,78,216,0.06)',
+            border: '1px solid rgba(0, 135, 81,0.2)',
+            backgroundColor: 'rgba(0, 135, 81,0.06)',
             fontSize: '11px', fontWeight: 600,
             color: 'var(--brand)', letterSpacing: '0.1em',
             textTransform: 'uppercase' as const, marginBottom: '20px',
@@ -127,7 +127,7 @@ export default function Pricing() {
               }}
             >
               Simple, honest{' '}
-              <span style={{ color: 'var(--brand)', textShadow: '0 0 30px rgba(29,78,216,0.3)' }}>
+              <span style={{ color: 'var(--brand)', textShadow: '0 0 30px rgba(0, 135, 81,0.3)' }}>
                 pricing.
               </span>
             </motion.h2>
@@ -169,10 +169,10 @@ export default function Pricing() {
               style={{
                 borderRadius: 'var(--radius-xl)',
                 border: plan.highlight
-                  ? '1px solid rgba(29,78,216,0.4)'
+                  ? '1px solid rgba(0, 135, 81,0.4)'
                   : '1px solid var(--border-primary)',
                 backgroundColor: plan.highlight
-                  ? 'rgba(29,78,216,0.09)'
+                  ? 'rgba(0, 135, 81,0.09)'
                   : 'var(--bg-card)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
@@ -180,7 +180,7 @@ export default function Pricing() {
                 position: 'relative' as const,
                 overflow: 'hidden',
                 transform: plan.highlight ? 'scale(1.03)' : 'scale(1)',
-                boxShadow: plan.highlight ? '0 12px 48px rgba(29,78,216,0.12)' : '0 4px 20px rgba(0,0,0,0.15)',
+                boxShadow: plan.highlight ? '0 12px 48px rgba(0, 135, 81,0.12)' : '0 4px 20px rgba(0,0,0,0.15)',
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
@@ -192,7 +192,7 @@ export default function Pricing() {
                   style={{
                     position: 'absolute', top: 0, right: 0,
                     width: '220px', height: '220px',
-                    background: 'radial-gradient(circle, rgba(29,78,216,0.15) 0%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(0, 135, 81,0.15) 0%, transparent 70%)',
                     pointerEvents: 'none',
                   }}
                 />
@@ -250,7 +250,7 @@ export default function Pricing() {
               {/* CTA */}
               <Link href={plan.ctaHref} style={{ textDecoration: 'none', display: 'block', marginBottom: '28px' }}>
                 <motion.button
-                  whileHover={{ scale: 1.04, boxShadow: plan.highlight ? '0 0 32px rgba(29,78,216,0.35)' : '0 4px 20px rgba(255,255,255,0.1)' }}
+                  whileHover={{ scale: 1.04, boxShadow: plan.highlight ? '0 0 32px rgba(0, 135, 81,0.35)' : '0 4px 20px rgba(255,255,255,0.1)' }}
                   whileTap={{ scale: 0.97 }}
                   style={{
                     width: '100%',
@@ -264,7 +264,7 @@ export default function Pricing() {
                     border: plan.highlight ? '1px solid var(--brand)' : '1.5px solid var(--border-secondary)',
                     backgroundColor: plan.highlight ? 'var(--brand)' : 'transparent',
                     color: plan.highlight ? '#fff' : 'var(--text-primary)',
-                    boxShadow: plan.highlight ? '0 8px 32px rgba(29,78,216,0.3)' : 'none',
+                    boxShadow: plan.highlight ? '0 8px 32px rgba(0, 135, 81,0.3)' : 'none',
                     position: 'relative' as const,
                   }}
                 >
@@ -276,7 +276,7 @@ export default function Pricing() {
               <div style={{
                 height: '1px',
                 backgroundColor: plan.highlight
-                  ? 'rgba(29,78,216,0.15)'
+                  ? 'rgba(0, 135, 81,0.15)'
                   : 'var(--border-primary)',
                 marginBottom: '24px',
               }} />
@@ -298,10 +298,10 @@ export default function Pricing() {
                       style={{
                         width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
                         backgroundColor: plan.highlight
-                          ? 'rgba(29,78,216,0.2)'
+                          ? 'rgba(0, 135, 81,0.2)'
                           : 'rgba(255,255,255,0.06)',
                         border: plan.highlight
-                          ? '1px solid rgba(29,78,216,0.4)'
+                          ? '1px solid rgba(0, 135, 81,0.4)'
                           : '1px solid var(--border-secondary)',
                         display: 'flex', alignItems: 'center',
                         justifyContent: 'center',

@@ -161,7 +161,7 @@ export default function Problem() {
                   delay: i * 0.08,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                whileHover={{ backgroundColor: "rgba(29,78,216,0.05)" }}
+                whileHover={{ backgroundColor: "rgba(0, 135, 81,0.05)" }}
                 style={{
                   backgroundColor: "var(--bg-card)",
                   padding: "clamp(28px, 3.5vw, 40px)",
@@ -187,7 +187,7 @@ export default function Problem() {
                     width: "180px",
                     height: "180px",
                     background:
-                      "radial-gradient(circle, rgba(29,78,216,0.1) 0%, transparent 70%)",
+                      "radial-gradient(circle, rgba(0, 135, 81,0.1) 0%, transparent 70%)",
                     pointerEvents: "none",
                   }}
                 />
@@ -209,8 +209,8 @@ export default function Problem() {
                       width: "48px",
                       height: "48px",
                       borderRadius: "var(--radius-md)",
-                      backgroundColor: "rgba(29,78,216,0.12)",
-                      border: "1px solid rgba(29,78,216,0.2)",
+                      backgroundColor: "rgba(0, 135, 81,0.12)",
+                      border: "1px solid rgba(0, 135, 81,0.2)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -295,8 +295,8 @@ export default function Problem() {
             marginTop: "40px",
             padding: "clamp(24px, 3vw, 40px)",
             borderRadius: "var(--radius-xl)",
-            border: "1px solid rgba(29,78,216,0.15)",
-            backgroundColor: "rgba(29,78,216,0.04)",
+            border: "1px solid rgba(0, 135, 81,0.15)",
+            backgroundColor: "rgba(0, 135, 81,0.04)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -330,7 +330,7 @@ export default function Problem() {
           <motion.button
             whileHover={{
               scale: 1.04,
-              boxShadow: "0 0 30px rgba(29,78,216,0.25)",
+              boxShadow: "0 0 30px rgba(0, 135, 81,0.25)",
             }}
             whileTap={{ scale: 0.97 }}
             className="btn-primary"

@@ -129,7 +129,7 @@ export default function DashboardNotFound() {
             <motion.button
               whileHover={{
                 scale: 1.04,
-                boxShadow: "0 0 24px rgba(29,78,216,0.2)",
+                boxShadow: "0 0 24px rgba(0, 135, 81,0.2)",
               }}
               whileTap={{ scale: 0.97 }}
               className="btn-primary"

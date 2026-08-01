@@ -83,8 +83,8 @@ export default function Features() {
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '8px',
             padding: '5px 14px', borderRadius: '999px',
-            border: '1px solid rgba(29,78,216,0.2)',
-            backgroundColor: 'rgba(29,78,216,0.06)',
+            border: '1px solid rgba(0, 135, 81,0.2)',
+            backgroundColor: 'rgba(0, 135, 81,0.06)',
             fontSize: '11px', fontWeight: 600,
             color: 'var(--brand)', letterSpacing: '0.1em',
             textTransform: 'uppercase' as const, marginBottom: '20px',
@@ -110,7 +110,7 @@ export default function Features() {
               Everything your campus needs.{' '}
               <span style={{
                 color: 'var(--brand)',
-                textShadow: '0 0 30px rgba(29,78,216,0.3)',
+                textShadow: '0 0 30px rgba(0, 135, 81,0.3)',
               }}>
                 Nothing it doesn&apos;t.
               </span>
@@ -154,10 +154,10 @@ export default function Features() {
                   padding: 'clamp(24px, 3vw, 32px)',
                   borderRadius: 'var(--radius-lg)',
                   border: feature.brand
-                    ? '1px solid rgba(29,78,216,0.4)'
+                    ? '1px solid rgba(0, 135, 81,0.4)'
                     : '1px solid var(--border-primary)',
                   backgroundColor: feature.brand
-                    ? 'rgba(29,78,216,0.08)'
+                    ? 'rgba(0, 135, 81,0.08)'
                     : 'var(--bg-card)',
                   backdropFilter: 'blur(16px)',
                   WebkitBackdropFilter: 'blur(16px)',
@@ -168,7 +168,7 @@ export default function Features() {
                   position: 'relative' as const,
                   overflow: 'hidden',
                   transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: feature.brand ? '0 8px 32px rgba(29,78,216,0.1)' : '0 4px 16px rgba(0,0,0,0.2)',
+                  boxShadow: feature.brand ? '0 8px 32px rgba(0, 135, 81,0.1)' : '0 4px 16px rgba(0,0,0,0.2)',
                 }}
               >
                 {/* brand glow for first card */}
@@ -179,7 +179,7 @@ export default function Features() {
                     style={{
                       position: 'absolute', top: 0, right: 0,
                       width: '140px', height: '140px',
-                      background: 'radial-gradient(circle, rgba(29,78,216,0.2) 0%, transparent 70%)',
+                      background: 'radial-gradient(circle, rgba(0, 135, 81,0.2) 0%, transparent 70%)',
                       pointerEvents: 'none',
                     }}
                   />
@@ -193,10 +193,10 @@ export default function Features() {
                     width: '48px', height: '48px',
                     borderRadius: 'var(--radius-md)',
                     backgroundColor: feature.brand
-                      ? 'rgba(29,78,216,0.2)'
+                      ? 'rgba(0, 135, 81,0.2)'
                       : 'rgba(255,255,255,0.06)',
                     border: feature.brand
-                      ? '1px solid rgba(29,78,216,0.3)'
+                      ? '1px solid rgba(0, 135, 81,0.3)'
                       : '1px solid var(--border-primary)',
                     display: 'flex', alignItems: 'center',
                     justifyContent: 'center', flexShrink: 0,
