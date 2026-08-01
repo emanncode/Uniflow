@@ -45,7 +45,6 @@ export default function Hero() {
   return (
     <div ref={containerRef}>
       <section
-        className="mt-15! md:mt-0!"
         style={{
           position: "relative",
           overflow: "hidden",
@@ -59,14 +58,24 @@ export default function Hero() {
       >
         <SectionBackground y={bgY} />
 
+        {/* main content */}
         <motion.div
-          style={{ opacity: heroOpacity, position: "relative", zIndex: 1 }}
+          style={{
+            opacity: heroOpacity,
+            position: "relative",
+            zIndex: 1,
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            width: "100%",
+          }}
           className="container"
         >
           {" "}
           <div>
             {/* eyebrow */}
-            <div style={{ overflow: "hidden", marginBottom: "8px" }}>
+            <div style={{ overflow: "hidden", marginBottom: "8px" }}>center
               <motion.span
                 initial={{ y: "110%" }}
                 animate={{ y: 0 }}
