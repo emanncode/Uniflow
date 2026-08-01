@@ -62,7 +62,7 @@ function ResourceTypeIcon({ type }: { type: FileType }) {
     case "pdf":
       return <FileText size={14} style={{ color: "var(--danger)" }} />;
     case "image":
-      return <Image size={14} style={{ color: "var(--info)" }} alt="" />;
+      return <Image size={14} style={{ color: "var(--info)" }} />;
     case "doc":
       return <FileText size={14} style={{ color: "var(--brand)" }} />;
     default:

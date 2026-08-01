@@ -108,7 +108,7 @@ export default function ContactPage() {
                 Location
               </h3>
               <p style={{ fontSize: "14px", color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
-                Ondo State, Nigeria
+                Nigeria
               </p>
             </div>
           </div>
