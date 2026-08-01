@@ -6,11 +6,48 @@ import {
   useTransform,
   useSpring,
   useMotionValue,
+  Variants,
 } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Ticker from "@/components/hero/Ticker";
-import SectionBackground from "@/components/landing/SectionBackground";
+import { Caveat } from "next/font/google";
+import { Bell, MapPin, Calendar, Globe } from "lucide-react";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+});
+
+const bellVariants: Variants = {
+  hover: {
+    rotate: [0, -15, 12, -10, 8, 0],
+    transition: { duration: 0.5 },
+  },
+};
+
+const pinVariants: Variants = {
+  hover: {
+    y: [0, -5, 2, -2, 0],
+    transition: { duration: 0.5 },
+  },
+};
+
+const calendarVariants: Variants = {
+  hover: {
+    scale: [1, 1.15, 1],
+    rotate: [0, -5, 5, 0],
+    transition: { duration: 0.5 },
+  },
+};
+
+const globeVariants: Variants = {
+  hover: {
+    rotate: 360,
+    transition: { duration: 2, ease: "linear", repeat: Infinity },
+  },
+};
 
 export default function Hero() {
   const [mounted, setMounted] = useState(false);
@@ -23,7 +60,7 @@ export default function Hero() {
     offset: ["start start", "end start"],
   });
 
-  const rawY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const rawY = useTransform(scrollYProgress, [0, 1], [0, 150]);
   const bgY = useSpring(rawY, { stiffness: 60, damping: 20 });
   const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
@@ -53,141 +90,135 @@ export default function Hero() {
           flexDirection: "column",
           justifyContent: "space-between",
           alignItems: "center",
-          paddingTop: "clamp(40px, 6vw, 80px)",
+          paddingTop: "clamp(80px, 10vw, 120px)",
         }}
       >
-        <SectionBackground y={bgY} />
+        {/* Background Image with Parallax & Dark Overlays */}
+        <motion.div
+          style={{
+            y: bgY,
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "url('/hero-bg.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center 30%",
+            zIndex: 0,
+          }}
+        />
+        {/* Grid pattern on top of background */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "linear-gradient(rgba(255,220,150,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,220,150,0.01) 1px, transparent 1px)",
+            backgroundSize: "52px 52px",
+            zIndex: 1,
+            pointerEvents: "none",
+          }}
+        />
+        {/* Dark Vignette Overlay for Premium Readability */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to bottom, rgba(10, 10, 11, 0.4) 0%, rgba(10, 10, 11, 0.7) 60%, rgba(10, 10, 11, 1) 100%)",
+            zIndex: 1,
+            pointerEvents: "none",
+          }}
+        />
 
         {/* main content */}
         <motion.div
           style={{
             opacity: heroOpacity,
             position: "relative",
-            zIndex: 1,
+            zIndex: 2,
             flex: 1,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             width: "100%",
+            paddingBottom: "40px",
           }}
           className="container"
         >
-          {" "}
           <div>
-            {/* eyebrow */}
-            <div style={{ overflow: "hidden", marginBottom: "8px" }}>center
-              <motion.span
-                initial={{ y: "110%" }}
-                animate={{ y: 0 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.1,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
+            {/* main headline */}
+            <div style={{ position: "relative", marginBottom: "16px" }}>
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
                 style={{
-                  display: "block",
-                  fontSize: "clamp(11px, 1.2vw, 13px)",
-                  fontWeight: 600,
-                  color: "var(--text-muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.15em",
-                }}
-              >
-                For universities worldwide
-              </motion.span>
-            </div>
-
-            {/* headline lines */}
-            {[
-              { text: "No more", color: "var(--text-primary)" },
-              { text: "showing up", color: "var(--text-primary)" },
-              { text: "to empty halls.", color: "var(--brand)", glow: true },
-            ].map((line, i) => (
-              <div key={i} style={{ overflow: "hidden" }}>
-                <motion.h1
-                  initial={{ y: "110%" }}
-                  animate={{ y: 0 }}
-                  transition={{
-                    duration: 0.9,
-                    delay: 0.2 + i * 0.1,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  style={{
-                    fontSize: "clamp(42px, 6vw, 80px)",
-                    fontWeight: 900,
-                    lineHeight: 1.0,
-                    letterSpacing: "-0.04em",
-                    color: line.color,
-                    margin: 0,
-                    textShadow: line.glow
-                      ? "0 0 40px rgba(110,231,183,0.25)"
-                      : "none",
-                  }}
-                >
-                  {line.text}
-                </motion.h1>
-              </div>
-            ))}
-
-            <div style={{ height: "20px" }} />
-
-            {/* subheadline */}
-            <div style={{ overflow: "hidden" }}>
-              <motion.h2
-                initial={{ y: "110%" }}
-                animate={{ y: 0 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.55,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                style={{
-                  fontSize: "clamp(16px, 2.2vw, 22px)",
-                  fontWeight: 500,
-                  lineHeight: 1.4,
-                  letterSpacing: "-0.02em",
-                  color: "var(--text-secondary)",
+                  fontSize: "clamp(48px, 7vw, 92px)",
+                  fontWeight: 900,
+                  lineHeight: 1.0,
+                  letterSpacing: "-0.04em",
+                  color: "var(--text-primary)",
                   margin: 0,
                 }}
               >
-                The campus always knew.{" "}
-                <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>
-                  Now your phone does too.
-                </span>
-              </motion.h2>
+                <motion.span
+                  className={caveat.className}
+                  style={{
+                    display: "block",
+                    fontSize: "clamp(54px, 8vw, 100px)",
+                    color: "var(--brand)",
+                    marginBottom: "-10px",
+                    fontWeight: 400,
+                  }}
+                >
+                  Your
+                </motion.span>
+                Campus, Synced.
+              </motion.h1>
             </div>
+
+            {/* subheadline */}
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              style={{
+                fontSize: "clamp(12px, 1.5vw, 15px)",
+                fontWeight: 700,
+                lineHeight: 1.4,
+                letterSpacing: "0.15em",
+                color: "var(--text-secondary)",
+                margin: "0 0 24px",
+                textTransform: "uppercase",
+              }}
+            >
+              Zero surprises. Every lecture. One platform.
+            </motion.h2>
 
             {/* body */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.7 }}
+              transition={{ duration: 0.7, delay: 0.5 }}
               style={{
                 fontSize: "clamp(13px, 1.5vw, 15px)",
                 color: "var(--text-muted)",
                 lineHeight: 1.85,
-                margin: "20px 0 36px",
-                maxWidth: "440px",
+                margin: "0 0 36px",
+                maxWidth: "480px",
                 borderLeft: "2px solid var(--brand-muted)",
                 paddingLeft: "16px",
               }}
             >
-              Class canceled. Did you know? With Uniflow, you would. One
-              platform. Every lecture. Zero surprises — from{" "}
-              <strong style={{ color: "var(--text-secondary)" }}>
-                Nigeria
-              </strong>{" "}
-              to{" "}
-              <strong style={{ color: "var(--text-secondary)" }}>
-                anywhere in the world.
-              </strong>
+              Class canceled? Timetable shifted? With Uniflow, you always know.
+              One platform connecting lecture halls directly to your phone —
+              from Nigeria to anywhere in the world.
             </motion.p>
 
             {/* CTAs */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.8 }}
+              transition={{ duration: 0.7, delay: 0.6 }}
               style={{
                 display: "flex",
                 gap: "14px",
@@ -204,7 +235,7 @@ export default function Hero() {
                     padding: "15px 32px",
                     fontSize: "14px",
                     fontWeight: 700,
-                    borderRadius: "var(--radius-lg)",
+                    borderRadius: "var(--radius-sm)",
                     backgroundColor: "var(--brand)",
                     color: "#fff",
                     border: "none",
@@ -227,7 +258,7 @@ export default function Hero() {
                     padding: "15px 32px",
                     fontSize: "14px",
                     fontWeight: 700,
-                    borderRadius: "var(--radius-lg)",
+                    borderRadius: "var(--radius-sm)",
                     border: "1.5px solid var(--border-secondary)",
                     backgroundColor: "rgba(255,255,255,0.08)",
                     color: "var(--text-primary)",
@@ -241,67 +272,149 @@ export default function Hero() {
               </Link>
             </motion.div>
 
-            {/* stats */}
+            {/* testimonial reviews */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 1 }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+                paddingTop: "20px",
+                marginBottom: "40px",
+                maxWidth: "600px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "2px",
+                  color: "#fbbf24",
+                  fontSize: "14px",
+                }}
+              >
+                {"★".repeat(5)}
+              </div>
+              <p
+                style={{
+                  fontSize: "12.5px",
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.6,
+                  margin: 0,
+                  fontStyle: "italic",
+                }}
+              >
+                &ldquo;Uniflow saved me hours of showing up to empty halls. The
+                instant notifications are a life saver.&rdquo;
+              </p>
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: "var(--text-muted)",
+                  fontWeight: 600,
+                }}
+              >
+                — Chidi, Student at University of Ibadan
+              </span>
+            </motion.div>
+
+            {/* Categories Navigation Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "1px",
-                backgroundColor: "var(--border-primary)",
-                border: "1px solid var(--border-primary)",
-                borderRadius: "var(--radius-lg)",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                width: "100%",
+                backgroundColor: "rgba(10, 10, 11, 0.6)",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                borderRadius: "var(--radius-sm)",
                 overflow: "hidden",
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
               }}
             >
               {[
-                { value: "1", unit: "app", label: "all universities" },
-                { value: "6", unit: "roles", label: "access control" },
-                { value: "0", unit: "chaos", label: "missed classes" },
-              ].map((stat, i) => (
+                {
+                  title: "Class Alerts",
+                  desc: "Instant notifications",
+                  icon: <Bell size={22} style={{ color: "var(--brand)" }} />,
+                  variants: bellVariants,
+                },
+                {
+                  title: "Relocations",
+                  desc: "Hall updates",
+                  icon: <MapPin size={22} style={{ color: "var(--brand)" }} />,
+                  variants: pinVariants,
+                },
+                {
+                  title: "Timetables",
+                  desc: "Personal schedule",
+                  icon: (
+                    <Calendar size={22} style={{ color: "var(--brand)" }} />
+                  ),
+                  variants: calendarVariants,
+                },
+                {
+                  title: "Student Portals",
+                  desc: "Access control",
+                  icon: <Globe size={22} style={{ color: "var(--brand)" }} />,
+                  variants: globeVariants,
+                },
+              ].map((cat, i) => (
                 <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.1 + i * 0.1 }}
+                  key={cat.title}
+                  whileHover="hover"
                   style={{
-                    padding: "18px 12px",
-                    backgroundColor: "var(--bg-card)",
-                    textAlign: "center",
+                    padding: "20px 24px",
+                    borderRight:
+                      i < 3 ? "1px solid rgba(255, 255, 255, 0.08)" : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    cursor: "pointer",
+                    transition: "background-color 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      "rgba(255,255,255,0.02)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
                   }}
                 >
-                  <div
+                  <motion.div
+                    variants={cat.variants}
                     style={{
-                      fontSize: "clamp(22px, 3vw, 32px)",
-                      fontWeight: 900,
-                      letterSpacing: "-0.04em",
-                      lineHeight: 1,
-                      color: "var(--text-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {stat.value}
-                    <span
+                    {cat.icon}
+                  </motion.div>
+                  <div>
+                    <div
                       style={{
-                        color: "var(--brand)",
-                        fontSize: "0.55em",
-                        marginLeft: "2px",
+                        fontSize: "14px",
                         fontWeight: 700,
+                        color: "var(--text-primary)",
                       }}
                     >
-                      {stat.unit}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      color: "var(--text-muted)",
-                      marginTop: "5px",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {stat.label}
+                      {cat.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--text-muted)",
+                        marginTop: "2px",
+                      }}
+                    >
+                      {cat.desc}
+                    </div>
                   </div>
                 </motion.div>
               ))}
