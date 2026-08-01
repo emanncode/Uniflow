@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { Building2, CalendarCheck, Smartphone } from 'lucide-react'
 import { APP_URL, universityPortalHost } from '@/lib/domain'
+import SectionBackground from '@/components/landing/SectionBackground'
 
 const steps = [
   {
@@ -59,14 +60,7 @@ export default function HowItWorks() {
         overflow: 'hidden',
       }}
     >
-      {/* background glow */}
-      <div style={{
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: '900px', height: '500px',
-        background: 'radial-gradient(ellipse, rgba(29,78,216,0.04) 0%, transparent 65%)',
-        pointerEvents: 'none',
-      }} />
+      <SectionBackground />
 
       <div className="container" style={{ position: 'relative', zIndex: 1 }}>
 

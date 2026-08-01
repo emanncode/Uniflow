@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Check, Zap } from 'lucide-react'
 import Link from 'next/link'
+import SectionBackground from '@/components/landing/SectionBackground'
 
 const plans = [
   {
@@ -86,18 +87,7 @@ export default function Pricing() {
         overflow: 'hidden',
       }}
     >
-      {/* background */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-        background: 'linear-gradient(90deg, transparent, rgba(29,78,216,0.3), transparent)',
-      }} />
-      <div style={{
-        position: 'absolute', top: '30%', left: '50%',
-        transform: 'translateX(-50%)',
-        width: '800px', height: '400px',
-        background: 'radial-gradient(ellipse, rgba(29,78,216,0.04) 0%, transparent 65%)',
-        pointerEvents: 'none',
-      }} />
+      <SectionBackground />
 
       <div className="container" style={{ position: 'relative', zIndex: 1 }}>
 

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
+import SectionBackground from '@/components/landing/SectionBackground'
 
 export default function CTA() {
   return (
@@ -11,6 +12,7 @@ export default function CTA() {
       position: 'relative',
       overflow: 'hidden',
     }}>
+      <SectionBackground />
       <div className="container">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

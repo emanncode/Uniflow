@@ -5,6 +5,7 @@ import {
   Bell, MapPin, Shield, Clock, BookOpen,
   Users, Zap, BarChart3
 } from 'lucide-react'
+import SectionBackground from '@/components/landing/SectionBackground'
 
 const features = [
   {
@@ -67,21 +68,7 @@ export default function Features() {
         overflow: 'hidden',
       }}
     >
-      {/* background */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: 'linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)',
-        backgroundSize: '52px 52px',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
-        background: 'linear-gradient(90deg, transparent, rgba(29,78,216,0.3), transparent)',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '1px',
-        background: 'linear-gradient(90deg, transparent, rgba(29,78,216,0.3), transparent)',
-      }} />
+      <SectionBackground />
 
       <div className="container" style={{ position: 'relative', zIndex: 1 }}>
 
