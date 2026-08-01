@@ -63,7 +63,7 @@ export default function Navbar() {
           background: scrolled ? "var(--bg-primary)" : "var(--bg-hover)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
-          borderRadius: "var(--radius-xl)",
+          borderRadius: "var(--radius-sm)",
           border: scrolled
             ? "1px solid var(--border-secondary)"
             : "1px solid var(--border-primary)",
@@ -84,10 +84,7 @@ export default function Navbar() {
             display: "flex",
             alignItems: "center",
             gap: "4px",
-            background: "var(--bg-hover)",
             padding: "4px",
-            borderRadius: "var(--radius-xl)",
-            border: "1px solid var(--border-primary)",
           }}
         >
           {navLinks.map((link) => (
@@ -100,7 +97,7 @@ export default function Navbar() {
                 color: "var(--text-secondary)",
                 textDecoration: "none",
                 padding: "8px 16px",
-                borderRadius: "var(--radius-xl)",
+                borderRadius: "var(--radius-sm)",
                 transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
@@ -127,7 +124,7 @@ export default function Navbar() {
               style={{
                 padding: "10px 20px",
                 fontSize: "13px",
-                borderRadius: "var(--radius-xl)",
+                borderRadius: "var(--radius-sm)",
               }}
             >
               Get Started
@@ -181,7 +178,7 @@ export default function Navbar() {
                   color: "var(--text-secondary)",
                   textDecoration: "none",
                   padding: "12px",
-                borderRadius: "var(--radius-xl)",
+                  borderRadius: "var(--radius-sm)",
                   background: "rgba(255, 255, 255, 0.03)",
                 }}
               >
