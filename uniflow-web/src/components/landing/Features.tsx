@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Bell,
@@ -25,7 +26,7 @@ const features = [
     icon: Bell,
     title: "Real-time class updates",
     desc: "Canceled. Delayed. Moved. Students get push notifications the moment anything changes — no more WhatsApp chaos.",
-    brand: true,
+    brand: false,
   },
   {
     icon: Zap,
@@ -72,6 +73,8 @@ const features = [
 ];
 
 export default function Features() {
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
   return (
     <section
       id="features"
@@ -167,6 +170,8 @@ export default function Features() {
         >
           {features.map((feature, i) => {
             const Icon = feature.icon;
+            const isHovered = hoveredCard === i;
+
             return (
               <motion.div
                 key={feature.title}
@@ -182,13 +187,15 @@ export default function Features() {
                   y: -6,
                   transition: { duration: 0.3, ease: "easeOut" },
                 }}
+                onMouseEnter={() => setHoveredCard(i)}
+                onMouseLeave={() => setHoveredCard(null)}
                 style={{
                   padding: "clamp(24px, 3vw, 32px)",
                   borderRadius: "var(--radius-sm)",
-                  border: feature.brand
+                  border: isHovered
                     ? "1px solid var(--brand)"
                     : "1px solid var(--border-primary)",
-                  backgroundColor: feature.brand
+                  backgroundColor: isHovered
                     ? "#062216"
                     : "var(--bg-secondary)",
                   display: "flex",
@@ -204,17 +211,20 @@ export default function Features() {
 
                 {/* icon */}
                 <motion.div
-                  whileHover={{ scale: 1.1, rotate: feature.brand ? 5 : 0 }}
+                  animate={{
+                    scale: isHovered ? 1.1 : 1,
+                    rotate: isHovered ? 5 : 0,
+                  }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   style={{
                     width: "48px",
                     height: "48px",
                     borderRadius: "var(--radius-md)",
-                    backgroundColor: feature.brand
-                      ? "rgba(0, 135, 81,0.2)"
+                    backgroundColor: isHovered
+                      ? "rgba(0, 135, 81, 0.2)"
                       : "rgba(255,255,255,0.06)",
-                    border: feature.brand
-                      ? "1px solid rgba(0, 135, 81,0.3)"
+                    border: isHovered
+                      ? "1px solid rgba(0, 135, 81, 0.3)"
                       : "1px solid var(--border-primary)",
                     display: "flex",
                     alignItems: "center",
@@ -226,7 +236,7 @@ export default function Features() {
                   <Icon
                     size={22}
                     color={
-                      feature.brand ? "var(--brand)" : "var(--text-secondary)"
+                      isHovered ? "var(--brand)" : "var(--text-secondary)"
                     }
                     strokeWidth={1.8}
                   />
@@ -257,25 +267,6 @@ export default function Features() {
                     {feature.desc}
                   </p>
                 </div>
-
-                {/* arrow indicator */}
-                <motion.div
-                  whileHover={{ x: 4 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                  style={{
-                    marginTop: "auto",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    color: feature.brand ? "var(--brand)" : "var(--text-muted)",
-                    letterSpacing: "0.05em",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    transition: "color 0.3s ease",
-                  }}
-                >
-                  Learn more <span style={{ fontSize: "12px" }}>→</span>
-                </motion.div>
               </motion.div>
             );
           })}
