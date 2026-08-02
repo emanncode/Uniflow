@@ -111,8 +111,8 @@ export default function Hero() {
             position: "absolute",
             inset: 0,
             backgroundImage:
-              "linear-gradient(rgba(255,220,150,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,220,150,0.01) 1px, transparent 1px)",
-            backgroundSize: "52px 52px",
+              "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)",
+            backgroundSize: "64px 64px",
             zIndex: 1,
             pointerEvents: "none",
           }}
@@ -253,16 +253,14 @@ export default function Hero() {
                     backgroundColor: "var(--bg-hover)",
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className="glass-btn"
                   style={{
                     padding: "15px 32px",
                     fontSize: "14px",
                     fontWeight: 700,
                     borderRadius: "var(--radius-sm)",
-                    border: "1.5px solid var(--border-secondary)",
-                    backgroundColor: "rgba(255,255,255,0.08)",
+                    border: "1px solid var(--border-secondary)",
+                    backgroundColor: "transparent",
                     color: "var(--text-primary)",
-                    backdropFilter: "blur(10px)",
                     cursor: "pointer",
                     transition: "all 0.4s var(--transition)",
                   }}
@@ -329,12 +327,10 @@ export default function Hero() {
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                 width: "100%",
-                backgroundColor: "rgba(10, 10, 11, 0.6)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                backgroundColor: "var(--bg-secondary)",
+                border: "1px solid var(--border-primary)",
                 borderRadius: "var(--radius-sm)",
                 overflow: "hidden",
-                backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
               }}
             >
               {[
@@ -371,7 +367,7 @@ export default function Hero() {
                   style={{
                     padding: "20px 24px",
                     borderRight:
-                      i < 3 ? "1px solid rgba(255, 255, 255, 0.08)" : "none",
+                      i < 3 ? "1px solid var(--border-primary)" : "none",
                     display: "flex",
                     alignItems: "center",
                     gap: "16px",
@@ -380,7 +376,7 @@ export default function Hero() {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor =
-                      "rgba(255,255,255,0.02)";
+                      "var(--bg-hover)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "transparent";

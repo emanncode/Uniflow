@@ -60,14 +60,12 @@ export default function Navbar() {
           maxWidth: "1100px",
           height: "64px",
           padding: "0 24px",
-          background: "var(--bg-primary)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
+          background: "var(--bg-secondary)",
           borderRadius: "var(--radius-sm)",
           border: scrolled
             ? "1px solid var(--border-secondary)"
             : "1px solid var(--border-primary)",
-          boxShadow: "var(--shadow-premium)",
+          boxShadow: "var(--shadow-md)",
           pointerEvents: "auto",
           transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
@@ -155,15 +153,14 @@ export default function Navbar() {
               top: "80px",
               left: "24px",
               right: "24px",
-              background: "rgba(10, 10, 11, 0.95)",
-              backdropFilter: "blur(32px)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "24px",
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border-secondary)",
+              borderRadius: "var(--radius-md)",
               padding: "24px",
               display: "flex",
               flexDirection: "column",
               gap: "12px",
-              boxShadow: "var(--shadow-premium)",
+              boxShadow: "var(--shadow-lg)",
               pointerEvents: "auto",
             }}
           >

@@ -169,36 +169,23 @@ export default function Problem() {
                   delay: i * 0.08,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                whileHover={{ backgroundColor: "rgba(0, 135, 81,0.05)" }}
+                whileHover={{
+                  y: -4,
+                  transition: { duration: 0.3, ease: "easeOut" },
+                }}
                 style={{
-                  backgroundColor: "var(--bg-card)",
+                  backgroundColor: "var(--bg-secondary)",
                   padding: "clamp(28px, 3.5vw, 40px)",
                   display: "flex",
                   flexDirection: "column",
                   gap: "18px",
                   transition:
-                    "background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                    "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                   cursor: "default",
                   position: "relative" as const,
                   overflow: "hidden",
                 }}
               >
-                {/* subtle hover glow */}
-                <motion.div
-                  whileHover={{ opacity: 1 }}
-                  initial={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: -40,
-                    width: "180px",
-                    height: "180px",
-                    background:
-                      "radial-gradient(circle, rgba(0, 135, 81,0.1) 0%, transparent 70%)",
-                    pointerEvents: "none",
-                  }}
-                />
 
                 {/* icon + stat row */}
                 <div
@@ -302,9 +289,9 @@ export default function Problem() {
           style={{
             marginTop: "40px",
             padding: "clamp(24px, 3vw, 40px)",
-            borderRadius: "var(--radius-xl)",
-            border: "1px solid rgba(0, 135, 81,0.15)",
-            backgroundColor: "rgba(0, 135, 81,0.04)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border-primary)",
+            backgroundColor: "var(--bg-secondary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",

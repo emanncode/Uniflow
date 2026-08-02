@@ -21,44 +21,23 @@ export default function CTA() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           style={{
             position: 'relative',
-            borderRadius: 'var(--radius-xl)',
-            border: '1px solid rgba(0, 135, 81,0.3)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--brand)',
             overflow: 'hidden',
             padding: 'clamp(56px, 9vw, 100px) clamp(32px, 6vw, 80px)',
             textAlign: 'center',
-            backgroundColor: 'rgba(0, 135, 81,0.06)',
-            boxShadow: '0 12px 48px rgba(0, 135, 81,0.08)',
+            backgroundColor: 'var(--bg-secondary)',
+            boxShadow: 'var(--shadow-md)',
             transition: 'all 0.4s ease',
           }}
         >
-          {/* background effects */}
+          {/* background grid */}
           <div style={{
             position: 'absolute', inset: 0,
-            backgroundImage: 'linear-gradient(rgba(0, 135, 81,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 135, 81,0.04) 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px)',
             backgroundSize: '40px 40px',
             pointerEvents: 'none',
           }} />
-          <motion.div
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            style={{
-              position: 'absolute', top: '-40%', left: '50%',
-              transform: 'translateX(-50%)',
-              width: '700px', height: '500px',
-              background: 'radial-gradient(ellipse, rgba(0, 135, 81,0.15) 0%, transparent 65%)',
-              pointerEvents: 'none',
-            }}
-          />
-          <motion.div
-            animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.08, 1] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            style={{
-              position: 'absolute', bottom: '-25%', right: '-5%',
-              width: '450px', height: '450px',
-              background: 'radial-gradient(circle, rgba(0, 135, 81,0.1) 0%, transparent 60%)',
-              pointerEvents: 'none',
-            }}
-          />
 
           {/* content */}
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -71,12 +50,12 @@ export default function CTA() {
                 display: 'inline-flex', alignItems: 'center',
                 justifyContent: 'center',
                 width: '64px', height: '64px',
-                borderRadius: 'var(--radius-lg)',
-                backgroundColor: 'rgba(0, 135, 81,0.15)',
-                border: '1px solid rgba(0, 135, 81,0.3)',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'var(--bg-tertiary)',
+                border: '1px solid var(--border-primary)',
                 marginBottom: '32px',
                 cursor: 'default',
-                boxShadow: '0 8px 24px rgba(0, 135, 81,0.15)',
+                boxShadow: 'var(--shadow-md)',
                 transition: 'all 0.4s ease',
               }}
             >
