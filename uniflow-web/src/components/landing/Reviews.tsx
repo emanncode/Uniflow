@@ -71,14 +71,19 @@ function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
     if (!container) return;
 
     let animationFrameId: number;
+    let scrollPos = container.scrollLeft;
 
     const scroll = () => {
       if (!isPaused) {
-        container.scrollLeft += speed;
+        scrollPos += speed;
         // Loop back seamlessly when halfway point is reached
-        if (container.scrollLeft >= container.scrollWidth / 2) {
-          container.scrollLeft = 0;
+        if (scrollPos >= container.scrollWidth / 2) {
+          scrollPos = 0;
         }
+        container.scrollLeft = scrollPos;
+      } else {
+        // Sync scrollPos with manual scrolling
+        scrollPos = container.scrollLeft;
       }
       animationFrameId = requestAnimationFrame(scroll);
     };
