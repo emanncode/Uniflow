@@ -3,7 +3,14 @@
 import { motion } from 'framer-motion'
 import { Check, Zap } from 'lucide-react'
 import Link from 'next/link'
+import { Caveat } from 'next/font/google'
 import SectionBackground from '@/components/landing/SectionBackground'
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+})
 
 const plans = [
   {
@@ -99,15 +106,21 @@ export default function Pricing() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{ marginBottom: 'clamp(48px, 6vw, 80px)', textAlign: 'center' }}
         >
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '8px',
-            padding: '5px 14px', borderRadius: '999px',
-            border: '1px solid rgba(0, 135, 81,0.2)',
-            backgroundColor: 'rgba(0, 135, 81,0.06)',
-            fontSize: '11px', fontWeight: 600,
-            color: 'var(--brand)', letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const, marginBottom: '20px',
-          }}>
+          <div
+            className={caveat.className}
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '42px',
+              fontWeight: 700,
+              color: 'var(--brand)',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginBottom: '20px',
+            }}
+          >
             Pricing
           </div>
 
