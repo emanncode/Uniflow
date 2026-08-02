@@ -177,8 +177,8 @@ export default function HowItWorks() {
                 <div style={{
                   width: '52px', height: '52px',
                   borderRadius: '50%',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-secondary)',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-primary)',
                   display: 'flex', alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '24px',
@@ -195,15 +195,17 @@ export default function HowItWorks() {
                   onHoverStart={() => setHoveredStep(i)}
                   onHoverEnd={() => setHoveredStep(null)}
                   whileHover={{
-                    border: '1px solid rgba(0, 135, 81,0.2)',
-                    backgroundColor: 'rgba(0, 135, 81,0.05)',
+                    border: '1px solid var(--brand)',
+                    y: -4,
                   }}
                   style={{
                     border: '1px solid var(--border-primary)',
-                    backgroundColor: 'var(--bg-card)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-sm)',
                     padding: 'clamp(20px, 2.5vw, 28px)',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
-                  className="card hover:border-[rgba(0, 135, 81,0.2)] hover:bg-[rgba(0, 135, 81,0.05)] transition-colors duration-300 cursor-default"
+                  className="transition-colors duration-300 cursor-default"
                 >
                   {/* step label */}
                   <div style={{
@@ -256,11 +258,11 @@ export default function HowItWorks() {
                           width: '16px', height: '16px',
                           borderRadius: '50%',
                           backgroundColor: active
-                            ? 'rgba(0, 135, 81,0.15)'
-                            : 'rgba(255,255,255,0.04)',
+                            ? '#062216'
+                            : 'var(--bg-tertiary)',
                           border: active
-                            ? '1px solid rgba(0, 135, 81,0.3)'
-                            : '1px solid var(--border-secondary)',
+                            ? '1px solid var(--brand)'
+                            : '1px solid var(--border-primary)',
                           display: 'flex', alignItems: 'center',
                           justifyContent: 'center', flexShrink: 0,
                         }}>

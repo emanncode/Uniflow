@@ -184,15 +184,13 @@ export default function Features() {
                 }}
                 style={{
                   padding: "clamp(24px, 3vw, 32px)",
-                  borderRadius: "var(--radius-lg)",
+                  borderRadius: "var(--radius-sm)",
                   border: feature.brand
-                    ? "1px solid rgba(0, 135, 81,0.4)"
+                    ? "1px solid var(--brand)"
                     : "1px solid var(--border-primary)",
                   backgroundColor: feature.brand
-                    ? "rgba(0, 135, 81,0.08)"
-                    : "var(--bg-card)",
-                  backdropFilter: "blur(16px)",
-                  WebkitBackdropFilter: "blur(16px)",
+                    ? "#062216"
+                    : "var(--bg-secondary)",
                   display: "flex",
                   flexDirection: "column" as const,
                   gap: "16px",
@@ -200,28 +198,9 @@ export default function Features() {
                   position: "relative" as const,
                   overflow: "hidden",
                   transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                  boxShadow: feature.brand
-                    ? "0 8px 32px rgba(0, 135, 81,0.1)"
-                    : "0 4px 16px rgba(0,0,0,0.2)",
+                  boxShadow: "var(--shadow-md)",
                 }}
               >
-                {/* brand glow for first card */}
-                {feature.brand && (
-                  <motion.div
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 0,
-                      width: "140px",
-                      height: "140px",
-                      background:
-                        "radial-gradient(circle, rgba(0, 135, 81,0.2) 0%, transparent 70%)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                )}
 
                 {/* icon */}
                 <motion.div

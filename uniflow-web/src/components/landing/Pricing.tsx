@@ -180,42 +180,26 @@ export default function Pricing() {
               transition={{ duration: 0.7, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -8, transition: { duration: 0.4 } }}
               style={{
-                borderRadius: 'var(--radius-xl)',
+                borderRadius: 'var(--radius-sm)',
                 border: plan.highlight
-                  ? '1px solid rgba(0, 135, 81,0.4)'
+                  ? '1px solid var(--brand)'
                   : '1px solid var(--border-primary)',
                 backgroundColor: plan.highlight
-                  ? 'rgba(0, 135, 81,0.09)'
-                  : 'var(--bg-card)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
+                  ? '#062216'
+                  : 'var(--bg-secondary)',
                 padding: 'clamp(28px, 3.5vw, 40px)',
                 position: 'relative' as const,
                 overflow: 'hidden',
                 transform: plan.highlight ? 'scale(1.03)' : 'scale(1)',
-                boxShadow: plan.highlight ? '0 12px 48px rgba(0, 135, 81,0.12)' : '0 4px 20px rgba(0,0,0,0.15)',
+                boxShadow: 'var(--shadow-md)',
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
-              {/* glow for highlighted plan */}
-              {plan.highlight && (
-                <motion.div
-                  animate={{ opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  style={{
-                    position: 'absolute', top: 0, right: 0,
-                    width: '220px', height: '220px',
-                    background: 'radial-gradient(circle, rgba(0, 135, 81,0.15) 0%, transparent 70%)',
-                    pointerEvents: 'none',
-                  }}
-                />
-              )}
-
               {/* badge */}
               {plan.badge && (
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: '5px',
-                  padding: '4px 10px', borderRadius: '999px',
+                  padding: '4px 10px', borderRadius: '3px',
                   backgroundColor: 'var(--brand)',
                   fontSize: '10px', fontWeight: 700,
                   color: '#fff', letterSpacing: '0.06em',
@@ -263,7 +247,7 @@ export default function Pricing() {
               {/* CTA */}
               <Link href={plan.ctaHref} style={{ textDecoration: 'none', display: 'block', marginBottom: '28px' }}>
                 <motion.button
-                  whileHover={{ scale: 1.04, boxShadow: plan.highlight ? '0 0 32px rgba(0, 135, 81,0.35)' : '0 4px 20px rgba(255,255,255,0.1)' }}
+                  whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
                   style={{
                     width: '100%',
@@ -274,10 +258,10 @@ export default function Pricing() {
                     fontFamily: 'Sora, sans-serif',
                     cursor: 'pointer',
                     transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                    border: plan.highlight ? '1px solid var(--brand)' : '1.5px solid var(--border-secondary)',
+                    border: plan.highlight ? '1px solid var(--brand)' : '1px solid var(--border-secondary)',
                     backgroundColor: plan.highlight ? 'var(--brand)' : 'transparent',
                     color: plan.highlight ? '#fff' : 'var(--text-primary)',
-                    boxShadow: plan.highlight ? '0 8px 32px rgba(0, 135, 81,0.3)' : 'none',
+                    boxShadow: 'none',
                     position: 'relative' as const,
                   }}
                 >
@@ -288,9 +272,7 @@ export default function Pricing() {
               {/* divider */}
               <div style={{
                 height: '1px',
-                backgroundColor: plan.highlight
-                  ? 'rgba(0, 135, 81,0.15)'
-                  : 'var(--border-primary)',
+                backgroundColor: 'var(--border-primary)',
                 marginBottom: '24px',
               }} />
 
