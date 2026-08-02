@@ -9,7 +9,14 @@ import {
   FileX,
   Phone,
 } from "lucide-react";
+import { Caveat } from "next/font/google";
 import SectionBackground from "@/components/landing/SectionBackground";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+});
 
 const problems = [
   {
@@ -79,13 +86,14 @@ export default function Problem() {
           style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
         >
           <div
+            className={caveat.className}
             style={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
               gap: "8px",
-              fontSize: "22px",
-              fontWeight: 600,
+              fontSize: "42px",
+              fontWeight: 700,
               color: "var(--brand)",
               letterSpacing: "0.1em",
               textTransform: "uppercase",

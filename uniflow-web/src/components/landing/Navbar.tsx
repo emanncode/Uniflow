@@ -60,14 +60,14 @@ export default function Navbar() {
           maxWidth: "1100px",
           height: "64px",
           padding: "0 24px",
-          background: scrolled ? "var(--bg-primary)" : "var(--bg-hover)",
+          background: "var(--bg-primary)",
           backdropFilter: "blur(24px)",
           WebkitBackdropFilter: "blur(24px)",
           borderRadius: "var(--radius-sm)",
           border: scrolled
             ? "1px solid var(--border-secondary)"
             : "1px solid var(--border-primary)",
-          boxShadow: scrolled ? "var(--shadow-premium)" : "none",
+          boxShadow: "var(--shadow-premium)",
           pointerEvents: "auto",
           transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
