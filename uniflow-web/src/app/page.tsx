@@ -5,6 +5,7 @@ import Problem from "@/components/landing/Problem";
 import Features from "@/components/landing/Features";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
+import Reviews from "@/components/landing/Reviews";
 import CTA from "@/components/landing/CTA";
 import Footer from "@/components/landing/Footer";
 import JsonLd from "@/components/seo/JsonLd";
@@ -29,6 +30,7 @@ export default function LandingPage() {
         <Features />
         <HowItWorks />
         <Pricing />
+        <Reviews />
         <CTA />
         <Footer />
       </main>

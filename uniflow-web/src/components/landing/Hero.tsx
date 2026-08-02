@@ -295,27 +295,6 @@ export default function Hero() {
               >
                 {"★".repeat(5)}
               </div>
-              <p
-                style={{
-                  fontSize: "12.5px",
-                  color: "var(--text-secondary)",
-                  lineHeight: 1.6,
-                  margin: 0,
-                  fontStyle: "italic",
-                }}
-              >
-                &ldquo;Uniflow saved me hours of showing up to empty halls. The
-                instant notifications are a life saver.&rdquo;
-              </p>
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: "var(--text-muted)",
-                  fontWeight: 600,
-                }}
-              >
-                — Chidi, Student at University of Ibadan
-              </span>
             </motion.div>
 
             {/* Categories Navigation Bar */}
