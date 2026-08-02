@@ -345,7 +345,7 @@ export default function Problem() {
             style={{
               padding: "14px 28px",
               fontSize: "14px",
-              borderRadius: "var(--radius-lg)",
+              borderRadius: "var(--radius-sm)",
               whiteSpace: "nowrap",
             }}
             onClick={() => (window.location.href = "/register")}

@@ -268,7 +268,7 @@ export default function Pricing() {
                   style={{
                     width: '100%',
                     padding: '14px 22px',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: 'var(--radius-sm)',
                     fontSize: '14px',
                     fontWeight: 700,
                     fontFamily: 'Sora, sans-serif',
