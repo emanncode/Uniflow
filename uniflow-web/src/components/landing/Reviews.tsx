@@ -57,12 +57,12 @@ const studentReviews = [
   },
 ];
 
-interface ScrollColProps {
+interface ScrollRowProps {
   items: Array<{ quote: string; author: string; institution?: string; role?: string }>;
   speed?: number;
 }
 
-function ScrollColumn({ items, speed = 0.5 }: ScrollColProps) {
+function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -74,10 +74,10 @@ function ScrollColumn({ items, speed = 0.5 }: ScrollColProps) {
 
     const scroll = () => {
       if (!isPaused) {
-        container.scrollTop += speed;
+        container.scrollLeft += speed;
         // Loop back seamlessly when halfway point is reached
-        if (container.scrollTop >= container.scrollHeight / 2) {
-          container.scrollTop = 0;
+        if (container.scrollLeft >= container.scrollWidth / 2) {
+          container.scrollLeft = 0;
         }
       }
       animationFrameId = requestAnimationFrame(scroll);
@@ -87,7 +87,6 @@ function ScrollColumn({ items, speed = 0.5 }: ScrollColProps) {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused, speed]);
 
-  // Duplicate items for infinite scroll effect
   const doubledItems = [...items, ...items];
 
   return (
@@ -97,27 +96,29 @@ function ScrollColumn({ items, speed = 0.5 }: ScrollColProps) {
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
       onTouchEnd={() => setIsPaused(false)}
-      className="reviews-scroll-col"
+      className="reviews-scroll-row"
       style={{
-        overflowY: "auto",
-        height: "450px",
+        overflowX: "auto",
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",
         gap: "16px",
-        paddingRight: "4px",
+        padding: "8px 0",
+        cursor: "grab",
       }}
     >
       {doubledItems.map((item, index) => (
         <div
           key={index}
           style={{
+            width: "320px",
             backgroundColor: "var(--bg-secondary)",
             border: "1px solid var(--border-primary)",
             borderRadius: "var(--radius-sm)",
             padding: "24px",
             display: "flex",
             flexDirection: "column",
-            gap: "12px",
+            justifyContent: "space-between",
+            gap: "16px",
             boxShadow: "var(--shadow-md)",
             flexShrink: 0,
             transition: "border-color 0.3s ease",
@@ -135,6 +136,7 @@ function ScrollColumn({ items, speed = 0.5 }: ScrollColProps) {
               color: "var(--text-primary)",
               lineHeight: 1.6,
               margin: 0,
+              whiteSpace: "normal",
             }}
           >
             &ldquo;{item.quote}&rdquo;
@@ -177,10 +179,10 @@ export default function Reviews() {
       <SectionBackground />
       
       <style>{`
-        .reviews-scroll-col::-webkit-scrollbar {
+        .reviews-scroll-row::-webkit-scrollbar {
           display: none;
         }
-        .reviews-scroll-col {
+        .reviews-scroll-row {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
@@ -193,7 +195,7 @@ export default function Reviews() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: "clamp(48px, 6vw, 80px)", textAlign: "center" }}
+          style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
         >
           <div
             className={caveat.className}
@@ -213,47 +215,47 @@ export default function Reviews() {
             What Our Community Says
           </div>
 
-          <div style={{ overflow: "hidden" }}>
-            <motion.h2
-              initial={{ y: "100%" }}
-              whileInView={{ y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                fontSize: "clamp(32px, 5vw, 60px)",
-                fontWeight: 900,
-                letterSpacing: "-0.04em",
-                lineHeight: 1.05,
-                color: "var(--text-primary)",
-                margin: "0 auto 16px",
-                maxWidth: "600px",
-              }}
-            >
-              Loved by administrators.{" "}
-              <span
+          <div style={{ maxWidth: "640px" }}>
+            <div style={{ overflow: "hidden" }}>
+              <motion.h2
+                initial={{ y: "100%" }}
+                whileInView={{ y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 style={{
-                  color: "var(--brand)",
-                  textShadow: "0 0 30px rgba(0, 135, 81,0.3)",
+                  fontSize: "clamp(32px, 5vw, 60px)",
+                  fontWeight: 900,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1.05,
+                  color: "var(--text-primary)",
+                  margin: 0,
                 }}
               >
-                Trusted by students.
-              </span>
-            </motion.h2>
+                Loved by administrators.{" "}
+                <span
+                  style={{
+                    color: "var(--brand)",
+                    textShadow: "0 0 30px rgba(0, 135, 81,0.3)",
+                  }}
+                >
+                  Trusted by students.
+                </span>
+              </motion.h2>
+            </div>
           </div>
         </motion.div>
 
-        {/* ── scrolling columns layout ── */}
+        {/* ── scrolling rows layout ── */}
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
-            gap: "24px",
-            maxWidth: "960px",
-            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "36px",
+            width: "100%",
             position: "relative",
           }}
         >
-          {/* Column 1: School Reviews */}
+          {/* Row 1: School Reviews */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <h3
               style={{
@@ -262,16 +264,16 @@ export default function Reviews() {
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: "var(--brand)",
-                marginBottom: "8px",
+                marginBottom: "4px",
                 paddingLeft: "4px",
               }}
             >
               School Administration
             </h3>
-            <ScrollColumn items={schoolReviews} speed={0.4} />
+            <ScrollRow items={schoolReviews} speed={0.4} />
           </div>
 
-          {/* Column 2: Student Reviews */}
+          {/* Row 2: Student Reviews */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <h3
               style={{
@@ -280,13 +282,13 @@ export default function Reviews() {
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: "var(--brand)",
-                marginBottom: "8px",
+                marginBottom: "4px",
                 paddingLeft: "4px",
               }}
             >
               Students & Lecturers
             </h3>
-            <ScrollColumn items={studentReviews} speed={0.5} />
+            <ScrollRow items={studentReviews} speed={0.5} />
           </div>
         </div>
       </div>
