@@ -203,7 +203,7 @@ export default function Hero() {
               transition={{ duration: 0.7, delay: 0.5 }}
               style={{
                 fontSize: "clamp(13px, 1.5vw, 15px)",
-                color: "var(--text-muted)",
+                color: "var(--text-secondary)",
                 lineHeight: 1.85,
                 margin: "0 0 36px",
                 maxWidth: "480px",
