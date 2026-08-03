@@ -75,124 +75,22 @@ export default function Navbar() {
           <UniflowLogo size={28} />
         </Link>
 
-        {/* desktop links */}
-        <div
-          className="desktop-nav"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            padding: "4px",
-          }}
-        >
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              style={{
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "var(--text-secondary)",
-                textDecoration: "none",
-                padding: "8px 16px",
-                borderRadius: "var(--radius-sm)",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--text-primary)";
-                e.currentTarget.style.background = "var(--bg-hover)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--text-secondary)";
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-
         {/* actions */}
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Link href="/register" className="hidden md:block">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-primary"
-              style={{
-                padding: "10px 20px",
-                fontSize: "13px",
-                borderRadius: "var(--radius-sm)",
-              }}
-            >
-              Get Started
-            </motion.button>
-          </Link>
-
-          {/* mobile toggle */}
-          <button
-            type="button"
-            className="flex md:hidden items-center justify-center"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            <MenuIcon ref={menuIconRef} />
-          </button>
-        </div>
-      </motion.div>
-
-      {/* mobile menu overlay */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        <Link href="/register" className="block">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="btn-primary"
             style={{
-              position: "absolute",
-              top: "80px",
-              left: "24px",
-              right: "24px",
-              background: "var(--bg-secondary)",
-              border: "1px solid var(--border-secondary)",
-              borderRadius: "var(--radius-md)",
-              padding: "24px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-              boxShadow: "var(--shadow-lg)",
-              pointerEvents: "auto",
+              padding: "10px 20px",
+              fontSize: "13px",
+              borderRadius: "var(--radius-sm)",
             }}
           >
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                style={{
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "var(--text-secondary)",
-                  textDecoration: "none",
-                  padding: "12px",
-                  borderRadius: "var(--radius-sm)",
-                  background: "rgba(255, 255, 255, 0.03)",
-                }}
-              >
-                {link.name}
-              </Link>
-            ))}
-            <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
-              <button
-                className="btn-primary"
-                style={{ width: "100%", marginTop: "12px", padding: "16px" }}
-              >
-                Get Started
-              </button>
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            Get Started
+          </motion.button>
+        </Link>
+      </motion.div>
     </nav>
   );
 }
