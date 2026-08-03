@@ -1,9 +1,38 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import SectionBackground from '@/components/landing/SectionBackground'
+
+const sparklesVariants: Variants = {
+  initial: {
+    rotate: 0,
+    scale: 1,
+    y: 0,
+    color: 'var(--brand)'
+  },
+  hover: {
+    rotate: [0, 15, -15, 10, -10, 0],
+    scale: 1.15,
+    y: [0, -4, 0],
+    color: 'var(--brand)',
+    transition: {
+      duration: 0.6,
+      ease: "easeInOut"
+    }
+  }
+}
+
+const iconContainerVariants: Variants = {
+  initial: {
+    backgroundColor: 'var(--bg-tertiary)',
+  },
+  hover: {
+    backgroundColor: 'rgba(0, 135, 81, 0.15)',
+    transition: { duration: 0.3 }
+  }
+}
 
 export default function CTA() {
   return (
@@ -19,6 +48,7 @@ export default function CTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          whileHover="hover"
           style={{
             position: 'relative',
             borderRadius: 'var(--radius-sm)',
@@ -43,23 +73,23 @@ export default function CTA() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             {/* icon */}
             <motion.div
-              animate={{ rotate: [0, 12, -8, 0], y: [0, -6, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              whileHover={{ scale: 1.1 }}
+              variants={iconContainerVariants}
               style={{
                 display: 'inline-flex', alignItems: 'center',
                 justifyContent: 'center',
                 width: '64px', height: '64px',
                 borderRadius: 'var(--radius-sm)',
-                backgroundColor: 'var(--bg-tertiary)',
-                border: '1px solid var(--border-primary)',
                 marginBottom: '32px',
                 cursor: 'default',
                 boxShadow: 'var(--shadow-md)',
-                transition: 'all 0.4s ease',
               }}
             >
-              <Sparkles size={28} color="var(--brand)" strokeWidth={1.5} />
+              <motion.div
+                variants={sparklesVariants}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Sparkles size={28} color="currentColor" strokeWidth={1.5} />
+              </motion.div>
             </motion.div>
 
             {/* headline */}
@@ -132,8 +162,14 @@ export default function CTA() {
             >
               <Link href="/register">
                 <motion.button
-                  whileHover={{ scale: 1.06, boxShadow: '0 12px 48px rgba(0, 135, 81,0.4)' }}
+                  whileHover="hover"
                   whileTap={{ scale: 0.95 }}
+                  variants={{
+                    hover: {
+                      scale: 1.06,
+                      boxShadow: '0 12px 48px rgba(0, 135, 81,0.4)'
+                    }
+                  }}
                   className="btn-primary pulse-glow"
                   style={{
                     padding: '16px 40px', fontSize: '15px', fontWeight: 700,
@@ -148,7 +184,14 @@ export default function CTA() {
                   }}
                 >
                   Register Your University
-                  <motion.span whileHover={{ x: 4 }} transition={{ type: 'spring', stiffness: 300 }}>
+                  <motion.span
+                    variants={{
+                      initial: { x: 0 },
+                      hover: { x: 4 }
+                    }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    style={{ display: 'inline-flex' }}
+                  >
                     <ArrowRight size={16} />
                   </motion.span>
                 </motion.button>
