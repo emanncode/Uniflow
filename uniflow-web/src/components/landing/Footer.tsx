@@ -192,6 +192,64 @@ export default function Footer() {
           ))}
         </div>
 
+        {/* Line-Art Campus Silhouette in background */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "70px",
+            right: "4vw",
+            height: "120px",
+            width: "280px",
+            opacity: 0.12,
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          <svg viewBox="0 0 280 120" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.8, ease: "easeInOut" }}
+              d="M10 120 V80 H30 V90 H40 V60 H70 V75 H80 V40 H110 V65 H120 V70 H130 V120"
+              stroke="var(--brand)"
+              strokeWidth="1.5"
+            />
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 2.2, ease: "easeInOut", delay: 0.2 }}
+              d="M130 120 V85 H150 V95 H165 V50 H195 V65 H205 V30 H235 V80 H245 V120"
+              stroke="var(--brand)"
+              strokeWidth="1.5"
+              strokeDasharray="3 3"
+            />
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              whileInView={{ pathLength: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, ease: "easeInOut", delay: 0.4 }}
+              d="M70 120 V90 C70 80, 110 80, 110 90 V120"
+              stroke="var(--brand)"
+              strokeWidth="1.5"
+            />
+            <motion.line
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.2 }}
+              x1="0"
+              y1="120"
+              x2="280"
+              y2="120"
+              stroke="var(--brand)"
+              strokeWidth="2"
+              style={{ originX: 0 }}
+            />
+          </svg>
+        </div>
+
         {/* ── bottom bar ── */}
         <div
           style={{
