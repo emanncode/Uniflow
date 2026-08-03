@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   Users,
   MessageSquare,
@@ -18,9 +18,50 @@ const caveat = Caveat({
   display: "swap",
 });
 
+const iconVariants: Record<string, Variants> = {
+  users: {
+    hover: {
+      x: [-2, 2, -2, 2, 0],
+      transition: { duration: 0.4 },
+    },
+  },
+  messageSquare: {
+    hover: {
+      rotate: [0, -12, 10, -8, 8, 0],
+      transition: { duration: 0.5 },
+    },
+  },
+  mapPin: {
+    hover: {
+      y: [0, -5, 2, -2, 0],
+      transition: { duration: 0.5 },
+    },
+  },
+  alertTriangle: {
+    hover: {
+      scale: [1, 1.18, 0.95, 1.08, 1],
+      transition: { duration: 0.5 },
+    },
+  },
+  fileX: {
+    hover: {
+      rotate: [0, -10, 10, 0],
+      scale: 0.9,
+      transition: { duration: 0.4 },
+    },
+  },
+  phone: {
+    hover: {
+      rotate: [0, -15, 15, -15, 15, 0],
+      transition: { duration: 0.5 },
+    },
+  },
+};
+
 const problems = [
   {
     icon: Users,
+    animationKey: "users" as const,
     title: "Empty halls, wasted trips",
     desc: "Students commute across campus only to find their lecturer never showed up.",
     stat: "3x/week",
@@ -28,6 +69,7 @@ const problems = [
   },
   {
     icon: MessageSquare,
+    animationKey: "messageSquare" as const,
     title: '"Class don cancel" on WhatsApp',
     desc: "Cancellations spread through informal group chats — too slow, too unreliable.",
     stat: "47min",
@@ -35,6 +77,7 @@ const problems = [
   },
   {
     icon: MapPin,
+    animationKey: "mapPin" as const,
     title: "Venue changes nobody announced",
     desc: "Class moved from LT1 to Hall B. Who told the students? Nobody.",
     stat: "1 in 3",
@@ -42,6 +85,7 @@ const problems = [
   },
   {
     icon: AlertTriangle,
+    animationKey: "alertTriangle" as const,
     title: "Timetable clashes nobody caught",
     desc: "Two courses, same time, same venue. Discovered on day one of semester.",
     stat: "12+",
@@ -49,6 +93,7 @@ const problems = [
   },
   {
     icon: FileX,
+    animationKey: "fileX" as const,
     title: "No single source of truth",
     desc: "PDFs, screenshots, WhatsApp messages — everyone has a different version.",
     stat: "5+",
@@ -56,6 +101,7 @@ const problems = [
   },
   {
     icon: Phone,
+    animationKey: "phone" as const,
     title: "Lecturers with no formal channel",
     desc: "No official way to communicate changes. Everything is informal and unrecorded.",
     stat: "0",
@@ -169,9 +215,12 @@ export default function Problem() {
                   delay: i * 0.08,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                whileHover={{
-                  y: -4,
-                  transition: { duration: 0.3, ease: "easeOut" },
+                whileHover="hover"
+                variants={{
+                  hover: {
+                    y: -4,
+                    transition: { duration: 0.3, ease: "easeOut" },
+                  },
                 }}
                 style={{
                   backgroundColor: "var(--bg-secondary)",
@@ -198,8 +247,7 @@ export default function Problem() {
                   }}
                 >
                   <motion.div
-                    whileHover={{ scale: 1.1, rotate: -5 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    variants={iconVariants[problem.animationKey]}
                     style={{
                       width: "48px",
                       height: "48px",

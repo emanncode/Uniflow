@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { useState } from 'react'
 import { Building2, CalendarCheck, Smartphone } from 'lucide-react'
 import { APP_URL, universityPortalHost } from '@/lib/domain'
@@ -13,10 +13,35 @@ const caveat = Caveat({
   display: 'swap',
 })
 
+const stepIconVariants: Record<string, Variants> = {
+  building: {
+    hover: {
+      scale: 1.15,
+      y: -2,
+      transition: { type: 'spring', stiffness: 300, damping: 15 },
+    },
+  },
+  calendar: {
+    hover: {
+      rotate: [0, -10, 10, -5, 5, 0],
+      scale: 1.12,
+      transition: { duration: 0.5 },
+    },
+  },
+  phone: {
+    hover: {
+      rotate: [0, -8, 8, -8, 8, 0],
+      scale: 1.15,
+      transition: { duration: 0.4 },
+    },
+  },
+};
+
 const steps = [
   {
     number: '01',
     icon: Building2,
+    animationKey: 'building' as const,
     title: 'University registers',
     desc: `A university rep signs up on ${APP_URL.replace(/^https?:\/\//, '')}. After Uniflow Admin approves, they get their own portal — ${universityPortalHost('aaua')} — instantly.`,
     role: 'University Admin',
@@ -30,6 +55,7 @@ const steps = [
   {
     number: '02',
     icon: CalendarCheck,
+    animationKey: 'calendar' as const,
     title: 'Faculty sets up timetable',
     desc: 'University Admin sets up faculties, departments, and lecturers. The timetable is built, conflict-checked, and published.',
     role: 'University Admin',
@@ -43,6 +69,7 @@ const steps = [
   {
     number: '03',
     icon: Smartphone,
+    animationKey: 'phone' as const,
     title: 'Students & lecturers connect',
     desc: 'Everyone downloads the Uniflow app, selects their university and gets instant access to their live timetable with real-time updates.',
     role: 'Lecturer & Student',
@@ -171,6 +198,9 @@ export default function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.7, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                whileHover="hover"
+                onMouseEnter={() => setHoveredStep(i)}
+                onMouseLeave={() => setHoveredStep(null)}
                 style={{ position: 'relative', zIndex: 1 }}
               >
                 {/* step number circle */}
@@ -178,25 +208,31 @@ export default function HowItWorks() {
                   width: '52px', height: '52px',
                   borderRadius: '50%',
                   background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-primary)',
+                  border: active ? '1px solid var(--brand)' : '1px solid var(--border-primary)',
                   display: 'flex', alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '24px',
+                  transition: 'border-color 0.3s ease',
                 }}>
-                  <Icon
-                    size={22}
-                    color={'var(--text-secondary)'}
-                    strokeWidth={1.8}
-                  />
+                  <motion.div
+                    variants={stepIconVariants[step.animationKey]}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Icon
+                      size={22}
+                      color={active ? 'var(--brand)' : 'var(--text-secondary)'}
+                      strokeWidth={1.8}
+                    />
+                  </motion.div>
                 </div>
 
                 {/* card */}
                 <motion.div
-                  onHoverStart={() => setHoveredStep(i)}
-                  onHoverEnd={() => setHoveredStep(null)}
-                  whileHover={{
-                    border: '1px solid var(--brand)',
-                    y: -4,
+                  variants={{
+                    hover: {
+                      border: '1px solid var(--brand)',
+                      y: -4,
+                    }
                   }}
                   style={{
                     border: '1px solid var(--border-primary)',

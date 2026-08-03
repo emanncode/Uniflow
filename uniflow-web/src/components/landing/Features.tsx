@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   Bell,
   MapPin,
@@ -21,51 +21,114 @@ const caveat = Caveat({
   display: "swap",
 });
 
+const iconVariants: Record<string, Variants> = {
+  bell: {
+    hover: {
+      rotate: [0, -18, 15, -12, 8, 0],
+      transition: { duration: 0.5 },
+    },
+  },
+  zap: {
+    hover: {
+      scale: [1, 1.28, 0.95, 1.08, 1],
+      rotate: [0, -10, 10, 0],
+      transition: { duration: 0.45 },
+    },
+  },
+  shield: {
+    hover: {
+      scale: 1.15,
+      y: -2,
+      transition: { type: "spring", stiffness: 300, damping: 15 },
+    },
+  },
+  mapPin: {
+    hover: {
+      y: [0, -6, 2, -2, 0],
+      transition: { duration: 0.5 },
+    },
+  },
+  bookOpen: {
+    hover: {
+      scale: 1.15,
+      rotate: -8,
+      transition: { type: "spring", stiffness: 400, damping: 12 },
+    },
+  },
+  users: {
+    hover: {
+      scale: 1.12,
+      x: [-3, 3, -2, 2, 0],
+      transition: { duration: 0.4 },
+    },
+  },
+  clock: {
+    hover: {
+      rotate: 360,
+      transition: { duration: 1.2, ease: "easeInOut" },
+    },
+  },
+  barChart: {
+    hover: {
+      scaleY: [1, 1.25, 0.9, 1.1, 1],
+      transition: { duration: 0.5 },
+    },
+  },
+};
+
 const features = [
   {
     icon: Bell,
+    animationKey: "bell" as const,
     title: "Real-time class updates",
     desc: "Canceled. Delayed. Moved. Students get push notifications the moment anything changes — no more WhatsApp chaos.",
     brand: false,
   },
   {
     icon: Zap,
+    animationKey: "zap" as const,
     title: "Instant conflict detection",
     desc: "Before any timetable goes live, Uniflow checks every venue, lecturer, and student clash automatically.",
     brand: false,
   },
   {
     icon: Shield,
+    animationKey: "shield" as const,
     title: "Role-based access control",
     desc: "Six roles, each with exactly the right permissions. University Admin manages the portal. Lecturers teach. Students learn.",
     brand: false,
   },
   {
     icon: MapPin,
+    animationKey: "mapPin" as const,
     title: "Venue & time change requests",
     desc: "Lecturers request changes formally through the app. University Admin approves. Everything is tracked and recorded.",
     brand: false,
   },
   {
     icon: BookOpen,
+    animationKey: "bookOpen" as const,
     title: "Course resource sharing",
     desc: "Lecturers upload materials. Students access notes, past questions and slides — all in one place.",
     brand: false,
   },
   {
     icon: Users,
+    animationKey: "users" as const,
     title: "Multi-university support",
     desc: "One platform, every university. Each institution gets its own portal, subdomain and data — fully isolated.",
     brand: false,
   },
   {
     icon: Clock,
+    animationKey: "clock" as const,
     title: "Smart timetable management",
     desc: "University Admin builds and publishes timetables. Changes flow down to every student automatically.",
     brand: false,
   },
   {
     icon: BarChart3,
+    animationKey: "barChart" as const,
     title: "Admin oversight dashboard",
     desc: "University admins see everything — active classes, pending requests, resource uploads and more.",
     brand: false,
@@ -183,9 +246,12 @@ export default function Features() {
                   delay: i * 0.07,
                   ease: [0.16, 1, 0.3, 1],
                 }}
-                whileHover={{
-                  y: -6,
-                  transition: { duration: 0.3, ease: "easeOut" },
+                whileHover="hover"
+                variants={{
+                  hover: {
+                    y: -6,
+                    transition: { duration: 0.3, ease: "easeOut" },
+                  },
                 }}
                 onMouseEnter={() => setHoveredCard(i)}
                 onMouseLeave={() => setHoveredCard(null)}
@@ -211,11 +277,7 @@ export default function Features() {
 
                 {/* icon */}
                 <motion.div
-                  animate={{
-                    scale: isHovered ? 1.1 : 1,
-                    rotate: isHovered ? 5 : 0,
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  variants={iconVariants[feature.animationKey]}
                   style={{
                     width: "48px",
                     height: "48px",

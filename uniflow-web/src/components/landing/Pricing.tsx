@@ -178,7 +178,13 @@ export default function Pricing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-40px' }}
               transition={{ duration: 0.7, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-              whileHover={{ y: -8, transition: { duration: 0.4 } }}
+              whileHover="hover"
+              variants={{
+                hover: {
+                  y: -8,
+                  transition: { duration: 0.4 },
+                },
+              }}
               style={{
                 borderRadius: 'var(--radius-sm)',
                 border: plan.highlight
@@ -206,7 +212,18 @@ export default function Pricing() {
                   textTransform: 'uppercase' as const,
                   marginBottom: '16px',
                 }}>
-                  <Zap size={10} />
+                  <motion.div
+                    variants={{
+                      hover: {
+                        scale: [1, 1.3, 0.9, 1.1, 1],
+                        rotate: [0, -15, 15, 0],
+                        transition: { duration: 0.5 },
+                      },
+                    }}
+                    style={{ display: 'inline-flex' }}
+                  >
+                    <Zap size={10} />
+                  </motion.div>
                   {plan.badge}
                 </div>
               )}
