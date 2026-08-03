@@ -18,32 +18,47 @@ const caveat = Caveat({
   display: "swap",
 });
 
+const iconContainerVariants: Variants = {
+  initial: {
+    backgroundColor: "rgba(0, 135, 81, 0.12)",
+  },
+  hover: {
+    backgroundColor: "rgba(0, 135, 81, 0.25)",
+    transition: { duration: 0.3 },
+  },
+};
+
 const iconVariants: Record<string, Variants> = {
   users: {
+    initial: { x: 0 },
     hover: {
       x: [-2, 2, -2, 2, 0],
       transition: { duration: 0.4 },
     },
   },
   messageSquare: {
+    initial: { rotate: 0 },
     hover: {
       rotate: [0, -12, 10, -8, 8, 0],
       transition: { duration: 0.5 },
     },
   },
   mapPin: {
+    initial: { y: 0 },
     hover: {
       y: [0, -5, 2, -2, 0],
       transition: { duration: 0.5 },
     },
   },
   alertTriangle: {
+    initial: { scale: 1 },
     hover: {
       scale: [1, 1.18, 0.95, 1.08, 1],
       transition: { duration: 0.5 },
     },
   },
   fileX: {
+    initial: { rotate: 0, scale: 1 },
     hover: {
       rotate: [0, -10, 10, 0],
       scale: 0.9,
@@ -51,6 +66,7 @@ const iconVariants: Record<string, Variants> = {
     },
   },
   phone: {
+    initial: { rotate: 0 },
     hover: {
       rotate: [0, -15, 15, -15, 15, 0],
       transition: { duration: 0.5 },
@@ -247,21 +263,27 @@ export default function Problem() {
                   }}
                 >
                   <motion.div
-                    variants={iconVariants[problem.animationKey]}
+                    variants={iconContainerVariants}
                     style={{
                       width: "48px",
                       height: "48px",
                       borderRadius: "var(--radius-md)",
-                      backgroundColor: "rgba(0, 135, 81,0.12)",
-                      border: "1px solid rgba(0, 135, 81,0.2)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
-                      transition: "all 0.4s ease",
                     }}
                   >
-                    <Icon size={22} color="var(--brand)" strokeWidth={1.8} />
+                    <motion.div
+                      variants={iconVariants[problem.animationKey]}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Icon size={22} color="var(--brand)" strokeWidth={1.8} />
+                    </motion.div>
                   </motion.div>
 
                   <div style={{ textAlign: "right" }}>
