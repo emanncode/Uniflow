@@ -19,10 +19,6 @@ export default function LandingPage() {
   return (
     <>
       <JsonLd />
-      <h1 className="sr-only">
-        Uniflow (UniflowApp) — university timetable and campus management
-        platform at uniflowapp.xyz
-      </h1>
       <main>
         <Navbar />
         <Hero />

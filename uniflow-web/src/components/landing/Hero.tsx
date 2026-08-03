@@ -116,14 +116,24 @@ export default function Hero() {
             pointerEvents: "none",
           }}
         />
+        {/* Solid Dark Overlay for Enhanced legibility */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(10, 10, 11, 0.75)",
+            zIndex: 1,
+            pointerEvents: "none",
+          }}
+        />
         {/* Dark Vignette Overlay for Premium Readability */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to bottom, rgba(10, 10, 11, 0.4) 0%, rgba(10, 10, 11, 0.7) 60%, rgba(10, 10, 11, 1) 100%)",
-            zIndex: 1,
+              "linear-gradient(to bottom, rgba(10, 10, 11, 0.2) 0%, rgba(10, 10, 11, 0.6) 60%, rgba(10, 10, 11, 1) 100%)",
+            zIndex: 1.5,
             pointerEvents: "none",
           }}
         />
@@ -162,6 +172,7 @@ export default function Hero() {
                   margin: 0,
                 }}
               >
+                <span className="sr-only">Uniflow (UniflowApp) — </span>
                 <motion.span
                   className={caveat.className}
                   style={{
