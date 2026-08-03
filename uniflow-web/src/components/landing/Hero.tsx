@@ -271,33 +271,6 @@ export default function Hero() {
                 </motion.button>
               </Link>
             </motion.div>
-
-            {/* testimonial reviews */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-                borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-                paddingTop: "20px",
-                marginBottom: "40px",
-                maxWidth: "600px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  gap: "2px",
-                  color: "#fbbf24",
-                  fontSize: "14px",
-                }}
-              >
-                {"★".repeat(5)}
-              </div>
-            </motion.div>
           </div>
 
           {/* Categories Navigation Bar at the bottom */}
