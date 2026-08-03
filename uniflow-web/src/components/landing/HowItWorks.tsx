@@ -12,8 +12,6 @@ const caveat = Caveat({
   display: 'swap',
 })
 
-const stepCircleVariants = {}
-
 const stepLabelVariants = {
   initial: { color: 'var(--text-muted)' },
   hover: { color: 'var(--brand)', transition: { duration: 0.3 } }

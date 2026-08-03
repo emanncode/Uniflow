@@ -125,6 +125,168 @@ const problems = [
   },
 ];
 
+const TimetableClashIllustration = () => {
+  return (
+    <motion.div
+      whileHover="hover"
+      initial="initial"
+      style={{
+        width: "100%",
+        maxWidth: "400px",
+        height: "220px",
+        borderRadius: "var(--radius-md)",
+        border: "1px solid var(--border-primary)",
+        backgroundColor: "#0d1511",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        padding: "16px",
+        boxShadow: "var(--shadow-md)",
+        cursor: "default",
+      }}
+    >
+      {/* Mini header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid var(--border-primary)", paddingBottom: "8px" }}>
+        <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Timetable Check</span>
+        <div style={{ display: "flex", gap: "4px" }}>
+          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#ef4444" }} />
+          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#eab308" }} />
+          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#22c55e" }} />
+        </div>
+      </div>
+
+      {/* Grid columns */}
+      <div style={{ flex: 1, display: "flex", gap: "10px", position: "relative" }}>
+        {/* Column 1 */}
+        <div style={{ flex: 1, borderRight: "1px dashed rgba(255,255,255,0.05)", position: "relative" }}>
+          <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>Room 101</span>
+          
+          {/* Block A */}
+          <motion.div
+            variants={{
+              initial: { x: 10, y: 25, width: "110px", borderColor: "#dc2626", backgroundColor: "rgba(220, 38, 38, 0.12)" },
+              hover: { x: 5, y: 25, width: "70px", borderColor: "var(--brand)", backgroundColor: "rgba(0, 135, 81, 0.12)" }
+            }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            style={{
+              position: "absolute",
+              height: "75px",
+              borderRadius: "4px",
+              border: "1px solid",
+              padding: "8px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              zIndex: 2,
+            }}
+          >
+            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-primary)" }}>CSC 201</span>
+            <span style={{ fontSize: "8px", color: "var(--text-muted)", marginTop: "2px" }}>9:00 AM</span>
+          </motion.div>
+        </div>
+
+        {/* Column 2 */}
+        <div style={{ flex: 1, position: "relative" }}>
+          <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>Room 102</span>
+
+          {/* Block B */}
+          <motion.div
+            variants={{
+              initial: { x: -65, y: 55, width: "110px", borderColor: "#dc2626", backgroundColor: "rgba(220, 38, 38, 0.12)" },
+              hover: { x: 5, y: 25, width: "70px", borderColor: "var(--brand)", backgroundColor: "rgba(0, 135, 81, 0.12)" }
+            }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            style={{
+              position: "absolute",
+              height: "75px",
+              borderRadius: "4px",
+              border: "1px solid",
+              padding: "8px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              zIndex: 3,
+            }}
+          >
+            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-primary)" }}>MTH 201</span>
+            <span style={{ fontSize: "8px", color: "var(--text-muted)", marginTop: "2px" }}>9:00 AM</span>
+          </motion.div>
+        </div>
+
+        {/* Overlay status badge */}
+        <motion.div
+          variants={{
+            initial: { opacity: 1, scale: 1 },
+            hover: { opacity: 0, scale: 0.9 }
+          }}
+          transition={{ duration: 0.3 }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(13, 21, 17, 0.7)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10,
+            borderRadius: "4px",
+            border: "1px solid rgba(220, 38, 38, 0.2)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <span style={{
+            padding: "6px 12px",
+            borderRadius: "3px",
+            backgroundColor: "#dc2626",
+            color: "#fff",
+            fontSize: "10px",
+            fontWeight: 800,
+            letterSpacing: "0.05em",
+            boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px"
+          }}>
+            <AlertTriangle size={12} />
+            CLASH DETECTED
+          </span>
+          <span style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "8px", textAlign: "center", maxWidth: "200px" }}>
+            Double booking: Room 101, 9:00 AM. Hover to resolve.
+          </span>
+        </motion.div>
+
+        {/* Resolution badge */}
+        <motion.div
+          variants={{
+            initial: { opacity: 0, scale: 0.8, y: 10 },
+            hover: { opacity: 1, scale: 1, y: 0 }
+          }}
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          style={{
+            position: "absolute",
+            bottom: "8px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            backgroundColor: "#062216",
+            border: "1px solid var(--brand)",
+            borderRadius: "3px",
+            padding: "4px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            zIndex: 11,
+            pointerEvents: "none",
+          }}
+        >
+          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--brand)" }} />
+          <span style={{ fontSize: "9px", fontWeight: 700, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Timetable conflict auto-resolved</span>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function Problem() {
   return (
     <section
@@ -140,70 +302,87 @@ export default function Problem() {
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         {/* ── header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
+        <div
+          style={{
+            marginBottom: "clamp(48px, 6vw, 80px)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "40px",
+            alignItems: "center",
+          }}
         >
-          <div
-            className={caveat.className}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "42px",
-              fontWeight: 700,
-              color: "var(--brand)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: "20px",
-            }}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            The Problem
-          </div>
-
-          <div style={{ overflow: "hidden" }}>
-            <motion.h2
-              initial={{ y: "100%" }}
-              whileInView={{ y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            <div
+              className={caveat.className}
               style={{
-                fontSize: "clamp(32px, 5vw, 60px)",
-                fontWeight: 900,
-                letterSpacing: "-0.04em",
-                lineHeight: 1.05,
-                color: "var(--text-primary)",
-                margin: 0,
+                display: "flex",
+                fontSize: "42px",
+                fontWeight: 700,
+                color: "var(--brand)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: "20px",
               }}
             >
-              Sound familiar?
-            </motion.h2>
-          </div>
+              The Problem
+            </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            style={{
-              fontSize: "clamp(15px, 1.8vw, 18px)",
-              color: "var(--text-muted)",
-              marginTop: "16px",
-              maxWidth: "520px",
-              lineHeight: 1.7,
-            }}
+            <div style={{ overflow: "hidden" }}>
+              <motion.h2
+                initial={{ y: "100%" }}
+                whileInView={{ y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  fontSize: "clamp(32px, 5vw, 60px)",
+                  fontWeight: 900,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1.05,
+                  color: "var(--text-primary)",
+                  margin: 0,
+                }}
+              >
+                Sound familiar?
+              </motion.h2>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              style={{
+                fontSize: "clamp(15px, 1.8vw, 18px)",
+                color: "var(--text-muted)",
+                marginTop: "16px",
+                maxWidth: "520px",
+                lineHeight: 1.7,
+              }}
+            >
+              Every student knows these moments. Every lecturer has been there.
+              Universities have accepted this chaos for decades.{" "}
+              <span style={{ color: "var(--text-secondary)", fontWeight: 600 }}>
+                Uniflow ends it.
+              </span>
+            </motion.p>
+          </motion.div>
+
+          {/* Right column: Interactive illustration */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            style={{ display: "flex", justifyContent: "center" }}
           >
-            Every student knows these moments. Every lecturer has been there.
-            Universities have accepted this chaos for decades.{" "}
-            <span style={{ color: "var(--text-secondary)", fontWeight: 600 }}>
-              Uniflow ends it.
-            </span>
-          </motion.p>
-        </motion.div>
+            <TimetableClashIllustration />
+          </motion.div>
+        </div>
 
         {/* ── problem grid ── */}
         <div

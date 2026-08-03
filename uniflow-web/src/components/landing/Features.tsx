@@ -320,7 +320,7 @@ export default function Features() {
                     style={{
                       fontSize: "clamp(14px, 1.6vw, 16px)",
                       fontWeight: 700,
-                      color: "var(--text-primary)",
+                      color: "var(--text-brand)",
                       margin: "0 0 10px",
                       letterSpacing: "-0.01em",
                       lineHeight: 1.3,
