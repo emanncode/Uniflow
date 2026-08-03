@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { Check, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { Caveat } from 'next/font/google'
@@ -10,6 +10,34 @@ const caveat = Caveat({
   subsets: ['latin'],
   weight: ['400', '700'],
   display: 'swap',
+})
+
+const checkCircleVariants = (highlight: boolean): Variants => ({
+  initial: {
+    scale: 1,
+    backgroundColor: highlight ? 'rgba(0, 135, 81, 0.2)' : 'rgba(255,255,255,0.06)',
+    borderColor: highlight ? 'rgba(0, 135, 81, 0.4)' : 'var(--border-secondary)',
+    color: highlight ? 'var(--brand)' : 'var(--text-muted)',
+  },
+  hover: {
+    scale: 1.25,
+    backgroundColor: highlight ? 'rgba(0, 135, 81, 0.3)' : 'rgba(0, 135, 81, 0.2)',
+    borderColor: highlight ? 'var(--brand)' : 'rgba(0, 135, 81, 0.4)',
+    color: 'var(--brand)',
+    transition: { type: 'spring' as const, stiffness: 400, damping: 12 }
+  }
+})
+
+const checkTextVariants = (highlight: boolean): Variants => ({
+  initial: {
+    color: highlight ? 'var(--text-secondary)' : 'var(--text-muted)',
+    x: 0
+  },
+  hover: {
+    color: 'var(--text-primary)',
+    x: 3,
+    transition: { type: 'spring' as const, stiffness: 300, damping: 20 }
+  }
 })
 
 const plans = [
@@ -302,37 +330,40 @@ export default function Pricing() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 + j * 0.05 }}
-                    style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}
+                    whileHover="hover"
+                    style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', cursor: 'default' }}
                   >
                     <motion.div
-                      whileHover={{ scale: 1.15 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                      variants={checkCircleVariants(plan.highlight)}
                       style={{
-                        width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0, marginTop: '2px',
-                        backgroundColor: plan.highlight
-                          ? 'rgba(0, 135, 81,0.2)'
-                          : 'rgba(255,255,255,0.06)',
-                        border: plan.highlight
-                          ? '1px solid rgba(0, 135, 81,0.4)'
-                          : '1px solid var(--border-secondary)',
-                        display: 'flex', alignItems: 'center',
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        marginTop: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 0.3s ease',
-                      }}>
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                      }}
+                    >
                       <Check
                         size={10}
-                        color={plan.highlight ? 'var(--brand)' : 'var(--text-muted)'}
+                        color="currentColor"
                         strokeWidth={3}
                       />
                     </motion.div>
-                    <span style={{
-                      fontSize: '13px',
-                      color: plan.highlight ? 'var(--text-secondary)' : 'var(--text-muted)',
-                      lineHeight: 1.6,
-                      fontWeight: plan.highlight ? 500 : 400,
-                    }}>
+                    <motion.span
+                      variants={checkTextVariants(plan.highlight)}
+                      style={{
+                        fontSize: '13px',
+                        lineHeight: 1.6,
+                        fontWeight: plan.highlight ? 500 : 400,
+                      }}
+                    >
                       {feature}
-                    </span>
+                    </motion.span>
                   </motion.div>
                 ))}
               </div>
