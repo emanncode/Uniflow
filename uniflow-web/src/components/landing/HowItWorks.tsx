@@ -139,21 +139,43 @@ export default function HowItWorks() {
       <SectionBackground />
 
       <style>{`
+        .blueprint-main {
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        .blueprint-secondary, .blueprint-tertiary {
+          display: block;
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        @media (min-width: 992px) {
+          .blueprint-main {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+          .blueprint-secondary, .blueprint-tertiary {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+        }
         @media (max-width: 991px) {
-          .howitworks-blueprint { display: none !important; }
+          .blueprint-secondary, .blueprint-tertiary {
+            display: none !important;
+          }
         }
       `}</style>
 
-      {/* Background Blueprint - Flow Pipeline */}
+      {/* Background Blueprint 1 - Flow Pipeline (Main) */}
       <div
-        className="howitworks-blueprint"
+        className="blueprint-main"
         style={{
           position: "absolute",
           top: "12%",
           left: "3vw",
-          width: "280px",
-          height: "280px",
-          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -171,6 +193,51 @@ export default function HowItWorks() {
           <line x1="160" y1="50" x2="160" y2="140" stroke="var(--brand)" strokeWidth="0.75" />
           <rect x="135" y="35" width="50" height="15" rx="2" stroke="var(--brand)" strokeWidth="0.75" />
           <text x="160" y="45" fill="var(--brand)" fontSize="6" textAnchor="middle" fontFamily="monospace">CORE_ENGINE</text>
+        </svg>
+      </div>
+
+      {/* Background Blueprint 2 - Notification Broadcast (Secondary) */}
+      <div
+        className="blueprint-secondary"
+        style={{
+          position: "absolute",
+          bottom: "15%",
+          right: "3vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="110" y="80" width="80" height="140" rx="8" stroke="var(--brand)" strokeWidth="1.5" />
+          <line x1="130" y1="90" x2="170" y2="90" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="150" cy="205" r="5" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="150" cy="150" r="80" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="150" cy="150" r="110" stroke="var(--brand)" strokeWidth="0.75" strokeDasharray="6 3" />
+          <circle cx="230" cy="90" r="3" fill="var(--brand)" />
+          <circle cx="70" cy="210" r="3" fill="var(--brand)" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 3 - Assembly Cog Conveyor (Tertiary) */}
+      <div
+        className="blueprint-tertiary"
+        style={{
+          position: "absolute",
+          top: "45%",
+          left: "30vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="50" stroke="var(--brand)" strokeWidth="1.5" strokeDasharray="4 2" />
+          <circle cx="150" cy="150" r="30" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 150,90 L 150,210" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 90,150 L 210,150" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="90" cy="150" r="5" fill="var(--brand)" />
+          <circle cx="210" cy="150" r="5" fill="var(--brand)" />
+          <circle cx="150" cy="90" r="5" fill="var(--brand)" />
+          <circle cx="150" cy="210" r="5" fill="var(--brand)" />
         </svg>
       </div>
 

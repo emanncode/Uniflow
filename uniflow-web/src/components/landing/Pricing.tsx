@@ -125,21 +125,43 @@ export default function Pricing() {
       <SectionBackground />
 
       <style>{`
+        .blueprint-main {
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        .blueprint-secondary, .blueprint-tertiary {
+          display: block;
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        @media (min-width: 992px) {
+          .blueprint-main {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+          .blueprint-secondary, .blueprint-tertiary {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+        }
         @media (max-width: 991px) {
-          .pricing-blueprint { display: none !important; }
+          .blueprint-secondary, .blueprint-tertiary {
+            display: none !important;
+          }
         }
       `}</style>
 
-      {/* Background Blueprint - Scaling Grid */}
+      {/* Background Blueprint 1 - Scaling Grid (Main) */}
       <div
-        className="pricing-blueprint"
+        className="blueprint-main"
         style={{
           position: "absolute",
           top: "15%",
           right: "3vw",
-          width: "280px",
-          height: "280px",
-          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -160,6 +182,54 @@ export default function Pricing() {
           <circle cx="85" cy="220" r="3" fill="var(--brand)" />
           <circle cx="145" cy="160" r="3" fill="var(--brand)" />
           <circle cx="205" cy="100" r="3" fill="var(--brand)" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 2 - Feature Document List (Secondary) */}
+      <div
+        className="blueprint-secondary"
+        style={{
+          position: "absolute",
+          top: "25%",
+          left: "3vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="60" y="60" width="180" height="180" rx="4" stroke="var(--brand)" strokeWidth="1.5" />
+          <circle cx="90" cy="100" r="5" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 88,100 L 90,102 L 93,98" stroke="var(--brand)" strokeWidth="1" fill="none" />
+          <line x1="110" y1="100" x2="210" y2="100" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="90" cy="140" r="5" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 88,140 L 90,142 L 93,138" stroke="var(--brand)" strokeWidth="1" fill="none" />
+          <line x1="110" y1="140" x2="210" y2="140" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="90" cy="180" r="5" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 88,180 L 90,182 L 93,178" stroke="var(--brand)" strokeWidth="1" fill="none" />
+          <line x1="110" y1="180" x2="210" y2="180" stroke="var(--brand)" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 3 - Growth Line Nodes (Tertiary) */}
+      <div
+        className="blueprint-tertiary"
+        style={{
+          position: "absolute",
+          bottom: "10%",
+          right: "35vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <path d="M 50,220 C 120,200 180,100 250,80" stroke="var(--brand)" strokeWidth="1.5" />
+          <circle cx="50" cy="220" r="4" fill="var(--brand)" />
+          <circle cx="150" cy="160" r="4" fill="var(--brand)" />
+          <circle cx="250" cy="80" r="4" fill="var(--brand)" />
+          <line x1="50" y1="220" x2="50" y2="250" stroke="var(--brand)" strokeWidth="0.75" strokeDasharray="2 2" />
+          <line x1="150" y1="160" x2="150" y2="250" stroke="var(--brand)" strokeWidth="0.75" strokeDasharray="2 2" />
+          <line x1="250" y1="80" x2="250" y2="250" stroke="var(--brand)" strokeWidth="0.75" strokeDasharray="2 2" />
+          <line x1="30" y1="250" x2="270" y2="250" stroke="var(--brand)" strokeWidth="1" />
         </svg>
       </div>
 

@@ -192,15 +192,44 @@ export default function Footer() {
           ))}
         </div>
 
+        <style>{`
+          .footer-blueprint-main {
+            width: clamp(140px, 20vw, 280px);
+            height: clamp(60px, 10vw, 120px);
+            opacity: 0.15;
+          }
+          .footer-blueprint-secondary, .footer-blueprint-tertiary {
+            display: block;
+            width: clamp(140px, 20vw, 280px);
+            height: clamp(140px, 20vw, 280px);
+            opacity: 0.15;
+          }
+          @media (min-width: 992px) {
+            .footer-blueprint-main {
+              width: 280px;
+              height: 120px;
+              opacity: 0.28;
+            }
+            .footer-blueprint-secondary, .footer-blueprint-tertiary {
+              width: 280px;
+              height: 280px;
+              opacity: 0.28;
+            }
+          }
+          @media (max-width: 991px) {
+            .footer-blueprint-secondary, .footer-blueprint-tertiary {
+              display: none !important;
+            }
+          }
+        `}</style>
+
         {/* Line-Art Campus Silhouette in background */}
         <div
+          className="footer-blueprint-main"
           style={{
             position: "absolute",
             bottom: "70px",
             right: "4vw",
-            height: "120px",
-            width: "280px",
-            opacity: 0.28,
             pointerEvents: "none",
             zIndex: 0,
           }}
@@ -247,6 +276,56 @@ export default function Footer() {
               strokeWidth="2"
               style={{ originX: 0 }}
             />
+          </svg>
+        </div>
+
+        {/* Background Blueprint 2 - Connected Nodes & Global Network (Secondary) */}
+        <div
+          className="footer-blueprint-secondary"
+          style={{
+            position: "absolute",
+            bottom: "70px",
+            left: "4vw",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+            <circle cx="200" cy="200" r="180" stroke="var(--brand)" strokeWidth="1.5" strokeDasharray="3 3" />
+            <circle cx="200" cy="200" r="140" stroke="var(--brand)" strokeWidth="1" />
+            <circle cx="200" cy="200" r="80" stroke="var(--brand)" strokeWidth="1" strokeDasharray="8 4" />
+            <line x1="20" y1="200" x2="380" y2="200" stroke="var(--brand)" strokeWidth="1" />
+            <line x1="200" y1="20" x2="200" y2="380" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 50,200 Q 200,100 350,200" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 50,200 Q 200,300 350,200" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 200,50 Q 100,200 200,350" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 200,50 Q 300,200 200,350" stroke="var(--brand)" strokeWidth="1" />
+            <circle cx="290" cy="110" r="5" fill="var(--brand)" />
+            <circle cx="110" cy="290" r="5" fill="var(--brand)" />
+            <circle cx="340" cy="200" r="4" fill="var(--brand)" />
+            <circle cx="60" cy="200" r="4" fill="var(--brand)" />
+            <circle cx="200" cy="200" r="6" fill="var(--brand)" />
+          </svg>
+        </div>
+
+        {/* Background Blueprint 3 - Coordinates Compass (Tertiary) */}
+        <div
+          className="footer-blueprint-tertiary"
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            right: "45vw",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+            <circle cx="150" cy="150" r="60" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+            <circle cx="150" cy="150" r="40" stroke="var(--brand)" strokeWidth="1" />
+            <line x1="150" y1="70" x2="150" y2="230" stroke="var(--brand)" strokeWidth="1" />
+            <line x1="70" y1="150" x2="230" y2="150" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 150,70 L 160,110 L 150,150 L 140,110 Z" fill="rgba(0, 135, 81, 0.1)" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 150,150 L 160,190 L 150,230 L 140,190 Z" fill="rgba(0, 135, 81, 0.1)" stroke="var(--brand)" strokeWidth="1" />
           </svg>
         </div>
 

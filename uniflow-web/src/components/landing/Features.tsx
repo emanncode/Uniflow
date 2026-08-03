@@ -289,21 +289,43 @@ export default function Features() {
       <SectionBackground />
 
       <style>{`
+        .blueprint-main {
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        .blueprint-secondary, .blueprint-tertiary {
+          display: block;
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        @media (min-width: 992px) {
+          .blueprint-main {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+          .blueprint-secondary, .blueprint-tertiary {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+        }
         @media (max-width: 991px) {
-          .features-blueprint { display: none !important; }
+          .blueprint-secondary, .blueprint-tertiary {
+            display: none !important;
+          }
         }
       `}</style>
 
-      {/* Background Blueprint - Database Schema */}
+      {/* Background Blueprint 1 - Database Schema (Main) */}
       <div
-        className="features-blueprint"
+        className="blueprint-main"
         style={{
           position: "absolute",
           top: "15%",
           right: "3vw",
-          width: "280px",
-          height: "280px",
-          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -336,6 +358,53 @@ export default function Features() {
           <path d="M 50,180 L 50,217" stroke="var(--brand)" strokeWidth="0.75" />
           <path d="M 150,160 L 150,197" stroke="var(--brand)" strokeWidth="0.75" />
           <path d="M 250,180 L 250,217" stroke="var(--brand)" strokeWidth="0.75" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 2 - Database Cylinders (Secondary) */}
+      <div
+        className="blueprint-secondary"
+        style={{
+          position: "absolute",
+          bottom: "10%",
+          left: "3vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <path d="M 60,80 C 60,70 120,70 120,80 L 120,120 C 120,130 60,130 60,120 Z" stroke="var(--brand)" strokeWidth="1.5" />
+          <path d="M 60,95 C 60,85 120,85 120,95" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <path d="M 60,110 C 60,100 120,100 120,110" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <path d="M 180,140 C 180,130 240,130 240,140 L 240,180 C 240,190 180,190 180,180 Z" stroke="var(--brand)" strokeWidth="1.5" />
+          <path d="M 180,155 C 180,145 240,145 240,155" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <path d="M 180,170 C 180,160 240,160 240,170" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <path d="M 120,100 L 150,100 L 150,160 L 180,160" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="150" cy="100" r="3.5" fill="var(--brand)" />
+          <circle cx="150" cy="160" r="3.5" fill="var(--brand)" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 3 - Data Flow Waves (Tertiary) */}
+      <div
+        className="blueprint-tertiary"
+        style={{
+          position: "absolute",
+          top: "45%",
+          right: "35vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="80" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="150" cy="150" r="110" stroke="var(--brand)" strokeWidth="0.75" />
+          <path d="M 40,150 L 260,150" stroke="var(--brand)" strokeWidth="1" strokeDasharray="6 4" />
+          <path d="M 150,40 L 150,260" stroke="var(--brand)" strokeWidth="1" strokeDasharray="6 4" />
+          <circle cx="150" cy="70" r="4" fill="var(--brand)" />
+          <circle cx="150" cy="230" r="4" fill="var(--brand)" />
+          <circle cx="70" cy="150" r="4" fill="var(--brand)" />
+          <circle cx="230" cy="150" r="4" fill="var(--brand)" />
         </svg>
       </div>
 

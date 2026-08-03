@@ -297,21 +297,43 @@ export default function Problem() {
       <SectionBackground />
 
       <style>{`
+        .blueprint-main {
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        .blueprint-secondary, .blueprint-tertiary {
+          display: block;
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        @media (min-width: 992px) {
+          .blueprint-main {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+          .blueprint-secondary, .blueprint-tertiary {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+        }
         @media (max-width: 991px) {
-          .problem-blueprint { display: none !important; }
+          .blueprint-secondary, .blueprint-tertiary {
+            display: none !important;
+          }
         }
       `}</style>
 
-      {/* Background Blueprint - Schedule Chaos */}
+      {/* Background Blueprint 1 - Schedule Chaos (Main) */}
       <div
-        className="problem-blueprint"
+        className="blueprint-main"
         style={{
           position: "absolute",
           top: "15%",
           left: "3vw",
-          width: "280px",
-          height: "280px",
-          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -336,6 +358,51 @@ export default function Problem() {
           <circle cx="110" cy="120" r="4" fill="#ef4444" />
           <circle cx="160" cy="90" r="5" fill="#ef4444" />
           <path d="M 150,80 L 170,100 L 130,100 Z" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 2 - Chaotic Clocks (Secondary) */}
+      <div
+        className="blueprint-secondary"
+        style={{
+          position: "absolute",
+          top: "45%",
+          right: "3vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="100" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="150" cy="150" r="80" stroke="var(--brand)" strokeWidth="1.5" />
+          <circle cx="150" cy="150" r="12" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="150" y1="150" x2="190" y2="100" stroke="var(--brand)" strokeWidth="2" />
+          <line x1="150" y1="150" x2="100" y2="180" stroke="var(--brand)" strokeWidth="1.5" />
+          <line x1="150" y1="150" x2="150" y2="70" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="190" cy="100" r="4" fill="var(--brand)" />
+          <circle cx="100" cy="180" r="4" fill="var(--brand)" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 3 - Overlapping Time Sheets (Tertiary) */}
+      <div
+        className="blueprint-tertiary"
+        style={{
+          position: "absolute",
+          bottom: "5%",
+          left: "35vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="50" y="50" width="120" height="140" rx="3" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="70" y1="80" x2="150" y2="80" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <line x1="70" y1="110" x2="150" y2="110" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          
+          <rect x="110" y="90" width="120" height="140" rx="3" stroke="var(--brand)" strokeWidth="1" strokeDasharray="4 2" />
+          <line x1="130" y1="120" x2="210" y2="120" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="130" y1="150" x2="210" y2="150" stroke="var(--brand)" strokeWidth="1" />
         </svg>
       </div>
 

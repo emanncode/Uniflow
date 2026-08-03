@@ -344,21 +344,43 @@ export default function Reviews() {
       <SectionBackground />
 
       <style>{`
+        .blueprint-main {
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        .blueprint-secondary, .blueprint-tertiary {
+          display: block;
+          width: clamp(120px, 20vw, 280px);
+          height: clamp(120px, 20vw, 280px);
+          opacity: 0.12;
+        }
+        @media (min-width: 992px) {
+          .blueprint-main {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+          .blueprint-secondary, .blueprint-tertiary {
+            width: 280px;
+            height: 280px;
+            opacity: 0.22;
+          }
+        }
         @media (max-width: 991px) {
-          .reviews-blueprint { display: none !important; }
+          .blueprint-secondary, .blueprint-tertiary {
+            display: none !important;
+          }
         }
       `}</style>
 
-      {/* Background Blueprint - Feedback Waves */}
+      {/* Background Blueprint 1 - Feedback Waves (Main) */}
       <div
-        className="reviews-blueprint"
+        className="blueprint-main"
         style={{
           position: "absolute",
           top: "15%",
           left: "3vw",
-          width: "280px",
-          height: "280px",
-          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -379,6 +401,55 @@ export default function Reviews() {
 
           <path d="M 40,40 Q 60,20 80,40 L 80,50 L 40,50 Z" stroke="var(--brand)" strokeWidth="0.75" />
           <path d="M 220,40 Q 240,20 260,40 L 260,50 L 220,50 Z" stroke="var(--brand)" strokeWidth="0.75" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 2 - User Connect (Secondary) */}
+      <div
+        className="blueprint-secondary"
+        style={{
+          position: "absolute",
+          bottom: "10%",
+          right: "3vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="70" y="80" width="160" height="90" rx="6" stroke="var(--brand)" strokeWidth="1.5" />
+          <path d="M 110,170 L 110,190 L 130,170" stroke="var(--brand)" strokeWidth="1.5" fill="var(--bg-secondary)" />
+          <line x1="90" y1="110" x2="210" y2="110" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="90" y1="130" x2="170" y2="130" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="150" cy="230" r="4" fill="var(--brand)" />
+          <line x1="110" y1="190" x2="150" y2="230" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+        </svg>
+      </div>
+
+      {/* Background Blueprint 3 - Network Star (Tertiary) */}
+      <div
+        className="blueprint-tertiary"
+        style={{
+          position: "absolute",
+          top: "45%",
+          left: "40vw",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="10" stroke="var(--brand)" strokeWidth="1.5" />
+          <path d="M 150,140 L 150,60" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 150,160 L 150,240" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 140,150 L 60,150" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 160,150 L 240,150" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="150" cy="60" r="4" fill="var(--brand)" />
+          <circle cx="150" cy="240" r="4" fill="var(--brand)" />
+          <circle cx="60" cy="150" r="4" fill="var(--brand)" />
+          <circle cx="240" cy="150" r="4" fill="var(--brand)" />
+          <path d="M 150,60 A 90 90 0 0 0 240 150" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <path d="M 240,150 A 90 90 0 0 0 150 240" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <path d="M 150,240 A 90 90 0 0 0 60 150" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <path d="M 60,150 A 90 90 0 0 0 150 60" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
         </svg>
       </div>
       
