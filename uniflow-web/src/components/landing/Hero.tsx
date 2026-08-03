@@ -10,7 +10,6 @@ import {
 } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import Ticker from "@/components/hero/Ticker";
 import { Caveat } from "next/font/google";
 import { Bell, MapPin, Calendar, Globe } from "lucide-react";
 
@@ -373,7 +372,6 @@ export default function Hero() {
             ))}
           </motion.div>
         </motion.div>
-        <Ticker />
       </section>
     </div>
   );
