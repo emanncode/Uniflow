@@ -286,7 +286,7 @@ export default function Footer() {
               }}
             />
             <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-              🇳🇬 Made in Ondo
+              🇳🇬 Made in Nigeria
             </span>
           </div>
         </div>

@@ -224,10 +224,31 @@ export default function HowItWorks() {
             left: 'calc(16.67% + 20px)',
             right: 'calc(16.67% + 20px)',
             height: '1px',
-            background: 'linear-gradient(90deg, rgba(0, 135, 81,0.4), rgba(0, 135, 81,0.1), rgba(0, 135, 81,0.4))',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
             pointerEvents: 'none',
             zIndex: 0,
-          }} />
+            overflow: 'hidden',
+          }}>
+            <motion.div
+              animate={{
+                left: ["-10%", "110%"],
+                opacity: [0, 1, 1, 0]
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              style={{
+                position: "absolute",
+                top: 0,
+                width: "40px",
+                height: "1px",
+                background: "linear-gradient(90deg, transparent, var(--brand), transparent)",
+                boxShadow: "0 0 6px var(--brand)",
+              }}
+            />
+          </div>
 
           {steps.map((step, i) => {
             const Icon = step.icon

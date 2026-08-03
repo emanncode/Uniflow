@@ -134,46 +134,54 @@ const TimetableClashIllustration = () => {
         width: "100%",
         maxWidth: "400px",
         height: "220px",
-        borderRadius: "var(--radius-md)",
+        borderRadius: "var(--radius-sm)",
         border: "1px solid var(--border-primary)",
-        backgroundColor: "#0d1511",
+        backgroundColor: "#080a09",
         position: "relative",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        padding: "16px",
+        padding: "16px 20px",
         boxShadow: "var(--shadow-md)",
         cursor: "default",
       }}
     >
-      {/* Mini header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", borderBottom: "1px solid var(--border-primary)", paddingBottom: "8px" }}>
-        <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>Timetable Check</span>
-        <div style={{ display: "flex", gap: "4px" }}>
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#ef4444" }} />
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#eab308" }} />
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "#22c55e" }} />
-        </div>
+      {/* Grid Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <span style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", fontFamily: "monospace", letterSpacing: "0.05em" }}>SCHEDULER // TIME-VENUE MATRIX</span>
+        <span style={{ fontSize: "9px", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px", fontFamily: "monospace" }}>
+          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "rgba(0,135,81,0.2)", border: "1px solid var(--brand)", display: "inline-block" }} />
+          LIVE_STATUS
+        </span>
       </div>
 
-      {/* Grid columns */}
-      <div style={{ flex: 1, display: "flex", gap: "10px", position: "relative" }}>
-        {/* Column 1 */}
-        <div style={{ flex: 1, borderRight: "1px dashed rgba(255,255,255,0.05)", position: "relative" }}>
-          <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>Room 101</span>
+      {/* Grid Body */}
+      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "50px 1fr 1fr", gap: "12px", position: "relative" }}>
+        {/* Time Slots Column */}
+        <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-around", fontSize: "9px", color: "var(--text-muted)", fontFamily: "monospace", borderRight: "1px solid var(--border-primary)", paddingRight: "8px" }}>
+          <div>08:00</div>
+          <div>09:00</div>
+          <div>10:00</div>
+          <div>11:00</div>
+        </div>
+
+        {/* Venue Column 1 */}
+        <div style={{ borderRight: "1px dashed var(--border-primary)", position: "relative", paddingLeft: "4px" }}>
+          <div style={{ fontSize: "8px", color: "var(--text-muted)", fontFamily: "monospace", textTransform: "uppercase", marginBottom: "8px" }}>Hall A (LT1)</div>
           
-          {/* Block A */}
+          {/* Lecture Block A */}
           <motion.div
             variants={{
-              initial: { x: 10, y: 25, width: "110px", borderColor: "#dc2626", backgroundColor: "rgba(220, 38, 38, 0.12)" },
-              hover: { x: 5, y: 25, width: "70px", borderColor: "var(--brand)", backgroundColor: "rgba(0, 135, 81, 0.12)" }
+              initial: { y: 15, width: "110px", borderColor: "#ef4444", backgroundColor: "rgba(239, 68, 68, 0.08)", color: "#ef4444" },
+              hover: { y: 15, width: "100px", borderColor: "var(--brand)", backgroundColor: "rgba(0, 135, 81, 0.08)", color: "var(--brand)" }
             }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            transition={{ type: "spring", stiffness: 200, damping: 22 }}
             style={{
               position: "absolute",
-              height: "75px",
-              borderRadius: "4px",
-              border: "1px solid",
+              height: "50px",
+              borderRadius: "var(--radius-sm)",
+              borderWidth: "1px",
+              borderStyle: "solid",
               padding: "8px",
               display: "flex",
               flexDirection: "column",
@@ -181,27 +189,28 @@ const TimetableClashIllustration = () => {
               zIndex: 2,
             }}
           >
-            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-primary)" }}>CSC 201</span>
-            <span style={{ fontSize: "8px", color: "var(--text-muted)", marginTop: "2px" }}>9:00 AM</span>
+            <span style={{ fontSize: "11px", fontWeight: 700 }}>PHY 101</span>
+            <span style={{ fontSize: "8px", opacity: 0.8, marginTop: "2px", fontFamily: "monospace" }}>09:00 AM</span>
           </motion.div>
         </div>
 
-        {/* Column 2 */}
-        <div style={{ flex: 1, position: "relative" }}>
-          <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>Room 102</span>
+        {/* Venue Column 2 */}
+        <div style={{ position: "relative", paddingLeft: "4px" }}>
+          <div style={{ fontSize: "8px", color: "var(--text-muted)", fontFamily: "monospace", textTransform: "uppercase", marginBottom: "8px" }}>Hall B (LT2)</div>
 
-          {/* Block B */}
+          {/* Lecture Block B */}
           <motion.div
             variants={{
-              initial: { x: -65, y: 55, width: "110px", borderColor: "#dc2626", backgroundColor: "rgba(220, 38, 38, 0.12)" },
-              hover: { x: 5, y: 25, width: "70px", borderColor: "var(--brand)", backgroundColor: "rgba(0, 135, 81, 0.12)" }
+              initial: { x: -126, y: 30, width: "110px", borderColor: "#ef4444", backgroundColor: "rgba(239, 68, 68, 0.08)", color: "#ef4444" },
+              hover: { x: 0, y: 15, width: "100px", borderColor: "var(--brand)", backgroundColor: "rgba(0, 135, 81, 0.08)", color: "var(--brand)" }
             }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            transition={{ type: "spring", stiffness: 200, damping: 22 }}
             style={{
               position: "absolute",
-              height: "75px",
-              borderRadius: "4px",
-              border: "1px solid",
+              height: "50px",
+              borderRadius: "var(--radius-sm)",
+              borderWidth: "1px",
+              borderStyle: "solid",
               padding: "8px",
               display: "flex",
               flexDirection: "column",
@@ -209,78 +218,65 @@ const TimetableClashIllustration = () => {
               zIndex: 3,
             }}
           >
-            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-primary)" }}>MTH 201</span>
-            <span style={{ fontSize: "8px", color: "var(--text-muted)", marginTop: "2px" }}>9:00 AM</span>
+            <span style={{ fontSize: "11px", fontWeight: 700 }}>MTH 101</span>
+            <span style={{ fontSize: "8px", opacity: 0.8, marginTop: "2px", fontFamily: "monospace" }}>09:00 AM</span>
           </motion.div>
         </div>
 
-        {/* Overlay status badge */}
+        {/* Clean clash indicator line */}
         <motion.div
           variants={{
             initial: { opacity: 1, scale: 1 },
             hover: { opacity: 0, scale: 0.9 }
           }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.2 }}
           style={{
             position: "absolute",
-            inset: 0,
-            backgroundColor: "rgba(13, 21, 17, 0.7)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
+            left: "85px",
+            top: "30px",
+            padding: "4px 8px",
+            backgroundColor: "#7f1d1d",
+            border: "1px solid #ef4444",
+            color: "#ef4444",
+            borderRadius: "3px",
+            fontSize: "8px",
+            fontWeight: 700,
+            fontFamily: "monospace",
             zIndex: 10,
-            borderRadius: "4px",
-            border: "1px solid rgba(220, 38, 38, 0.2)",
-            backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
           }}
         >
-          <span style={{
-            padding: "6px 12px",
-            borderRadius: "3px",
-            backgroundColor: "#dc2626",
-            color: "#fff",
-            fontSize: "10px",
-            fontWeight: 800,
-            letterSpacing: "0.05em",
-            boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px"
-          }}>
-            <AlertTriangle size={12} />
-            CLASH DETECTED
-          </span>
-          <span style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "8px", textAlign: "center", maxWidth: "200px" }}>
-            Double booking: Room 101, 9:00 AM. Hover to resolve.
-          </span>
+          <AlertTriangle size={10} />
+          CONFLICT: HALL_OVERLAP
         </motion.div>
 
-        {/* Resolution badge */}
+        {/* Clean resolution indicator */}
         <motion.div
           variants={{
-            initial: { opacity: 0, scale: 0.8, y: 10 },
-            hover: { opacity: 1, scale: 1, y: 0 }
+            initial: { opacity: 0, y: 8, scale: 0.95 },
+            hover: { opacity: 1, y: 0, scale: 1 }
           }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          transition={{ type: "spring", stiffness: 250, damping: 18 }}
           style={{
             position: "absolute",
-            bottom: "8px",
-            left: "50%",
-            transform: "translateX(-50%)",
+            bottom: "0px",
+            left: "50px",
+            right: "0px",
             backgroundColor: "#062216",
             border: "1px solid var(--brand)",
             borderRadius: "3px",
-            padding: "4px 10px",
+            padding: "6px 12px",
             display: "flex",
             alignItems: "center",
-            gap: "6px",
+            justifyContent: "space-between",
             zIndex: 11,
             pointerEvents: "none",
           }}
         >
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: "var(--brand)" }} />
-          <span style={{ fontSize: "9px", fontWeight: 700, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Timetable conflict auto-resolved</span>
+          <span style={{ fontSize: "8px", fontFamily: "monospace", color: "var(--brand)", fontWeight: 700 }}>RESOLUTION: OK // SLOT_SHIFTED</span>
+          <span style={{ fontSize: "8px", color: "var(--text-muted)" }}>0ms lag</span>
         </motion.div>
       </div>
     </motion.div>

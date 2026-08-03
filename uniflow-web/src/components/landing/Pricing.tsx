@@ -229,6 +229,37 @@ export default function Pricing() {
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
+              {/* Background Analytics Grid/Graph inside cards */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: '80px',
+                  opacity: plan.highlight ? 0.12 : 0.04,
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                }}
+              >
+                <svg viewBox="0 0 300 80" style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
+                  {/* Clean trend line */}
+                  <motion.path
+                    initial={{ pathLength: 0 }}
+                    whileInView={{ pathLength: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 2, ease: "easeOut" }}
+                    d="M0,60 Q75,50 150,35 T300,15"
+                    stroke="var(--brand)"
+                    strokeWidth="1.5"
+                    fill="none"
+                  />
+                  {/* Dotted helper line */}
+                  <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="2 2" />
+                  <circle cx="150" cy="35" r="2.5" fill="var(--brand)" />
+                  <circle cx="300" cy="15" r="2.5" fill="var(--brand)" />
+                </svg>
+              </div>
               {/* badge */}
               {plan.badge && (
                 <div style={{

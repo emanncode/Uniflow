@@ -154,6 +154,128 @@ const features = [
   },
 ];
 
+const SyncIllustration = () => {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "380px",
+        height: "190px",
+        borderRadius: "var(--radius-sm)",
+        border: "1px solid var(--border-primary)",
+        backgroundColor: "#080a09",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        padding: "16px",
+        boxShadow: "var(--shadow-md)",
+      }}
+    >
+      <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", fontFamily: "monospace", letterSpacing: "0.05em", borderBottom: "1px solid var(--border-primary)", paddingBottom: "6px", marginBottom: "16px" }}>
+        REAL-TIME PROPAGATION MAP
+      </div>
+
+      <div style={{ flex: 1, display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative" }}>
+        {/* Source Hub Node */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", zIndex: 2 }}>
+          <div style={{ width: "36px", height: "36px", borderRadius: "50%", border: "1px solid var(--brand)", backgroundColor: "#062216", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "8px", fontWeight: 700, color: "var(--brand)", fontFamily: "monospace" }}>HUB</span>
+          </div>
+          <span style={{ fontSize: "8px", color: "var(--text-secondary)", marginTop: "6px", fontFamily: "monospace" }}>ADMIN_PORTAL</span>
+        </div>
+
+        {/* Dotted Connection Lines */}
+        <svg style={{ position: "absolute", top: "0", left: "0", width: "100%", height: "100%", zIndex: 1, pointerEvents: "none" }}>
+          {/* Path to student device */}
+          <path d="M 40,40 Q 150,-10 260,20" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" fill="none" strokeDasharray="4 4" id="to-student" />
+          {/* Path to lecturer device */}
+          <path d="M 40,40 Q 150,90 260,60" stroke="rgba(255,255,255,0.06)" strokeWidth="1.5" fill="none" strokeDasharray="4 4" id="to-lecturer" />
+        </svg>
+
+        {/* Animating Data Pulses */}
+        <motion.div
+          animate={{
+            offsetDistance: ["0%", "100%"],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          style={{
+            position: "absolute",
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            backgroundColor: "var(--brand)",
+            boxShadow: "0 0 6px var(--brand)",
+            offsetPath: "path('M 40,40 Q 150,-10 260,20')",
+          }}
+        />
+
+        <motion.div
+          animate={{
+            offsetDistance: ["0%", "100%"],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 1.25,
+          }}
+          style={{
+            position: "absolute",
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            backgroundColor: "var(--brand)",
+            boxShadow: "0 0 6px var(--brand)",
+            offsetPath: "path('M 40,40 Q 150,90 260,60')",
+          }}
+        />
+
+        {/* Target Devices */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", alignItems: "flex-end", zIndex: 2 }}>
+          {/* Student App Node */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--text-primary)" }}>Student App</div>
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                style={{ fontSize: "7px", color: "var(--brand)", fontFamily: "monospace" }}
+              >
+                ● PUSH_SENT
+              </motion.div>
+            </div>
+            <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-primary)", backgroundColor: "var(--bg-secondary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: "8px", fontWeight: 700, color: "var(--text-muted)", fontFamily: "monospace" }}>STUD</span>
+            </div>
+          </div>
+
+          {/* Lecturer App Node */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--text-primary)" }}>Lecturer App</div>
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                style={{ fontSize: "7px", color: "var(--brand)", fontFamily: "monospace" }}
+              >
+                ● PUSH_SENT
+              </motion.div>
+            </div>
+            <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-primary)", backgroundColor: "var(--bg-secondary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: "8px", fontWeight: 700, color: "var(--text-muted)", fontFamily: "monospace" }}>LECT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Features() {
   return (
     <section
@@ -168,76 +290,93 @@ export default function Features() {
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         {/* ── header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
+        <div
+          style={{
+            marginBottom: "clamp(48px, 6vw, 80px)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "40px",
+            alignItems: "center",
+          }}
         >
-          <div
-            className={caveat.className}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "42px",
-              fontWeight: 700,
-              color: "var(--brand)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: "20px",
-            }}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            What Uniflow Does
-          </div>
-
-          <div style={{ maxWidth: "640px" }}>
-            <div style={{ overflow: "hidden" }}>
-              <motion.h2
-                initial={{ y: "100%" }}
-                whileInView={{ y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  fontSize: "clamp(32px, 5vw, 60px)",
-                  fontWeight: 900,
-                  letterSpacing: "-0.04em",
-                  lineHeight: 1.05,
-                  color: "var(--text-primary)",
-                  margin: "0 0 16px",
-                }}
-              >
-                Everything your campus needs.{" "}
-                <span
-                  style={{
-                    color: "var(--brand)",
-                    textShadow: "0 0 30px rgba(0, 135, 81,0.3)",
-                  }}
-                >
-                  Nothing it doesn&apos;t.
-                </span>
-              </motion.h2>
-            </div>
-
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2 }}
+            <div
+              className={caveat.className}
               style={{
-                fontSize: "clamp(14px, 1.8vw, 17px)",
-                color: "var(--text-muted)",
-                lineHeight: 1.75,
-                margin: 0,
+                display: "flex",
+                fontSize: "42px",
+                fontWeight: 700,
+                color: "var(--brand)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: "20px",
               }}
             >
-              Built specifically for universities — not adapted from generic
-              tools. Every feature solves a real problem campuses face daily.
-            </motion.p>
-          </div>
-        </motion.div>
+              What Uniflow Does
+            </div>
+
+            <div style={{ maxWidth: "640px" }}>
+              <div style={{ overflow: "hidden" }}>
+                <motion.h2
+                  initial={{ y: "100%" }}
+                  whileInView={{ y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  style={{
+                    fontSize: "clamp(32px, 5vw, 60px)",
+                    fontWeight: 900,
+                    letterSpacing: "-0.04em",
+                    lineHeight: 1.05,
+                    color: "var(--text-primary)",
+                    margin: "0 0 16px",
+                  }}
+                >
+                  Everything your campus needs.{" "}
+                  <span
+                    style={{
+                      color: "var(--brand)",
+                      textShadow: "0 0 30px rgba(0, 135, 81,0.3)",
+                    }}
+                  >
+                    Nothing it doesn&apos;t.
+                  </span>
+                </motion.h2>
+              </div>
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                style={{
+                  fontSize: "clamp(14px, 1.8vw, 17px)",
+                  color: "var(--text-muted)",
+                  lineHeight: 1.75,
+                  margin: 0,
+                }}
+              >
+                Built specifically for universities — not adapted from generic
+                tools. Every feature solves a real problem campuses face daily.
+              </motion.p>
+            </div>
+          </motion.div>
+
+          {/* Right column: Sync propagation diagram */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <SyncIllustration />
+          </motion.div>
+        </div>
 
         {/* ── features grid ── */}
         <div

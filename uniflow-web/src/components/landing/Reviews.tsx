@@ -171,6 +171,123 @@ function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
   );
 }
 
+const CommunityNodesIllustration = () => {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "380px",
+        height: "190px",
+        borderRadius: "var(--radius-sm)",
+        border: "1px solid var(--border-primary)",
+        backgroundColor: "#080a09",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        padding: "16px",
+        boxShadow: "var(--shadow-md)",
+      }}
+    >
+      <div style={{ fontSize: "10px", fontWeight: 600, color: "var(--text-muted)", fontFamily: "monospace", letterSpacing: "0.05em", borderBottom: "1px solid var(--border-primary)", paddingBottom: "6px", marginBottom: "16px" }}>
+        COMMUNITY RESPONSE HUB
+      </div>
+
+      <div style={{ flex: 1, display: "flex", justifyContent: "space-around", alignItems: "flex-end", position: "relative", paddingBottom: "12px" }}>
+        {/* Node 1: Student */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+          {/* Animated floating quote bubble */}
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              position: "absolute",
+              bottom: "54px",
+              backgroundColor: "var(--bg-secondary)",
+              border: "1px solid var(--border-primary)",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              fontSize: "8px",
+              fontFamily: "monospace",
+              color: "var(--text-secondary)",
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
+            }}
+          >
+            &quot;No more wasted transport!&quot;
+          </motion.div>
+          <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--border-primary)", backgroundColor: "#0e1110", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "8px", fontWeight: 700, color: "var(--text-muted)", fontFamily: "monospace" }}>ST</span>
+          </div>
+          <span style={{ fontSize: "8px", color: "var(--text-muted)", marginTop: "6px", fontFamily: "monospace" }}>STUDENT</span>
+        </div>
+
+        {/* Node 2: Lecturer */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+          {/* Animated floating quote bubble */}
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            style={{
+              position: "absolute",
+              bottom: "54px",
+              backgroundColor: "var(--bg-secondary)",
+              border: "1px solid var(--brand)",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              fontSize: "8px",
+              fontFamily: "monospace",
+              color: "var(--brand)",
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 10px rgba(0, 135, 81, 0.1)"
+            }}
+          >
+            &quot;Instant alerts work!&quot;
+          </motion.div>
+          <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--brand)", backgroundColor: "#062216", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "8px", fontWeight: 700, color: "var(--brand)", fontFamily: "monospace" }}>LC</span>
+          </div>
+          <span style={{ fontSize: "8px", color: "var(--brand)", marginTop: "6px", fontFamily: "monospace" }}>LECTURER</span>
+        </div>
+
+        {/* Node 3: Admin */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+          {/* Animated floating quote bubble */}
+          <motion.div
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            style={{
+              position: "absolute",
+              bottom: "54px",
+              backgroundColor: "var(--bg-secondary)",
+              border: "1px solid var(--border-primary)",
+              borderRadius: "4px",
+              padding: "4px 8px",
+              fontSize: "8px",
+              fontFamily: "monospace",
+              color: "var(--text-secondary)",
+              whiteSpace: "nowrap",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
+            }}
+          >
+            &quot;Days of admin saved.&quot;
+          </motion.div>
+          <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid var(--border-primary)", backgroundColor: "#0e1110", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "8px", fontWeight: 700, color: "var(--text-muted)", fontFamily: "monospace" }}>AD</span>
+          </div>
+          <span style={{ fontSize: "8px", color: "var(--text-muted)", marginTop: "6px", fontFamily: "monospace" }}>ADMIN</span>
+        </div>
+
+        {/* Connecting Line-Art Dotted Paths */}
+        <svg style={{ position: "absolute", top: "0", left: "0", width: "100%", height: "100%", zIndex: 0, pointerEvents: "none" }}>
+          <path d="M 60,110 Q 190,50 320,110" stroke="rgba(255,255,255,0.05)" strokeWidth="1" fill="none" strokeDasharray="3 3" />
+          <path d="M 60,110 Q 190,140 320,110" stroke="rgba(255,255,255,0.05)" strokeWidth="1" fill="none" strokeDasharray="3 3" />
+        </svg>
+      </div>
+    </div>
+  );
+};
+
 export default function Reviews() {
   return (
     <section
@@ -195,60 +312,77 @@ export default function Reviews() {
 
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         {/* ── header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: "clamp(48px, 6vw, 80px)" }}
+        <div
+          style={{
+            marginBottom: "clamp(48px, 6vw, 80px)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "40px",
+            alignItems: "center",
+          }}
         >
-          <div
-            className={caveat.className}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "42px",
-              fontWeight: 700,
-              color: "var(--brand)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginBottom: "20px",
-            }}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            What Our Community Says
-          </div>
+            <div
+              className={caveat.className}
+              style={{
+                display: "flex",
+                fontSize: "42px",
+                fontWeight: 700,
+                color: "var(--brand)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: "20px",
+              }}
+            >
+              What Our Community Says
+            </div>
 
-          <div style={{ maxWidth: "640px" }}>
-            <div style={{ overflow: "hidden" }}>
-              <motion.h2
-                initial={{ y: "100%" }}
-                whileInView={{ y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  fontSize: "clamp(32px, 5vw, 60px)",
-                  fontWeight: 900,
-                  letterSpacing: "-0.04em",
-                  lineHeight: 1.05,
-                  color: "var(--text-primary)",
-                  margin: 0,
-                }}
-              >
-                Loved by administrators.{" "}
-                <span
+            <div style={{ maxWidth: "640px" }}>
+              <div style={{ overflow: "hidden" }}>
+                <motion.h2
+                  initial={{ y: "100%" }}
+                  whileInView={{ y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                   style={{
-                    color: "var(--brand)",
-                    textShadow: "0 0 30px rgba(0, 135, 81,0.3)",
+                    fontSize: "clamp(32px, 5vw, 60px)",
+                    fontWeight: 900,
+                    letterSpacing: "-0.04em",
+                    lineHeight: 1.05,
+                    color: "var(--text-primary)",
+                    margin: 0,
                   }}
                 >
-                  Trusted by students.
-                </span>
-              </motion.h2>
+                  Loved by administrators.{" "}
+                  <span
+                    style={{
+                      color: "var(--brand)",
+                      textShadow: "0 0 30px rgba(0, 135, 81,0.3)",
+                    }}
+                  >
+                    Trusted by students.
+                  </span>
+                </motion.h2>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+
+          {/* Right column: Speech propagation nodes */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <CommunityNodesIllustration />
+          </motion.div>
+        </div>
 
         {/* ── scrolling rows layout ── */}
         <div
