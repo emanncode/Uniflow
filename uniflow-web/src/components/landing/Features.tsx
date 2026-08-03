@@ -288,6 +288,57 @@ export default function Features() {
     >
       <SectionBackground />
 
+      <style>{`
+        @media (max-width: 991px) {
+          .features-blueprint { display: none !important; }
+        }
+      `}</style>
+
+      {/* Background Blueprint - Database Schema */}
+      <div
+        className="features-blueprint"
+        style={{
+          position: "absolute",
+          top: "15%",
+          right: "3vw",
+          width: "280px",
+          height: "280px",
+          opacity: 0.08,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="110" y="20" width="80" height="40" rx="3" stroke="var(--brand)" strokeWidth="1.5" />
+          <line x1="110" y1="40" x2="190" y2="40" stroke="var(--brand)" strokeWidth="1" />
+          <text x="150" y="34" fill="var(--brand)" fontSize="8" textAnchor="middle" fontFamily="monospace">DB_HUB</text>
+
+          <path d="M 150,60 L 150,120" stroke="var(--brand)" strokeWidth="1" />
+          <path d="M 150,100 L 50,100 L 50,140" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <path d="M 150,100 L 250,100 L 250,140" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+
+          <rect x="20" y="140" width="60" height="40" rx="3" stroke="var(--brand)" strokeWidth="1" />
+          <text x="50" y="152" fill="var(--brand)" fontSize="6" textAnchor="middle" fontFamily="monospace">STUDENTS</text>
+          <line x1="20" y1="158" x2="80" y2="158" stroke="var(--brand)" strokeWidth="0.5" />
+          
+          <rect x="120" y="120" width="60" height="40" rx="3" stroke="var(--brand)" strokeWidth="1" />
+          <text x="150" y="132" fill="var(--brand)" fontSize="6" textAnchor="middle" fontFamily="monospace">COURSES</text>
+          <line x1="120" y1="138" x2="180" y2="138" stroke="var(--brand)" strokeWidth="0.5" />
+
+          <rect x="220" y="140" width="60" height="40" rx="3" stroke="var(--brand)" strokeWidth="1" />
+          <text x="250" y="152" fill="var(--brand)" fontSize="6" textAnchor="middle" fontFamily="monospace">VENUE_MAP</text>
+          <line x1="220" y1="158" x2="280" y2="158" stroke="var(--brand)" strokeWidth="0.5" />
+
+          <circle cx="50" cy="220" r="3" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="150" cy="200" r="3" stroke="var(--brand)" strokeWidth="1" />
+          <circle cx="250" cy="220" r="3" stroke="var(--brand)" strokeWidth="1" />
+          
+          <path d="M 50,180 L 50,217" stroke="var(--brand)" strokeWidth="0.75" />
+          <path d="M 150,160 L 150,197" stroke="var(--brand)" strokeWidth="0.75" />
+          <path d="M 250,180 L 250,217" stroke="var(--brand)" strokeWidth="0.75" />
+        </svg>
+      </div>
+
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         {/* ── header ── */}
         <div

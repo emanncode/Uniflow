@@ -296,6 +296,49 @@ export default function Problem() {
     >
       <SectionBackground />
 
+      <style>{`
+        @media (max-width: 991px) {
+          .problem-blueprint { display: none !important; }
+        }
+      `}</style>
+
+      {/* Background Blueprint - Schedule Chaos */}
+      <div
+        className="problem-blueprint"
+        style={{
+          position: "absolute",
+          top: "15%",
+          left: "3vw",
+          width: "280px",
+          height: "280px",
+          opacity: 0.08,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <line x1="20" y1="20" x2="280" y2="20" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="20" y1="70" x2="280" y2="70" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="20" y1="120" x2="280" y2="120" stroke="var(--brand)" strokeWidth="1.5" strokeDasharray="3 3" />
+          <line x1="20" y1="170" x2="280" y2="170" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="20" y1="220" x2="280" y2="220" stroke="var(--brand)" strokeWidth="1" />
+
+          <line x1="40" y1="20" x2="40" y2="220" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="100" y1="20" x2="100" y2="220" stroke="var(--brand)" strokeWidth="1" />
+          <line x1="160" y1="20" x2="160" y2="220" stroke="var(--brand)" strokeWidth="1.5" strokeDasharray="3 3" />
+          <line x1="220" y1="20" x2="220" y2="220" stroke="var(--brand)" strokeWidth="1" strokeDasharray="8 4" />
+
+          <circle cx="150" cy="120" r="60" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="5 5" />
+          <line x1="150" y1="120" x2="185" y2="85" stroke="#ef4444" strokeWidth="1.5" />
+          <line x1="150" y1="120" x2="110" y2="120" stroke="#ef4444" strokeWidth="1.5" />
+
+          <circle cx="185" cy="85" r="4" fill="#ef4444" />
+          <circle cx="110" cy="120" r="4" fill="#ef4444" />
+          <circle cx="160" cy="90" r="5" fill="#ef4444" />
+          <path d="M 150,80 L 170,100 L 130,100 Z" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" strokeWidth="1" />
+        </svg>
+      </div>
+
       <div className="container" style={{ position: "relative", zIndex: 1 }}>
         {/* ── header ── */}
         <div

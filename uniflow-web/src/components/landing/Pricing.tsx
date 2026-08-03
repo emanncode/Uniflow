@@ -124,6 +124,45 @@ export default function Pricing() {
     >
       <SectionBackground />
 
+      <style>{`
+        @media (max-width: 991px) {
+          .pricing-blueprint { display: none !important; }
+        }
+      `}</style>
+
+      {/* Background Blueprint - Scaling Grid */}
+      <div
+        className="pricing-blueprint"
+        style={{
+          position: "absolute",
+          top: "15%",
+          right: "3vw",
+          width: "280px",
+          height: "280px",
+          opacity: 0.08,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <line x1="20" y1="260" x2="280" y2="260" stroke="var(--brand)" strokeWidth="1.5" />
+          <line x1="40" y1="20" x2="40" y2="280" stroke="var(--brand)" strokeWidth="1.5" />
+
+          <line x1="40" y1="200" x2="280" y2="200" stroke="var(--brand)" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1="40" y1="140" x2="280" y2="140" stroke="var(--brand)" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1="40" y1="80" x2="280" y2="80" stroke="var(--brand)" strokeWidth="0.5" strokeDasharray="3 3" />
+
+          <rect x="70" y="220" width="30" height="40" stroke="var(--brand)" strokeWidth="1" />
+          <rect x="130" y="160" width="30" height="100" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <rect x="190" y="100" width="30" height="160" stroke="var(--brand)" strokeWidth="1" />
+
+          <path d="M 85,220 L 145,160 L 205,100 L 265,50" stroke="var(--brand)" strokeWidth="1.5" strokeDasharray="4 4" />
+          <circle cx="85" cy="220" r="3" fill="var(--brand)" />
+          <circle cx="145" cy="160" r="3" fill="var(--brand)" />
+          <circle cx="205" cy="100" r="3" fill="var(--brand)" />
+        </svg>
+      </div>
+
       <div className="container" style={{ position: 'relative', zIndex: 1 }}>
 
         {/* ── header ── */}

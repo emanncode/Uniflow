@@ -138,6 +138,42 @@ export default function HowItWorks() {
     >
       <SectionBackground />
 
+      <style>{`
+        @media (max-width: 991px) {
+          .howitworks-blueprint { display: none !important; }
+        }
+      `}</style>
+
+      {/* Background Blueprint - Flow Pipeline */}
+      <div
+        className="howitworks-blueprint"
+        style={{
+          position: "absolute",
+          top: "12%",
+          left: "3vw",
+          width: "280px",
+          height: "280px",
+          opacity: 0.08,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="80" cy="120" r="25" stroke="var(--brand)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="80" cy="120" r="5" stroke="var(--brand)" strokeWidth="1" />
+          
+          <circle cx="160" cy="180" r="40" stroke="var(--brand)" strokeWidth="1" strokeDasharray="8 4" />
+          <circle cx="160" cy="180" r="10" stroke="var(--brand)" strokeWidth="1" />
+
+          <path d="M 80,95 L 160,140 L 240,180" stroke="var(--brand)" strokeWidth="1" strokeDasharray="4 4" />
+          <path d="M 80,145 L 160,220 L 240,260" stroke="var(--brand)" strokeWidth="1" strokeDasharray="4 4" />
+
+          <line x1="160" y1="50" x2="160" y2="140" stroke="var(--brand)" strokeWidth="0.75" />
+          <rect x="135" y="35" width="50" height="15" rx="2" stroke="var(--brand)" strokeWidth="0.75" />
+          <text x="160" y="45" fill="var(--brand)" fontSize="6" textAnchor="middle" fontFamily="monospace">CORE_ENGINE</text>
+        </svg>
+      </div>
+
       <div className="container" style={{ position: 'relative', zIndex: 1 }}>
 
         {/* ── header ── */}

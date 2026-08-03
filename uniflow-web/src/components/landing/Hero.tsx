@@ -129,6 +129,52 @@ export default function Hero() {
           }}
         />
 
+        <style>{`
+          @media (max-width: 991px) {
+            .hero-blueprint { display: none !important; }
+          }
+        `}</style>
+
+        {/* Background Blueprint - Connected Nodes & Global Network */}
+        <div
+          className="hero-blueprint"
+          style={{
+            position: "absolute",
+            top: "18%",
+            right: "6vw",
+            width: "min(32vw, 360px)",
+            height: "min(32vw, 360px)",
+            opacity: 0.12,
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        >
+          <svg viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+            <circle cx="200" cy="200" r="180" stroke="var(--brand)" strokeWidth="1.5" strokeDasharray="3 3" />
+            <circle cx="200" cy="200" r="140" stroke="var(--brand)" strokeWidth="1" />
+            <circle cx="200" cy="200" r="80" stroke="var(--brand)" strokeWidth="1" strokeDasharray="8 4" />
+            <line x1="20" y1="200" x2="380" y2="200" stroke="var(--brand)" strokeWidth="1" />
+            <line x1="200" y1="20" x2="200" y2="380" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 50,200 Q 200,100 350,200" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 50,200 Q 200,300 350,200" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 200,50 Q 100,200 200,350" stroke="var(--brand)" strokeWidth="1" />
+            <path d="M 200,50 Q 300,200 200,350" stroke="var(--brand)" strokeWidth="1" />
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+              d="M200,200 L290,110 L340,200 L200,200 L110,290 L60,200 L200,200"
+              stroke="var(--brand)"
+              strokeWidth="1.5"
+            />
+            <circle cx="290" cy="110" r="5" fill="var(--brand)" />
+            <circle cx="110" cy="290" r="5" fill="var(--brand)" />
+            <circle cx="340" cy="200" r="4" fill="var(--brand)" />
+            <circle cx="60" cy="200" r="4" fill="var(--brand)" />
+            <circle cx="200" cy="200" r="6" fill="var(--brand)" />
+          </svg>
+        </div>
+
         {/* main content */}
         <motion.div
           style={{

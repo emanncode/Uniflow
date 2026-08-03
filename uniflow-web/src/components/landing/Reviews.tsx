@@ -299,6 +299,45 @@ export default function Reviews() {
       }}
     >
       <SectionBackground />
+
+      <style>{`
+        @media (max-width: 991px) {
+          .reviews-blueprint { display: none !important; }
+        }
+      `}</style>
+
+      {/* Background Blueprint - Feedback Waves */}
+      <div
+        className="reviews-blueprint"
+        style={{
+          position: "absolute",
+          top: "15%",
+          left: "3vw",
+          width: "280px",
+          height: "280px",
+          opacity: 0.08,
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="120" stroke="var(--brand)" strokeWidth="0.75" strokeDasharray="3 3" />
+          <circle cx="150" cy="150" r="90" stroke="var(--brand)" strokeWidth="0.75" />
+          <circle cx="150" cy="150" r="60" stroke="var(--brand)" strokeWidth="1" strokeDasharray="6 3" />
+
+          <line x1="150" y1="150" x2="60" y2="60" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <line x1="150" y1="150" x2="240" y2="60" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+          <line x1="150" y1="150" x2="150" y2="240" stroke="var(--brand)" strokeWidth="1" strokeDasharray="2 2" />
+
+          <circle cx="60" cy="60" r="4" fill="var(--brand)" />
+          <circle cx="240" cy="60" r="4" fill="var(--brand)" />
+          <circle cx="150" cy="240" r="4" fill="var(--brand)" />
+          <circle cx="150" cy="150" r="6" fill="var(--brand)" />
+
+          <path d="M 40,40 Q 60,20 80,40 L 80,50 L 40,50 Z" stroke="var(--brand)" strokeWidth="0.75" />
+          <path d="M 220,40 Q 240,20 260,40 L 260,50 L 220,50 Z" stroke="var(--brand)" strokeWidth="0.75" />
+        </svg>
+      </div>
       
       <style>{`
         .reviews-scroll-row::-webkit-scrollbar {
