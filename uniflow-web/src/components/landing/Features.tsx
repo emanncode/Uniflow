@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion, Variants } from "framer-motion";
 import {
   Bell,
@@ -21,14 +20,28 @@ const caveat = Caveat({
   display: "swap",
 });
 
+const iconContainerVariants: Variants = {
+  initial: {
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
+    color: "var(--text-secondary)",
+  },
+  hover: {
+    backgroundColor: "rgba(0, 135, 81, 0.2)",
+    color: "var(--brand)",
+    transition: { duration: 0.3 },
+  },
+};
+
 const iconVariants: Record<string, Variants> = {
   bell: {
+    initial: { rotate: 0 },
     hover: {
       rotate: [0, -18, 15, -12, 8, 0],
       transition: { duration: 0.5 },
     },
   },
   zap: {
+    initial: { scale: 1, rotate: 0 },
     hover: {
       scale: [1, 1.28, 0.95, 1.08, 1],
       rotate: [0, -10, 10, 0],
@@ -36,6 +49,7 @@ const iconVariants: Record<string, Variants> = {
     },
   },
   shield: {
+    initial: { scale: 1, y: 0 },
     hover: {
       scale: 1.15,
       y: -2,
@@ -43,12 +57,14 @@ const iconVariants: Record<string, Variants> = {
     },
   },
   mapPin: {
+    initial: { y: 0 },
     hover: {
       y: [0, -6, 2, -2, 0],
       transition: { duration: 0.5 },
     },
   },
   bookOpen: {
+    initial: { scale: 1, rotate: 0 },
     hover: {
       scale: 1.15,
       rotate: -8,
@@ -56,6 +72,7 @@ const iconVariants: Record<string, Variants> = {
     },
   },
   users: {
+    initial: { scale: 1, x: 0 },
     hover: {
       scale: 1.12,
       x: [-3, 3, -2, 2, 0],
@@ -63,12 +80,14 @@ const iconVariants: Record<string, Variants> = {
     },
   },
   clock: {
+    initial: { rotate: 0 },
     hover: {
       rotate: 360,
       transition: { duration: 1.2, ease: "easeInOut" },
     },
   },
   barChart: {
+    initial: { scaleY: 1 },
     hover: {
       scaleY: [1, 1.25, 0.9, 1.1, 1],
       transition: { duration: 0.5 },
@@ -136,8 +155,6 @@ const features = [
 ];
 
 export default function Features() {
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-
   return (
     <section
       id="features"
@@ -233,7 +250,6 @@ export default function Features() {
         >
           {features.map((feature, i) => {
             const Icon = feature.icon;
-            const isHovered = hoveredCard === i;
 
             return (
               <motion.div
@@ -250,58 +266,52 @@ export default function Features() {
                 variants={{
                   hover: {
                     y: -6,
+                    borderColor: "var(--brand)",
+                    backgroundColor: "#062216",
                     transition: { duration: 0.3, ease: "easeOut" },
                   },
                 }}
-                onMouseEnter={() => setHoveredCard(i)}
-                onMouseLeave={() => setHoveredCard(null)}
                 style={{
                   padding: "clamp(24px, 3vw, 32px)",
                   borderRadius: "var(--radius-sm)",
-                  border: isHovered
-                    ? "1px solid var(--brand)"
-                    : "1px solid var(--border-primary)",
-                  backgroundColor: isHovered
-                    ? "#062216"
-                    : "var(--bg-secondary)",
+                  border: "1px solid var(--border-primary)",
+                  backgroundColor: "var(--bg-secondary)",
                   display: "flex",
                   flexDirection: "column" as const,
                   gap: "16px",
                   cursor: "default",
                   position: "relative" as const,
                   overflow: "hidden",
-                  transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                   boxShadow: "var(--shadow-md)",
                 }}
               >
-
                 {/* icon */}
                 <motion.div
-                  variants={iconVariants[feature.animationKey]}
+                  variants={iconContainerVariants}
                   style={{
                     width: "48px",
                     height: "48px",
                     borderRadius: "var(--radius-md)",
-                    backgroundColor: isHovered
-                      ? "rgba(0, 135, 81, 0.2)"
-                      : "rgba(255,255,255,0.06)",
-                    border: isHovered
-                      ? "1px solid rgba(0, 135, 81, 0.3)"
-                      : "1px solid var(--border-primary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
-                    transition: "all 0.4s ease",
                   }}
                 >
-                  <Icon
-                    size={22}
-                    color={
-                      isHovered ? "var(--brand)" : "var(--text-secondary)"
-                    }
-                    strokeWidth={1.8}
-                  />
+                  <motion.div
+                    variants={iconVariants[feature.animationKey]}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon
+                      size={22}
+                      color="currentColor"
+                      strokeWidth={1.8}
+                    />
+                  </motion.div>
                 </motion.div>
 
                 {/* text */}
