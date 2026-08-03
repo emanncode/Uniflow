@@ -65,6 +65,9 @@ interface ScrollRowProps {
 function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -74,7 +77,7 @@ function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
     let scrollPos = container.scrollLeft;
 
     const scroll = () => {
-      if (!isPaused) {
+      if (!isPaused && !isDown.current) {
         scrollPos += speed;
         // Loop back seamlessly when halfway point is reached
         if (scrollPos >= container.scrollWidth / 2) {
@@ -92,13 +95,51 @@ function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused, speed]);
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    isDown.current = true;
+    setIsPaused(true);
+    startX.current = e.pageX - (containerRef.current?.offsetLeft || 0);
+    scrollLeft.current = containerRef.current?.scrollLeft || 0;
+    if (containerRef.current) {
+      containerRef.current.style.cursor = "grabbing";
+    }
+  };
+
+  const handleMouseLeave = () => {
+    isDown.current = false;
+    setIsPaused(false);
+    if (containerRef.current) {
+      containerRef.current.style.cursor = "grab";
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDown.current = false;
+    setIsPaused(false);
+    if (containerRef.current) {
+      containerRef.current.style.cursor = "grab";
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDown.current) return;
+    e.preventDefault();
+    const x = e.pageX - (containerRef.current?.offsetLeft || 0);
+    const walk = (x - startX.current) * 1.5;
+    if (containerRef.current) {
+      containerRef.current.scrollLeft = scrollLeft.current - walk;
+    }
+  };
+
   const doubledItems = [...items, ...items];
 
   return (
     <div
       ref={containerRef}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseDown={handleMouseDown}
+      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUp}
+      onMouseMove={handleMouseMove}
       onTouchStart={() => setIsPaused(true)}
       onTouchEnd={() => setIsPaused(false)}
       className="reviews-scroll-row"
@@ -109,6 +150,8 @@ function ScrollRow({ items, speed = 0.5 }: ScrollRowProps) {
         gap: "16px",
         padding: "8px 0",
         cursor: "grab",
+        userSelect: "none",
+        WebkitUserSelect: "none",
       }}
     >
       {doubledItems.map((item, index) => (
@@ -315,7 +358,7 @@ export default function Reviews() {
           left: "3vw",
           width: "280px",
           height: "280px",
-          opacity: 0.08,
+          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}

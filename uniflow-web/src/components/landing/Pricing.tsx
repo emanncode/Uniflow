@@ -139,7 +139,7 @@ export default function Pricing() {
           right: "3vw",
           width: "280px",
           height: "280px",
-          opacity: 0.08,
+          opacity: 0.22,
           pointerEvents: "none",
           zIndex: 0,
         }}

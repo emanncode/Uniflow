@@ -200,7 +200,7 @@ export default function Footer() {
             right: "4vw",
             height: "120px",
             width: "280px",
-            opacity: 0.12,
+            opacity: 0.28,
             pointerEvents: "none",
             zIndex: 0,
           }}

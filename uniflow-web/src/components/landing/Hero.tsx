@@ -144,7 +144,7 @@ export default function Hero() {
             right: "6vw",
             width: "min(32vw, 360px)",
             height: "min(32vw, 360px)",
-            opacity: 0.12,
+            opacity: 0.28,
             pointerEvents: "none",
             zIndex: 1,
           }}
