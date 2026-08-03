@@ -1,7 +1,6 @@
-'use client'
+"use client";
 
 import { motion, Variants } from 'framer-motion'
-import { useState } from 'react'
 import { Building2, CalendarCheck, Smartphone } from 'lucide-react'
 import { APP_URL, universityPortalHost } from '@/lib/domain'
 import { Caveat } from 'next/font/google'
@@ -13,23 +12,70 @@ const caveat = Caveat({
   display: 'swap',
 })
 
+const stepCircleVariants = {}
+
+const stepLabelVariants = {
+  initial: { color: 'var(--text-muted)' },
+  hover: { color: 'var(--brand)', transition: { duration: 0.3 } }
+}
+
+const detailCircleVariants = {
+  initial: {
+    backgroundColor: 'var(--bg-tertiary)',
+    borderColor: 'var(--border-primary)'
+  },
+  hover: {
+    backgroundColor: '#062216',
+    borderColor: 'var(--brand)',
+    transition: { duration: 0.3 }
+  }
+}
+
+const detailDotVariants = {
+  initial: { backgroundColor: 'var(--text-muted)' },
+  hover: { backgroundColor: 'var(--brand)', transition: { duration: 0.3 } }
+}
+
+const detailTextVariants = {
+  initial: { color: 'var(--text-muted)' },
+  hover: { color: 'var(--text-secondary)', transition: { duration: 0.3 } }
+}
+
 const stepIconVariants: Record<string, Variants> = {
   building: {
+    initial: {
+      color: 'var(--text-secondary)',
+      scale: 1,
+      y: 0,
+    },
     hover: {
+      color: 'var(--brand)',
       scale: 1.15,
       y: -2,
       transition: { type: 'spring', stiffness: 300, damping: 15 },
     },
   },
   calendar: {
+    initial: {
+      color: 'var(--text-secondary)',
+      rotate: 0,
+      scale: 1,
+    },
     hover: {
+      color: 'var(--brand)',
       rotate: [0, -10, 10, -5, 5, 0],
       scale: 1.12,
       transition: { duration: 0.5 },
     },
   },
   phone: {
+    initial: {
+      color: 'var(--text-secondary)',
+      rotate: 0,
+      scale: 1,
+    },
     hover: {
+      color: 'var(--brand)',
       rotate: [0, -8, 8, -8, 8, 0],
       scale: 1.15,
       transition: { duration: 0.4 },
@@ -83,8 +129,6 @@ const steps = [
 ]
 
 export default function HowItWorks() {
-  const [hoveredStep, setHoveredStep] = useState<number | null>(null)
-
   return (
     <section
       id="how-it-works"
@@ -189,7 +233,6 @@ export default function HowItWorks() {
 
           {steps.map((step, i) => {
             const Icon = step.icon
-            const active = hoveredStep === i
 
             return (
               <motion.div
@@ -199,38 +242,36 @@ export default function HowItWorks() {
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.7, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
                 whileHover="hover"
-                onMouseEnter={() => setHoveredStep(i)}
-                onMouseLeave={() => setHoveredStep(null)}
                 style={{ position: 'relative', zIndex: 1 }}
               >
                 {/* step number circle */}
-                <div style={{
-                  width: '52px', height: '52px',
-                  borderRadius: '50%',
-                  background: 'var(--bg-secondary)',
-                  border: active ? '1px solid var(--brand)' : '1px solid var(--border-primary)',
-                  display: 'flex', alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '24px',
-                  transition: 'border-color 0.3s ease',
-                }}>
+                <motion.div
+                  style={{
+                    width: '52px', height: '52px',
+                    borderRadius: '50%',
+                    background: 'var(--bg-secondary)',
+                    display: 'flex', alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '24px',
+                  }}
+                >
                   <motion.div
                     variants={stepIconVariants[step.animationKey]}
                     style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Icon
                       size={22}
-                      color={active ? 'var(--brand)' : 'var(--text-secondary)'}
+                      color="currentColor"
                       strokeWidth={1.8}
                     />
                   </motion.div>
-                </div>
+                </motion.div>
 
                 {/* card */}
                 <motion.div
                   variants={{
                     hover: {
-                      border: '1px solid var(--brand)',
+                      borderColor: 'var(--brand)',
                       y: -4,
                     }
                   }}
@@ -241,18 +282,20 @@ export default function HowItWorks() {
                     padding: 'clamp(20px, 2.5vw, 28px)',
                     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                   }}
-                  className="transition-colors duration-300 cursor-default"
+                  className="cursor-default"
                 >
                   {/* step label */}
-                  <div style={{
-                    fontSize: '11px', fontWeight: 700,
-                    color: active ? 'var(--brand)' : 'var(--text-muted)',
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase' as const,
-                    marginBottom: '10px',
-                  }}>
+                  <motion.div
+                    variants={stepLabelVariants}
+                    style={{
+                      fontSize: '11px', fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase' as const,
+                      marginBottom: '10px',
+                    }}
+                  >
                     Step {step.number} · {step.role}
-                  </div>
+                  </motion.div>
 
                   <h3 style={{
                     fontSize: 'clamp(16px, 2vw, 20px)',
@@ -290,33 +333,34 @@ export default function HowItWorks() {
                           display: 'flex', alignItems: 'center', gap: '10px',
                         }}
                       >
-                        <div style={{
-                          width: '16px', height: '16px',
-                          borderRadius: '50%',
-                          backgroundColor: active
-                            ? '#062216'
-                            : 'var(--bg-tertiary)',
-                          border: active
-                            ? '1px solid var(--brand)'
-                            : '1px solid var(--border-primary)',
-                          display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', flexShrink: 0,
-                        }}>
-                          <div style={{
-                            width: '5px', height: '5px',
+                        <motion.div
+                          variants={detailCircleVariants}
+                          style={{
+                            width: '16px', height: '16px',
                             borderRadius: '50%',
-                            backgroundColor: active
-                              ? 'var(--brand)'
-                              : 'var(--text-muted)',
-                          }} />
-                        </div>
-                        <span style={{
-                          fontSize: '12px',
-                          color: active ? 'var(--text-secondary)' : 'var(--text-muted)',
-                          lineHeight: 1.4,
-                        }}>
+                            backgroundColor: 'var(--bg-tertiary)',
+                            border: '1px solid var(--border-primary)',
+                            display: 'flex', alignItems: 'center',
+                            justifyContent: 'center', flexShrink: 0,
+                          }}
+                        >
+                          <motion.div
+                            variants={detailDotVariants}
+                            style={{
+                              width: '5px', height: '5px',
+                              borderRadius: '50%',
+                              backgroundColor: 'var(--text-muted)',
+                            }} />
+                        </motion.div>
+                        <motion.span
+                          variants={detailTextVariants}
+                          style={{
+                            fontSize: '12px',
+                            lineHeight: 1.4,
+                          }}
+                        >
                           {detail}
-                        </span>
+                        </motion.span>
                       </motion.div>
                     ))}
                   </div>
