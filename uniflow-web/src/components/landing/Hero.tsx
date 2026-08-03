@@ -138,13 +138,15 @@ export default function Hero() {
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
+            justifyContent: "space-between",
             width: "100%",
+            paddingTop: "60px",
             paddingBottom: "40px",
           }}
           className="container"
         >
-          <div>
+          {/* Centered top headline and CTAs */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
             {/* main headline */}
             <div style={{ position: "relative", marginBottom: "16px" }}>
               <motion.h1
@@ -296,105 +298,106 @@ export default function Hero() {
                 {"★".repeat(5)}
               </div>
             </motion.div>
+          </div>
 
-            {/* Categories Navigation Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                width: "100%",
-                backgroundColor: "var(--bg-secondary)",
-                border: "1px solid var(--border-primary)",
-                borderRadius: "var(--radius-sm)",
-                overflow: "hidden",
-              }}
-            >
-              {[
-                {
-                  title: "Class Alerts",
-                  desc: "Instant notifications",
-                  icon: <Bell size={22} style={{ color: "var(--brand)" }} />,
-                  variants: bellVariants,
-                },
-                {
-                  title: "Relocations",
-                  desc: "Hall updates",
-                  icon: <MapPin size={22} style={{ color: "var(--brand)" }} />,
-                  variants: pinVariants,
-                },
-                {
-                  title: "Timetables",
-                  desc: "Personal schedule",
-                  icon: (
-                    <Calendar size={22} style={{ color: "var(--brand)" }} />
-                  ),
-                  variants: calendarVariants,
-                },
-                {
-                  title: "Student Portals",
-                  desc: "Access control",
-                  icon: <Globe size={22} style={{ color: "var(--brand)" }} />,
-                  variants: globeVariants,
-                },
-              ].map((cat, i) => (
+          {/* Categories Navigation Bar at the bottom */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              width: "100%",
+              backgroundColor: "var(--bg-secondary)",
+              border: "1px solid var(--border-primary)",
+              borderRadius: "var(--radius-sm)",
+              overflow: "hidden",
+              marginTop: "20px",
+            }}
+          >
+            {[
+              {
+                title: "Class Alerts",
+                desc: "Instant notifications",
+                icon: <Bell size={22} style={{ color: "var(--brand)" }} />,
+                variants: bellVariants,
+              },
+              {
+                title: "Relocations",
+                desc: "Hall updates",
+                icon: <MapPin size={22} style={{ color: "var(--brand)" }} />,
+                variants: pinVariants,
+              },
+              {
+                title: "Timetables",
+                desc: "Personal schedule",
+                icon: (
+                  <Calendar size={22} style={{ color: "var(--brand)" }} />
+                ),
+                variants: calendarVariants,
+              },
+              {
+                title: "Student Portals",
+                desc: "Access control",
+                icon: <Globe size={22} style={{ color: "var(--brand)" }} />,
+                variants: globeVariants,
+              },
+            ].map((cat, i) => (
+              <motion.div
+                key={cat.title}
+                whileHover="hover"
+                style={{
+                  padding: "20px 24px",
+                  borderRight:
+                    i < 3 ? "1px solid var(--border-primary)" : "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  cursor: "pointer",
+                  transition: "background-color 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor =
+                    "var(--bg-hover)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
                 <motion.div
-                  key={cat.title}
-                  whileHover="hover"
+                  variants={cat.variants}
                   style={{
-                    padding: "20px 24px",
-                    borderRight:
-                      i < 3 ? "1px solid var(--border-primary)" : "none",
                     display: "flex",
                     alignItems: "center",
-                    gap: "16px",
-                    cursor: "pointer",
-                    transition: "background-color 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor =
-                      "var(--bg-hover)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
+                    justifyContent: "center",
                   }}
                 >
-                  <motion.div
-                    variants={cat.variants}
+                  {cat.icon}
+                </motion.div>
+                <div>
+                  <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      fontSize: "14px",
+                      fontWeight: 700,
+                      color: "var(--text-primary)",
                     }}
                   >
-                    {cat.icon}
-                  </motion.div>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {cat.title}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        color: "var(--text-muted)",
-                        marginTop: "2px",
-                      }}
-                    >
-                      {cat.desc}
-                    </div>
+                    {cat.title}
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "var(--text-muted)",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {cat.desc}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </motion.div>
         <Ticker />
       </section>
