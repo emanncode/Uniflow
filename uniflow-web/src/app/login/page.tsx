@@ -154,13 +154,13 @@ export default function LoginPage() {
           50% { transform: translateX(-5px) translateY(-5px); }
         }
         .blueprint-bg-item {
-          opacity: 0.25;
+          opacity: 0.35;
           transition: opacity 0.4s ease, transform 0.4s ease;
           pointer-events: none;
           z-index: 1;
         }
         .blueprint-bg-item:hover {
-          opacity: 0.5;
+          opacity: 0.6;
         }
       `}</style>
 
@@ -177,7 +177,7 @@ export default function LoginPage() {
       <div className="absolute top-[10%] left-[10%] w-[600px] h-[600px] rounded-full bg-[#008751]/4 blur-[130px] pointer-events-none mix-blend-screen" />
       <div className="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] rounded-full bg-[#00a86b]/4 blur-[130px] pointer-events-none mix-blend-screen" />
 
-      {/* ── Background Blueprints (12 scattered items visible on all screens with responsive scaling) ── */}
+      {/* ── Background Blueprints (18 scattered items visible on all screens with responsive scaling) ── */}
       
       {/* 1. DB Hub (Top Left) */}
       <div className="blueprint-bg-item absolute" style={{ top: "3%", left: "3%", width: "clamp(100px, 15vw, 240px)", height: "clamp(100px, 15vw, 240px)", animation: "float-1 10s ease-in-out infinite" }}>
@@ -330,6 +330,63 @@ export default function LoginPage() {
         <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
           <circle cx="150" cy="150" r="80" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="3 3" />
           <circle cx="150" cy="150" r="40" stroke="var(--brand, #008751)" strokeWidth="1.5" />
+        </svg>
+      </div>
+
+      {/* 13. Core Engine Cog (Top Center Edge) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "1.5%", left: "44%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-1 9s ease-in-out infinite" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="50" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="150" cy="150" r="20" stroke="var(--brand, #008751)" strokeWidth="1.5" />
+          <path d="M 150,50 L 150,250" stroke="var(--brand, #008751)" strokeWidth="0.75" />
+          <path d="M 50,150 L 250,150" stroke="var(--brand, #008751)" strokeWidth="0.75" />
+        </svg>
+      </div>
+
+      {/* 14. Network Nodes (Bottom Center Edge) */}
+      <div className="blueprint-bg-item absolute" style={{ bottom: "1.5%", left: "44%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-2 10s ease-in-out infinite", animationDelay: "1s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="100" cy="100" r="10" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <circle cx="200" cy="100" r="10" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <circle cx="150" cy="200" r="15" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <line x1="100" y1="110" x2="150" y2="185" stroke="var(--brand, #008751)" strokeWidth="1" />
+          <line x1="200" y1="110" x2="150" y2="185" stroke="var(--brand, #008751)" strokeWidth="1" />
+          <line x1="100" y1="100" x2="200" y2="100" stroke="var(--brand, #008751)" strokeWidth="0.75" strokeDasharray="3 3" />
+        </svg>
+      </div>
+
+      {/* 15. Database Cylinder Small (Middle Left Gap) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "44%", left: "20%", width: "clamp(60px, 8vw, 120px)", height: "clamp(60px, 8vw, 120px)", animation: "float-3 12s ease-in-out infinite", animationDelay: "2s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <path d="M 80,100 C 80,92 140,92 140,100 L 140,140 C 140,148 80,148 80,140 Z" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <path d="M 80,115 C 80,107 140,107 140,115" stroke="var(--brand, #008751)" strokeWidth="0.75" strokeDasharray="2 2" />
+          <path d="M 80,130 C 80,122 140,122 140,130" stroke="var(--brand, #008751)" strokeWidth="0.75" strokeDasharray="2 2" />
+        </svg>
+      </div>
+
+      {/* 16. Overlapping Sheet Small (Middle Right Gap) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "44%", right: "20%", width: "clamp(60px, 8vw, 120px)", height: "clamp(60px, 8vw, 120px)", animation: "float-3 8s ease-in-out infinite", animationDelay: "0.5s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="70" y="70" width="80" height="90" rx="2" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <rect x="110" y="90" width="80" height="90" rx="2" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="3 3" />
+        </svg>
+      </div>
+
+      {/* 17. Radar Scan Small (Bottom Left Gap) */}
+      <div className="blueprint-bg-item absolute" style={{ bottom: "44%", left: "20%", width: "clamp(60px, 8vw, 120px)", height: "clamp(60px, 8vw, 120px)", animation: "float-2 11s ease-in-out infinite" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="50" stroke="var(--brand, #008751)" strokeWidth="1" />
+          <line x1="150" y1="150" x2="185" y2="115" stroke="var(--brand, #008751)" strokeWidth="1.5" />
+          <circle cx="185" cy="115" r="3" fill="var(--brand, #008751)" />
+        </svg>
+      </div>
+
+      {/* 18. Circuits Small (Bottom Right Gap) */}
+      <div className="blueprint-bg-item absolute" style={{ bottom: "44%", right: "20%", width: "clamp(60px, 8vw, 120px)", height: "clamp(60px, 8vw, 120px)", animation: "float-1 9s ease-in-out infinite", animationDelay: "1.5s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <path d="M 50,100 L 120,100 L 150,150 L 220,150" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <circle cx="50" cy="100" r="3.5" fill="var(--brand, #008751)" />
+          <circle cx="220" cy="150" r="3.5" fill="var(--brand, #008751)" />
         </svg>
       </div>
 
