@@ -154,7 +154,7 @@ export default function LoginPage() {
           50% { transform: translateX(-5px) translateY(-5px); }
         }
         .blueprint-bg-item {
-          opacity: 0.35;
+          opacity: 0.85;
           transition: opacity 0.4s ease, transform 0.4s ease;
           pointer-events: none;
           z-index: 1;
@@ -387,6 +387,70 @@ export default function LoginPage() {
           <path d="M 50,100 L 120,100 L 150,150 L 220,150" stroke="var(--brand, #008751)" strokeWidth="1.25" />
           <circle cx="50" cy="100" r="3.5" fill="var(--brand, #008751)" />
           <circle cx="220" cy="150" r="3.5" fill="var(--brand, #008751)" />
+        </svg>
+      </div>
+
+      {/* 19. Radar Mesh (Top Left Inner) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "12%", left: "10%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-1 10s ease-in-out infinite" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="70" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="150" y1="40" x2="150" y2="260" stroke="var(--brand, #008751)" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* 20. Dotted Database Cylinder (Top Right Inner) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "12%", right: "10%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-2 11s ease-in-out infinite", animationDelay: "0.5s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <path d="M 60,80 C 60,70 120,70 120,80 L 120,120 C 120,130 60,130 60,120 Z" stroke="var(--brand, #008751)" strokeWidth="1.25" strokeDasharray="4 2" />
+        </svg>
+      </div>
+
+      {/* 21. Circuit Board Track (Bottom Left Inner) */}
+      <div className="blueprint-bg-item absolute" style={{ bottom: "12%", left: "10%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-3 9s ease-in-out infinite" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <path d="M 30,50 L 150,50 L 200,100 L 270,100" stroke="var(--brand, #008751)" strokeWidth="1.5" />
+          <circle cx="30" cy="50" r="4" fill="var(--brand, #008751)" />
+        </svg>
+      </div>
+
+      {/* 22. Server Rack (Bottom Right Inner) */}
+      <div className="blueprint-bg-item absolute" style={{ bottom: "12%", right: "10%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-1 12s ease-in-out infinite", animationDelay: "1s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <rect x="50" y="40" width="80" height="150" rx="3" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <line x1="50" y1="80" x2="130" y2="80" stroke="var(--brand, #008751)" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* 23. Core Engine Cog (Far Left Edge) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "48%", left: "-2%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-2 9s ease-in-out infinite", animationDelay: "1.5s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="40" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <circle cx="150" cy="150" r="20" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="2 2" />
+        </svg>
+      </div>
+
+      {/* 24. Broadcast Broadcast (Far Right Edge) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "48%", right: "-2%", width: "clamp(60px, 8vw, 130px)", height: "clamp(60px, 8vw, 130px)", animation: "float-1 10s ease-in-out infinite" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="90" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="6 3" />
+        </svg>
+      </div>
+
+      {/* 25. Massive Central Node Map (Behind Card Center-Left) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "30%", left: "30%", width: "clamp(150px, 20vw, 320px)", height: "clamp(150px, 20vw, 320px)", animation: "float-3 12s ease-in-out infinite" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="100" stroke="var(--brand, #008751)" strokeWidth="0.75" strokeDasharray="3 3" />
+          <rect x="110" y="110" width="80" height="80" rx="4" stroke="var(--brand, #008751)" strokeWidth="1.25" />
+          <line x1="150" y1="50" x2="150" y2="110" stroke="var(--brand, #008751)" strokeWidth="1" />
+          <line x1="150" y1="190" x2="150" y2="250" stroke="var(--brand, #008751)" strokeWidth="1" />
+        </svg>
+      </div>
+
+      {/* 26. Massive Central Radar Grid (Behind Card Center-Right) */}
+      <div className="blueprint-bg-item absolute" style={{ top: "30%", right: "30%", width: "clamp(150px, 20vw, 320px)", height: "clamp(150px, 20vw, 320px)", animation: "float-2 11s ease-in-out infinite", animationDelay: "2s" }}>
+        <svg viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%" }}>
+          <circle cx="150" cy="150" r="120" stroke="var(--brand, #008751)" strokeWidth="0.75" />
+          <circle cx="150" cy="150" r="60" stroke="var(--brand, #008751)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
       </div>
 
