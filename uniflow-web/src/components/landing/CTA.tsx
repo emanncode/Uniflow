@@ -196,7 +196,14 @@ export default function CTA() {
                   </motion.span>
                 </motion.button>
               </Link>
-              <Link href="#how-it-works" style={{ textDecoration: 'none' }}>
+              <a
+                href="#how-it-works"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                style={{ textDecoration: 'none' }}
+              >
                 <motion.button
                   whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
                   whileTap={{ scale: 0.95 }}
@@ -215,7 +222,7 @@ export default function CTA() {
                 >
                   See how it works
                 </motion.button>
-              </Link>
+              </a>
             </motion.div>
 
             {/* trust note */}

@@ -166,27 +166,56 @@ export default function Footer() {
                   gap: "10px",
                 }}
               >
-                {items.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    style={{
-                      fontSize: "13px",
-                      color: "var(--text-muted)",
-                      textDecoration: "none",
-                      transition: "color var(--transition)",
-                      fontWeight: 400,
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "var(--text-primary)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "var(--text-muted)")
-                    }
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {items.map((item) => {
+                  const isHash = item.href.startsWith("#");
+                  return isHash ? (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const id = item.href.replace("#", "");
+                        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--text-muted)",
+                        textDecoration: "none",
+                        transition: "color var(--transition)",
+                        fontWeight: 400,
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "var(--text-primary)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "var(--text-muted)")
+                      }
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      style={{
+                        fontSize: "13px",
+                        color: "var(--text-muted)",
+                        textDecoration: "none",
+                        transition: "color var(--transition)",
+                        fontWeight: 400,
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "var(--text-primary)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "var(--text-muted)")
+                      }
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
               </div>
             </motion.div>
           ))}

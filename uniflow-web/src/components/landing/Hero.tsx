@@ -259,7 +259,14 @@ export default function Hero() {
                   Register Your University →
                 </motion.button>
               </Link>
-              <Link href="#how-it-works" style={{ textDecoration: "none" }}>
+              <a
+                href="#how-it-works"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                style={{ textDecoration: "none" }}
+              >
                 <motion.button
                   whileHover={{
                     scale: 1.05,
@@ -280,7 +287,7 @@ export default function Hero() {
                 >
                   See how it works
                 </motion.button>
-              </Link>
+              </a>
             </motion.div>
           </div>
 
