@@ -154,7 +154,7 @@ export default function LoginPage() {
           50% { transform: translateX(-5px) translateY(-5px); }
         }
         .blueprint-bg-item {
-          opacity: 0.85;
+          opacity: 0.50;
           transition: opacity 0.4s ease, transform 0.4s ease;
           pointer-events: none;
           z-index: 1;
