@@ -9,6 +9,7 @@ import { BASE_DOMAIN } from "@/lib/domain";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import { CapsLockWarning } from "@/components/ui/CapsLockWarning";
 import { motion } from "framer-motion";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -138,8 +139,12 @@ export default function LoginPage() {
 
   return (
     <main
-      className="min-h-screen w-full flex items-center justify-center bg-[#050507] text-white overflow-hidden relative font-sans p-4"
+      className="min-h-screen w-full flex items-center justify-center bg-primary text-primary overflow-hidden relative font-sans p-4"
     >
+      {/* Floating Theme Toggle */}
+      <div className="absolute top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
       <style>{`
         @keyframes float-1 {
           0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
@@ -154,13 +159,13 @@ export default function LoginPage() {
           50% { transform: translateX(-5px) translateY(-5px); }
         }
         .blueprint-bg-item {
-          opacity: 0.50;
+          opacity: var(--blueprint-opacity, 0.85);
           transition: opacity 0.4s ease, transform 0.4s ease;
           pointer-events: none;
           z-index: 1;
         }
         .blueprint-bg-item:hover {
-          opacity: 0.6;
+          opacity: var(--blueprint-hover-opacity, 1.0);
         }
       `}</style>
 
@@ -460,18 +465,18 @@ export default function LoginPage() {
         {/* Header Logo (aligned center above card) */}
         <div className="mb-8 flex flex-col items-center text-center">
           <UniflowLogo size={40} />
-          <p className="mt-3 text-[10px] tracking-[0.25em] text-[#666666] uppercase font-bold">
+          <p className="mt-3 text-[10px] tracking-[0.25em] text-muted uppercase font-bold">
             Admin Portal
           </p>
         </div>
 
-        <div className="bg-[#0a0a0c]/85 border border-white/[0.05] rounded-xl p-8 backdrop-blur-md shadow-[0_24px_80px_rgba(0,0,0,0.6)]">
+        <div className="bg-card border border-primary rounded-xl p-8 backdrop-blur-md shadow-[0_24px_80px_rgba(0,0,0,0.4)]">
           {step === "credentials" ? (
             <>
-              <h2 className="text-xl font-bold text-white tracking-tight mb-2">
+              <h2 className="text-xl font-bold text-primary tracking-tight mb-2">
                 Welcome back
               </h2>
-              <p className="text-[#a1a1a1] text-xs mb-8">
+              <p className="text-secondary text-xs mb-8">
                 Sign in to manage the Uniflow platform.
               </p>
 
@@ -483,20 +488,20 @@ export default function LoginPage() {
 
               <div className="space-y-5" aria-busy={loading}>
                 <div>
-                  <label className="text-xs font-semibold text-[#a1a1a1] tracking-wider uppercase mb-2 block">
+                  <label className="text-xs font-semibold text-secondary tracking-wider uppercase mb-2 block">
                     Email Address
                   </label>
                   <div className="relative group">
                     <Mail
                       size={15}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666] group-focus-within:text-[#008751] transition-colors"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-[#008751] transition-colors"
                     />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={`admin@${BASE_DOMAIN}`}
-                      className="w-full bg-[#121214] hover:bg-[#161619] focus:bg-[#121214] border border-white/[0.06] focus:border-[#008751] rounded-lg pl-12 pr-4 py-3 text-sm text-white placeholder-[#444] outline-none transition-all duration-200"
+                      className="w-full bg-secondary hover:bg-hover focus:bg-secondary border border-primary focus:border-brand rounded-lg pl-12 pr-4 py-3 text-sm text-primary placeholder:text-muted outline-none transition-all duration-200"
                       disabled={loading}
                       autoComplete="email"
                     />
@@ -504,20 +509,20 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-[#a1a1a1] tracking-wider uppercase mb-2 block">
+                  <label className="text-xs font-semibold text-secondary tracking-wider uppercase mb-2 block">
                     Password
                   </label>
                   <div className="relative group">
                     <Lock
                       size={15}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-[#666666] group-focus-within:text-[#008751] transition-colors"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-[#008751] transition-colors"
                     />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-[#121214] hover:bg-[#161619] focus:bg-[#121214] border border-white/[0.06] focus:border-[#008751] rounded-lg pl-12 pr-12 py-3 text-sm text-white placeholder-[#444] outline-none transition-all duration-200"
+                      className="w-full bg-secondary hover:bg-hover focus:bg-secondary border border-primary focus:border-brand rounded-lg pl-12 pr-12 py-3 text-sm text-primary placeholder:text-muted outline-none transition-all duration-200"
                       disabled={loading}
                       autoComplete="current-password"
                       onKeyDown={(e) =>
@@ -528,7 +533,7 @@ export default function LoginPage() {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       disabled={loading}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#666666] hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -546,7 +551,7 @@ export default function LoginPage() {
                   {loading ? "Verifying..." : "Continue"}
                 </motion.button>
 
-                <p className="text-xs text-[#666666] text-center leading-relaxed mt-4">
+                <p className="text-xs text-muted text-center leading-relaxed mt-4">
                   Need to reset your password? Contact another Uniflow administrator.
                 </p>
               </div>
@@ -562,15 +567,15 @@ export default function LoginPage() {
                   }}
                   disabled={loading}
                   className="text-xs hover:text-brand transition-colors mb-6 flex items-center gap-1 disabled:opacity-50 disabled:pointer-events-none"
-                  style={{ color: "var(--text-muted)" }}
+                  style={{ color: "var(--text-secondary)" }}
                 >
                   ← Back
                 </button>
 
-                <h2 className="text-xl font-bold text-white tracking-tight mb-2">
+                <h2 className="text-xl font-bold text-primary tracking-tight mb-2">
                   Check your email
                 </h2>
-                <p className="text-[#a1a1a1] text-xs">
+                <p className="text-secondary text-xs">
                   We sent a 6-digit verification code to{" "}
                   <span className="text-[#00a86b] font-medium">{email}</span>
                 </p>
@@ -590,7 +595,7 @@ export default function LoginPage() {
 
               <div className="space-y-5">
                 <div>
-                  <label className="text-xs font-semibold text-[#a1a1a1] tracking-wider uppercase mb-2 block">
+                  <label className="text-xs font-semibold text-secondary tracking-wider uppercase mb-2 block">
                     Verification Code
                   </label>
                   <input
@@ -600,7 +605,7 @@ export default function LoginPage() {
                       setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                     }
                     placeholder="000000"
-                    className="w-full bg-[#121214] border border-white/[0.06] focus:border-[#008751] rounded-lg py-4 text-center text-3xl font-bold tracking-[0.4em] pl-[0.4em] text-white outline-none transition-all duration-200"
+                    className="w-full bg-secondary border border-primary focus:border-brand rounded-lg py-4 text-center text-3xl font-bold tracking-[0.4em] pl-[0.4em] text-primary outline-none transition-all duration-200"
                     maxLength={6}
                     disabled={loading}
                     onKeyDown={(e) =>
@@ -619,7 +624,7 @@ export default function LoginPage() {
                   {loading ? "Verifying..." : "Verify & Sign in"}
                 </motion.button>
 
-                <p className="text-center text-xs text-[#666666]">
+                <p className="text-center text-xs text-muted">
                   Didn't receive the code?{" "}
                   <button
                     onClick={handleResend}
@@ -635,7 +640,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer info (centered bottom) */}
-        <p className="text-center text-xs mt-8 text-[#666666]">
+        <p className="text-center text-xs mt-8 text-muted">
           Uniflow Admin Portal © {new Date().getFullYear()}
         </p>
       </div>

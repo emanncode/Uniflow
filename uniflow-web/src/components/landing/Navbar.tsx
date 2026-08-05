@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import { MenuIcon, MenuIconHandle } from "@/components/ui/Menu";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -119,6 +120,9 @@ export default function Navbar() {
 
           {/* actions & hamburger */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            {/* Theme Toggle (visible on both desktop and mobile navbar) */}
+            <ThemeToggle />
+
             {/* desktop action */}
             <div className="hidden md:block">
               <Link href="/register" style={{ textDecoration: "none" }}>
@@ -142,8 +146,9 @@ export default function Navbar() {
               <MenuIcon
                 ref={menuIconRef}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="text-white cursor-pointer hover:opacity-80 transition-opacity"
+                className="cursor-pointer hover:opacity-80 transition-opacity"
                 size={24}
+                style={{ color: "var(--text-primary)" }}
               />
             </div>
           </div>

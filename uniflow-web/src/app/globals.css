@@ -5,60 +5,60 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* backgrounds — pure black and charcoal */
-  --bg-deep: #080808;
-  --bg-primary: #0d0d0f;
-  --bg-secondary: #141416;
-  --bg-tertiary: #1a1a1e;
-  --bg-card: rgba(20, 20, 22, 0.6);
-  --bg-hover: rgba(255, 255, 255, 0.03);
+  /* backgrounds — pure white and light gray (Light Mode) */
+  --bg-deep: #f3f4f6;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-hover: rgba(0, 0, 0, 0.03);
 
   /* borders */
-  --border-primary: rgba(255, 255, 255, 0.05);
-  --border-secondary: rgba(255, 255, 255, 0.08);
-  --border-brand: rgba(0, 135, 81, 0.25);
+  --border-primary: rgba(0, 0, 0, 0.06);
+  --border-secondary: rgba(0, 0, 0, 0.1);
+  --border-brand: rgba(0, 135, 81, 0.15);
 
   /* text */
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1a1;
-  --text-muted: #666666;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
   --text-brand: #008751;
 
   /* brand — Nigeria Green */
   --brand: #008751;
   --brand-secondary: #00a86b;
   --brand-hover: #00663d;
-  --brand-muted: rgba(0, 135, 81, 0.1);
-  --brand-subtle: rgba(0, 135, 81, 0.05);
+  --brand-muted: rgba(0, 135, 81, 0.08);
+  --brand-subtle: rgba(0, 135, 81, 0.04);
 
   /* status colors */
-  --success: #22c55e;
-  --success-muted: rgba(34, 197, 94, 0.08);
-  --warning: #f59e0b;
-  --warning-muted: rgba(245, 158, 11, 0.08);
-  --danger: #ef4444;
-  --danger-muted: rgba(239, 68, 68, 0.08);
-  --info: #3b82f6;
-  --info-muted: rgba(59, 130, 246, 0.08);
+  --success: #16a34a;
+  --success-muted: rgba(22, 163, 74, 0.08);
+  --warning: #d97706;
+  --warning-muted: rgba(217, 119, 6, 0.08);
+  --danger: #dc2626;
+  --danger-muted: rgba(220, 38, 38, 0.08);
+  --info: #2563eb;
+  --info-muted: rgba(37, 99, 235, 0.08);
 
   /* class update status */
-  --status-canceled: #ef4444;
-  --status-canceled-muted: rgba(239, 68, 68, 0.08);
-  --status-delayed: #f59e0b;
-  --status-delayed-muted: rgba(245, 158, 11, 0.08);
-  --status-moved: #3b82f6;
-  --status-moved-muted: rgba(59, 130, 246, 0.08);
-  --status-ongoing: #22c55e;
-  --status-ongoing-muted: rgba(34, 197, 94, 0.08);
-  --status-ended: #71717a;
-  --status-ended-muted: rgba(113, 113, 122, 0.08);
+  --status-canceled: #dc2626;
+  --status-canceled-muted: rgba(220, 38, 38, 0.08);
+  --status-delayed: #d97706;
+  --status-delayed-muted: rgba(217, 119, 6, 0.08);
+  --status-moved: #2563eb;
+  --status-moved-muted: rgba(37, 99, 235, 0.08);
+  --status-ongoing: #16a34a;
+  --status-ongoing-muted: rgba(22, 163, 74, 0.08);
+  --status-ended: #4b5563;
+  --status-ended-muted: rgba(75, 85, 99, 0.08);
 
   /* shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.05);
-  --shadow-premium: 0 1px 3px rgba(0,0,0,0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --shadow-brand: none;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.03);
+  --shadow-premium: 0 1px 3px rgba(0,0,0,0.05), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-brand: 0 0 20px rgba(0, 135, 81, 0.06);
 
   /* radius */
   --radius-sm: 6px;
@@ -70,6 +70,11 @@
   /* transitions */
   --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* blueprint graphics variables */
+  --blueprint-opacity: 0.50;
+  --blueprint-hover-opacity: 0.70;
+  --blueprint-stroke: rgba(0, 135, 81, 0.12);
 
   /* ── shadcn vars (do not rename these) ── */
   --background: oklch(1 0 0);
@@ -762,6 +767,67 @@ body {
 }
 
 .dark {
+  /* backgrounds — pure black and charcoal (Dark Mode Overrides) */
+  --bg-deep: #080808;
+  --bg-primary: #0d0d0f;
+  --bg-secondary: #141416;
+  --bg-tertiary: #1a1a1e;
+  --bg-card: rgba(20, 20, 22, 0.6);
+  --bg-hover: rgba(255, 255, 255, 0.03);
+
+  /* borders */
+  --border-primary: rgba(255, 255, 255, 0.05);
+  --border-secondary: rgba(255, 255, 255, 0.08);
+  --border-brand: rgba(0, 135, 81, 0.25);
+
+  /* text */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a1;
+  --text-muted: #666666;
+  --text-brand: #008751;
+
+  /* brand */
+  --brand: #008751;
+  --brand-secondary: #00a86b;
+  --brand-hover: #00663d;
+  --brand-muted: rgba(0, 135, 81, 0.1);
+  --brand-subtle: rgba(0, 135, 81, 0.05);
+
+  /* status colors */
+  --success: #22c55e;
+  --success-muted: rgba(34, 197, 94, 0.08);
+  --warning: #f59e0b;
+  --warning-muted: rgba(245, 158, 11, 0.08);
+  --danger: #ef4444;
+  --danger-muted: rgba(239, 68, 68, 0.08);
+  --info: #3b82f6;
+  --info-muted: rgba(59, 130, 246, 0.08);
+
+  /* class update status */
+  --status-canceled: #ef4444;
+  --status-canceled-muted: rgba(239, 68, 68, 0.08);
+  --status-delayed: #f59e0b;
+  --status-delayed-muted: rgba(245, 158, 11, 0.08);
+  --status-moved: #3b82f6;
+  --status-moved-muted: rgba(59, 130, 246, 0.08);
+  --status-ongoing: #22c55e;
+  --status-ongoing-muted: rgba(34, 197, 94, 0.08);
+  --status-ended: #71717a;
+  --status-ended-muted: rgba(113, 113, 122, 0.08);
+
+  /* shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.05);
+  --shadow-premium: 0 1px 3px rgba(0,0,0,0.2), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-brand: none;
+
+  /* blueprint graphics variables */
+  --blueprint-opacity: 0.85;
+  --blueprint-hover-opacity: 1.0;
+  --blueprint-stroke: rgba(0, 135, 81, 0.25);
+
+  /* shadcn variables */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -774,7 +840,6 @@ body {
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --brand: #008751;
   --brand-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import UniflowLogo from "@/components/ui/UniflowLogo";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   LayoutDashboard,
   Building2,
@@ -79,22 +80,25 @@ const SidebarContent = ({
 
     {/* Sidebar content wrapper to render above background */}
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", position: "relative", zIndex: 10 }}>
-      {/* logo */}
-      <div style={{ padding: "0 8px", marginBottom: "32px" }}>
-        <UniflowLogo size={24} />
-        <div
-          style={{
-            fontSize: "10px",
-            fontWeight: 600,
-            color: "var(--text-muted)",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase" as const,
-            marginTop: "6px",
-            paddingLeft: "2px",
-          }}
-        >
-          Super Admin
+      {/* logo and theme toggle */}
+      <div style={{ padding: "0 8px", marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 20 }}>
+        <div>
+          <UniflowLogo size={24} />
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+              marginTop: "6px",
+              paddingLeft: "2px",
+            }}
+          >
+            Super Admin
+          </div>
         </div>
+        <ThemeToggle />
       </div>
 
       {/* nav items */}
@@ -276,13 +280,13 @@ export default function DashboardClientWrapper({
           50% { transform: translateX(-4px) translateY(-4px); }
         }
         .blueprint-bg-item {
-          opacity: 0.12;
+          opacity: var(--blueprint-opacity, 0.85);
           transition: opacity 0.4s ease, transform 0.4s ease;
           pointer-events: none;
           z-index: 0;
         }
         .blueprint-bg-item:hover {
-          opacity: 0.27;
+          opacity: var(--blueprint-hover-opacity, 1.0);
         }
       `}</style>
 
@@ -528,6 +532,9 @@ export default function DashboardClientWrapper({
           </button>
           <UniflowLogo size={22} />
           <span className="mobile-top-bar-title">Super Admin</span>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* page content */}
