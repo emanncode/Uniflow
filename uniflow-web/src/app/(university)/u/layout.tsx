@@ -308,7 +308,7 @@ export default function UniversityPortalLayout({
           setUser(null);
           setUniversity(null);
           setUniversityId(null);
-          router.push(universityPortalLoginPath());
+          router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
           return;
         }
 
@@ -324,7 +324,7 @@ export default function UniversityPortalLayout({
           setUser(null);
           setUniversity(null);
           setUniversityId(null);
-          router.push(universityPortalLoginPath());
+          router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
           return;
         }
 

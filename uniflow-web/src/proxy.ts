@@ -113,6 +113,7 @@ export async function proxy(request: NextRequest) {
       }
       const url = request.nextUrl.clone();
       url.pathname = "/login";
+      url.searchParams.set("redirectTo", pathname);
       return NextResponse.redirect(url);
     }
 
@@ -121,6 +122,14 @@ export async function proxy(request: NextRequest) {
     if (profile?.role !== "uniflow_admin") {
       const url = request.nextUrl.clone();
       url.pathname = "/unauthorized";
+      return NextResponse.redirect(url);
+    }
+
+    if (pathname === "/login") {
+      const url = request.nextUrl.clone();
+      const redirectTo = request.nextUrl.searchParams.get("redirectTo") || "/dashboard";
+      url.pathname = redirectTo;
+      url.search = "";
       return NextResponse.redirect(url);
     }
 
@@ -163,12 +172,15 @@ export async function proxy(request: NextRequest) {
 
       const url = request.nextUrl.clone();
       url.pathname = "/login";
+      url.searchParams.set("redirectTo", pathname);
       return NextResponse.redirect(url);
     }
 
     if (pathname === "/login") {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      const redirectTo = request.nextUrl.searchParams.get("redirectTo") || "/";
+      url.pathname = redirectTo;
+      url.search = "";
       return NextResponse.redirect(url);
     }
 

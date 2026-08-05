@@ -244,12 +244,12 @@ export default function DashboardClientWrapper({
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
-        router.push("/login");
+        router.push(`/login?redirectTo=${encodeURIComponent(pathname)}`);
         return;
       }
       setUserEmail(data.user.email || "");
     });
-  }, [router]);
+  }, [router, pathname]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

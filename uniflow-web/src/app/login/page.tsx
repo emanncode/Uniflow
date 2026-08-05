@@ -93,7 +93,9 @@ export default function LoginPage() {
     setStep('otp')
     */
 
-    router.push("/dashboard");
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirectTo") || "/dashboard";
+    router.push(redirectTo);
     setLoading(false);
   };
 
@@ -113,7 +115,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirectTo") || "/dashboard";
+    router.push(redirectTo);
   };
 
   const handleResend = async () => {

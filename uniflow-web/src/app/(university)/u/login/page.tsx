@@ -78,7 +78,9 @@ export default function UniversityLoginPage() {
         )
       }
 
-      router.push('/u')
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirectTo") || "/u";
+      router.push(redirectTo);
     } catch (err: unknown) {
       setError((err as Error).message)
     } finally {
