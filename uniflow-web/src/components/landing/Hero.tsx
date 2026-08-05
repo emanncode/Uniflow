@@ -81,6 +81,7 @@ export default function Hero() {
   return (
     <div ref={containerRef}>
       <section
+        className="dark bg-primary text-primary"
         style={{
           position: "relative",
           overflow: "hidden",
@@ -296,6 +297,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
+            className="light dark:dark"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",

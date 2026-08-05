@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
+:root, .light {
   /* backgrounds — pure white and light gray (Light Mode) */
   --bg-deep: #f3f4f6;
   --bg-primary: #ffffff;
