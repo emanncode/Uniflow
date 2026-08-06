@@ -554,10 +554,6 @@ export default function LoginPage() {
                 >
                   {loading ? "Verifying..." : "Continue"}
                 </motion.button>
-
-                <p className="text-xs text-muted text-center leading-relaxed mt-4">
-                  Need to reset your password? Contact another Uniflow administrator.
-                </p>
               </div>
             </>
           ) : (

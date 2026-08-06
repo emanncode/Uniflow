@@ -424,10 +424,6 @@ export default function UniversityLoginPage() {
             >
               {loading ? "Verifying..." : "Continue"}
             </motion.button>
-
-            <p className="text-xs text-muted text-center leading-relaxed mt-4">
-              Need to reset your password? Contact your Uniflow administrator.
-            </p>
           </form>
         </div>
 
