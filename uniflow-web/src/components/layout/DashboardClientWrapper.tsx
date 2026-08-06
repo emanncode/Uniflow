@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
 import {
   LayoutDashboard,
   Building2,
@@ -240,6 +241,8 @@ export default function DashboardClientWrapper({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+
+  useInactivityTimeout("/login");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
