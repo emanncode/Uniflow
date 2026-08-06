@@ -72,8 +72,8 @@
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* blueprint graphics variables */
-  --blueprint-opacity: 0.50;
-  --blueprint-hover-opacity: 0.70;
+  --blueprint-opacity: 0.85;
+  --blueprint-hover-opacity: 1.0;
   --blueprint-stroke: rgba(0, 135, 81, 0.12);
 
   /* ── shadcn vars (do not rename these) ── */
