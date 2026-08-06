@@ -288,6 +288,15 @@ body {
   background-color: rgba(239, 68, 68, 0.12);
 }
 
+/* Make input placeholders lighter globally */
+input::placeholder,
+textarea::placeholder,
+.input::placeholder,
+.glass-input::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.55 !important;
+}
+
 /* ─── inputs ─── */
 .input {
   width: 100%;

@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { UniversityProvider } from "@/context/UniversityContext";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
 import {
   isUniversityNavActive,
   isUniversityPublicPath,
@@ -309,6 +310,8 @@ export default function UniversityPortalLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+
+  useInactivityTimeout("/login");
 
   const [user, setUser] = useState<{
     name: string;
