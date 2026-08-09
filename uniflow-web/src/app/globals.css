@@ -76,6 +76,14 @@
   --blueprint-hover-opacity: 1.0;
   --blueprint-stroke: rgba(0, 135, 81, 0.12);
 
+  /* highlight plan variables */
+  --bg-highlight: rgba(0, 135, 81, 0.05);
+  --border-highlight: var(--brand);
+  --text-highlight-title: var(--brand);
+  --text-highlight-price: var(--text-primary);
+  --text-highlight-desc: var(--text-secondary);
+  --text-highlight-feature: var(--text-secondary);
+
   /* ── shadcn vars (do not rename these) ── */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -801,6 +809,14 @@ textarea::placeholder,
   --brand-hover: #00663d;
   --brand-muted: rgba(0, 135, 81, 0.1);
   --brand-subtle: rgba(0, 135, 81, 0.05);
+
+  /* highlight plan variables overrides */
+  --bg-highlight: #062216;
+  --border-highlight: var(--brand);
+  --text-highlight-title: var(--brand);
+  --text-highlight-price: #ffffff;
+  --text-highlight-desc: rgba(255, 255, 255, 0.7);
+  --text-highlight-feature: rgba(255, 255, 255, 0.9);
 
   /* status colors */
   --success: #22c55e;

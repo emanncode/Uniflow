@@ -30,11 +30,11 @@ const checkCircleVariants = (highlight: boolean): Variants => ({
 
 const checkTextVariants = (highlight: boolean): Variants => ({
   initial: {
-    color: highlight ? 'var(--text-secondary)' : 'var(--text-muted)',
+    color: highlight ? 'var(--text-highlight-feature)' : 'var(--text-muted)',
     x: 0
   },
   hover: {
-    color: 'var(--text-primary)',
+    color: highlight ? 'var(--text-highlight-price)' : 'var(--text-primary)',
     x: 3,
     transition: { type: 'spring' as const, stiffness: 300, damping: 20 }
   }
@@ -325,10 +325,10 @@ export default function Pricing() {
               style={{
                 borderRadius: 'var(--radius-sm)',
                 border: plan.highlight
-                  ? '1px solid var(--brand)'
+                  ? '1px solid var(--border-highlight)'
                   : '1px solid var(--border-primary)',
                 backgroundColor: plan.highlight
-                  ? '#062216'
+                  ? 'var(--bg-highlight)'
                   : 'var(--bg-secondary)',
                 padding: 'clamp(28px, 3.5vw, 40px)',
                 position: 'relative' as const,
@@ -364,7 +364,7 @@ export default function Pricing() {
                     fill="none"
                   />
                   {/* Dotted helper line */}
-                  <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="2 2" />
+                  <line x1="0" y1="40" x2="300" y2="40" stroke="var(--border-primary)" strokeWidth="1" strokeDasharray="2 2" />
                   <circle cx="150" cy="35" r="2.5" fill="var(--brand)" />
                   <circle cx="300" cy="15" r="2.5" fill="var(--brand)" />
                 </svg>
@@ -399,7 +399,7 @@ export default function Pricing() {
               {/* plan name */}
               <div style={{
                 fontSize: '13px', fontWeight: 700,
-                color: plan.highlight ? 'var(--brand)' : 'var(--text-muted)',
+                color: plan.highlight ? 'var(--text-highlight-title)' : 'var(--text-muted)',
                 letterSpacing: '0.1em', textTransform: 'uppercase' as const,
                 marginBottom: '12px',
               }}>
@@ -412,18 +412,23 @@ export default function Pricing() {
                   fontSize: 'clamp(36px, 5vw, 52px)',
                   fontWeight: 900,
                   letterSpacing: '-0.04em',
-                  color: 'var(--text-primary)',
+                  color: plan.highlight ? 'var(--text-highlight-price)' : 'var(--text-primary)',
                   lineHeight: 1,
                 }}>
                   {plan.price}
                 </span>
-                <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
+                <span style={{
+                  fontSize: '13px',
+                  color: plan.highlight ? 'var(--text-highlight-desc)' : 'var(--text-muted)',
+                  fontWeight: 500
+                }}>
                   {plan.period}
                 </span>
               </div>
 
               <p style={{
-                fontSize: '13px', color: 'var(--text-muted)',
+                fontSize: '13px',
+                color: plan.highlight ? 'var(--text-highlight-desc)' : 'var(--text-muted)',
                 lineHeight: 1.6, marginBottom: '28px',
               }}>
                 {plan.desc}
