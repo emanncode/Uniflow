@@ -4,6 +4,12 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, Wifi } from "lucide-react";
 import { useUniversityResetContext } from "@/hooks/useUniversityResetContext";
+import { Caveat } from "next/font/google";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["700"],
+});
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +35,7 @@ export default function UniversityNotFound() {
           position: "absolute",
           inset: 0,
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
+            "linear-gradient(var(--bg-hover) 1px, transparent 1px), linear-gradient(90deg, var(--bg-hover) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
           pointerEvents: "none",
         }}
@@ -106,18 +112,13 @@ export default function UniversityNotFound() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
+          className={caveat.className}
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "4px 14px",
-            borderRadius: "999px",
-            border: "1px solid rgba(0, 135, 81,0.2)",
-            backgroundColor: "rgba(0, 135, 81,0.06)",
-            fontSize: "11px",
+            display: "block",
+            fontSize: "clamp(20px, 4vw, 30px)",
             fontWeight: 700,
             color: "var(--brand)",
             letterSpacing: "0.1em",

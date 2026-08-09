@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, FileQuestion } from "lucide-react";
+import { Caveat } from "next/font/google";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["700"],
+});
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +24,21 @@ export default function DashboardNotFound() {
         padding: "40px 24px",
         textAlign: "center",
         position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* background grid */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "linear-gradient(var(--bg-hover) 1px, transparent 1px), linear-gradient(90deg, var(--bg-hover) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
       {/* glow */}
       <div
         style={{
@@ -62,19 +81,15 @@ export default function DashboardNotFound() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className={caveat.className}
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "4px 12px",
-            borderRadius: "999px",
-            border: "1px solid var(--border-brand)",
-            backgroundColor: "var(--brand-subtle)",
-            fontSize: "11px",
+            display: "block",
+            fontSize: "clamp(20px, 4vw, 30px)",
             fontWeight: 700,
             color: "var(--brand)",
             letterSpacing: "0.1em",
-            textTransform: "uppercase" as const,
-            marginBottom: "16px",
+            textTransform: "uppercase",
+            marginBottom: "20px",
           }}
         >
           404 — Page not found

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import { getMarketingMetadata } from "@/lib/seo";
+import { Caveat } from "next/font/google";
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["700"],
+});
 
 export const metadata: Metadata = getMarketingMetadata({
   title: "Privacy Policy",
@@ -10,27 +16,34 @@ export const metadata: Metadata = getMarketingMetadata({
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="page">
+    <main className="page" style={{ position: "relative", overflow: "hidden" }}>
+      {/* background grid */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage:
+            "linear-gradient(var(--bg-hover) 1px, transparent 1px), linear-gradient(90deg, var(--bg-hover) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
       <Navbar />
       <div style={{ paddingTop: "30px" }} />
 
       <section className="section">
         <div className="container" style={{ maxWidth: "800px" }}>
           <div
+            className={caveat.className}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "4px 12px",
-              borderRadius: "999px",
-              border: "1px solid var(--border-brand)",
-              backgroundColor: "var(--brand-subtle)",
-              fontSize: "11px",
-              fontWeight: 600,
+              display: "block",
+              fontSize: "clamp(20px, 4vw, 30px)",
+              fontWeight: 700,
               color: "var(--brand)",
-              letterSpacing: "0.08em",
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
-              marginBottom: "16px",
+              marginBottom: "20px",
             }}
           >
             Legal
