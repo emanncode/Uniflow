@@ -484,7 +484,7 @@ export default function Reviews() {
               className={caveat.className}
               style={{
                 display: "flex",
-                fontSize: "42px",
+                fontSize: "clamp(24px, 5vw, 42px)",
                 fontWeight: 700,
                 color: "var(--brand)",
                 letterSpacing: "0.1em",

@@ -258,7 +258,7 @@ export default function HowItWorks() {
               justifyContent: 'center',
               alignItems: 'center',
               gap: '8px',
-              fontSize: '42px',
+              fontSize: 'clamp(24px, 5vw, 42px)',
               fontWeight: 700,
               color: 'var(--brand)',
               letterSpacing: '0.1em',
