@@ -12,7 +12,7 @@ export default function TermsOfServicePage() {
   return (
     <main className="page">
       <Navbar />
-      <div style={{ paddingTop: "140px" }} />
+      <div style={{ paddingTop: "30px" }} />
 
       <section className="section">
         <div className="container" style={{ maxWidth: "800px" }}>
