@@ -176,10 +176,10 @@ export default function LoginPage() {
       {/* Grid pattern background */}
       <div 
         style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(var(--bg-hover) 1px, transparent 1px), linear-gradient(90deg, var(--bg-hover) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
         }}
-        className="absolute inset-0 z-0 pointer-events-none opacity-40" 
+        className="absolute inset-0 z-0 pointer-events-none" 
       />
 
       {/* Large radial ambient glows */}

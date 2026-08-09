@@ -27,9 +27,8 @@ export default function SectionBackground({
           position: "absolute",
           inset: 0,
           backgroundImage:
-            "linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px)",
+            "linear-gradient(var(--bg-hover) 1px, transparent 1px), linear-gradient(90deg, var(--bg-hover) 1px, transparent 1px)",
           backgroundSize: "64px 64px",
-          opacity: 0.8,
         }}
       />
     </motion.div>
