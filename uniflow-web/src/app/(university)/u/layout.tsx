@@ -554,6 +554,19 @@ export default function UniversityPortalLayout({
           position: "relative",
         }}
       >
+        {/* Grid pattern background */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "linear-gradient(var(--bg-hover) 1px, transparent 1px), linear-gradient(90deg, var(--bg-hover) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+
         {/* Main background blueprints (22 scattered items to cover all spaces) */}
         
         {/* 1. Cog (Top Left) */}
