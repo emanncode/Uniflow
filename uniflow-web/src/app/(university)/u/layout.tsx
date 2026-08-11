@@ -9,6 +9,7 @@ import { UniversityProvider } from "@/context/UniversityContext";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
+import InactivityWarningDialog from "@/components/ui/InactivityWarningDialog";
 import {
   isUniversityNavActive,
   isUniversityPublicPath,
@@ -311,7 +312,9 @@ export default function UniversityPortalLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  useInactivityTimeout("/login");
+  const { showWarning, secondsRemaining, resetTimer } = useInactivityTimeout(
+    universityPortalLoginPath()
+  );
 
   const [user, setUser] = useState<{
     name: string;
@@ -758,6 +761,13 @@ export default function UniversityPortalLayout({
           {children}
         </main>
       </div>
+
+      <InactivityWarningDialog
+        isOpen={showWarning}
+        secondsRemaining={secondsRemaining}
+        onKeepWorking={resetTimer}
+        onLogout={handleSignOut}
+      />
 
     </div>
     </UniversityProvider>

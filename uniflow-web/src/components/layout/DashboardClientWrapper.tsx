@@ -8,6 +8,7 @@ import Link from "next/link";
 import UniflowLogo from "@/components/ui/UniflowLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
+import InactivityWarningDialog from "@/components/ui/InactivityWarningDialog";
 import {
   LayoutDashboard,
   Building,
@@ -242,7 +243,7 @@ export default function DashboardClientWrapper({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
-  useInactivityTimeout("/login");
+  const { showWarning, secondsRemaining, resetTimer } = useInactivityTimeout("/login");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -566,6 +567,14 @@ export default function DashboardClientWrapper({
           {children}
         </div>
       </div>
+
+      <InactivityWarningDialog
+        isOpen={showWarning}
+        secondsRemaining={secondsRemaining}
+        onKeepWorking={resetTimer}
+        onLogout={handleSignOut}
+      />
+
     </div>
   );
 }
