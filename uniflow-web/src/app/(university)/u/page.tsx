@@ -7,7 +7,7 @@ import { useUniversity } from '@/context/UniversityContext'
 import { staffApiUrl } from '@/lib/staff-api'
 import {
   BookOpen,
-  Building2,
+  Building,
   Users,
   CalendarDays,
   TrendingUp,
@@ -102,7 +102,7 @@ function StatCard({
 
 const ACTIVITY_ICONS: Record<RecentActivity['type'], { icon: React.ElementType; colorKey: keyof typeof UI_COLORS }> = {
   faculty_added: { icon: BookOpen, colorKey: 'blue' },
-  dept_added: { icon: Building2, colorKey: 'purple' },
+  dept_added: { icon: Building, colorKey: 'purple' },
   lecturer_added: { icon: Users, colorKey: 'yellow' },
   timetable_set: { icon: CalendarDays, colorKey: 'green' },
 }
@@ -226,7 +226,7 @@ export default function UniversityOverviewPage() {
 
   const STAT_CARDS: { icon: React.ElementType; label: string; value: number; colorKey: keyof typeof UI_COLORS; sub: string }[] = [
     { icon: BookOpen, label: 'Faculties', value: stats.faculties, colorKey: 'blue', sub: 'active faculties' },
-    { icon: Building2, label: 'Departments', value: stats.departments, colorKey: 'purple', sub: 'across all faculties' },
+    { icon: Building, label: 'Departments', value: stats.departments, colorKey: 'purple', sub: 'across all faculties' },
     { icon: Users, label: 'Lecturers', value: stats.lecturers, colorKey: 'yellow', sub: 'onboarded lecturers' },
     { icon: CalendarDays, label: 'Timetable Slots', value: stats.timetableSlots, colorKey: 'green', sub: 'scheduled classes' },
     { icon: FolderOpen, label: 'Resources', value: stats.resources, colorKey: 'blue', sub: 'uploaded materials' },
@@ -310,7 +310,7 @@ export default function UniversityOverviewPage() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <QuickAction href="/u/faculties" icon={BookOpen} label="Add New Faculty" colorKey="blue" />
-            <QuickAction href="/u/departments" icon={Building2} label="Add Department" colorKey="purple" />
+            <QuickAction href="/u/departments" icon={Building} label="Add Department" colorKey="purple" />
             <QuickAction href="/u/lecturers" icon={Users} label="Onboard Lecturers" colorKey="yellow" />
           </div>
 

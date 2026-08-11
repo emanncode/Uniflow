@@ -12,7 +12,7 @@ import {
   Trash2,
   Download,
   FileText,
-  Image,
+  Image as ImageIcon,
   File,
 } from "lucide-react";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
@@ -62,7 +62,7 @@ function ResourceTypeIcon({ type }: { type: FileType }) {
     case "pdf":
       return <FileText size={14} style={{ color: "var(--danger)" }} />;
     case "image":
-      return <Image size={14} style={{ color: "var(--info)" }} />;
+      return <ImageIcon size={14} style={{ color: "var(--info)" }} />;
     case "doc":
       return <FileText size={14} style={{ color: "var(--brand)" }} />;
     default:

@@ -18,7 +18,7 @@ import {
   Trash2,
   Mail,
   User,
-  Building2,
+  Building,
   ChevronDown,
   AlertCircle,
   Key,
@@ -218,7 +218,7 @@ function StudentRow({
           </select>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <Building2
+            <Building
               size={11}
               style={{ color: "var(--text-muted)", flexShrink: 0 }}
             />

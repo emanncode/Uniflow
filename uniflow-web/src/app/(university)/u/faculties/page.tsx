@@ -13,7 +13,7 @@ import {
   Loader2,
   Trash2,
   UserCheck,
-  Building2,
+  Building,
   ChevronDown,
   AlertTriangle,
   Users,
@@ -154,7 +154,7 @@ function FacultyCard({
 
       <div style={{ display: "flex", gap: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Building2 size={12} style={{ color: "var(--text-muted)" }} />
+          <Building size={12} style={{ color: "var(--text-muted)" }} />
           <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
             {faculty.dept_count} department{faculty.dept_count !== 1 ? "s" : ""}
           </span>
@@ -332,7 +332,7 @@ function FacultyCard({
             fontWeight: 500,
           }}
         >
-          <Building2 size={13} /> Departments
+          <Building size={13} /> Departments
           <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>(students here)</span>
         </Link>
 

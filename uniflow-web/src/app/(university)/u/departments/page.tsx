@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useUniversity } from "@/context/UniversityContext";
 import { staffApiUrl } from "@/lib/staff-api";
 import {
-  Building2,
+  Building,
   Plus,
   Loader2,
   Trash2,
@@ -79,7 +79,7 @@ function DeptCard({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{ width: "40px", height: "40px", borderRadius: "var(--radius-sm)", background: "var(--bg-secondary)", border: "1px solid var(--border-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Building2 size={18} style={{ color: "var(--text-secondary)" }} />
+            <Building size={18} style={{ color: "var(--text-secondary)" }} />
           </div>
           <div>
             <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "3px" }}>{dept.name}</p>
@@ -288,7 +288,7 @@ export default function DepartmentsPage() {
         <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}><Loader2 size={24} className="animate-spin" /></div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0" }}>
-          <Building2 size={32} style={{ color: "var(--text-muted)", marginBottom: "12px" }} />
+          <Building size={32} style={{ color: "var(--text-muted)", marginBottom: "12px" }} />
           <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>No departments yet.</p>
         </div>
       ) : (
