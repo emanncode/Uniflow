@@ -625,7 +625,7 @@ export default function LoginPage() {
                 </motion.button>
 
                 <p className="text-center text-xs text-muted">
-                  Didn't receive the code?{" "}
+                  Didn&apos;t receive the code?{" "}
                   <button
                     onClick={handleResend}
                     disabled={loading}

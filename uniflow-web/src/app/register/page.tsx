@@ -4,12 +4,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import UniflowLogo from "@/components/ui/UniflowLogo";
 import ThemeToggle from "@/components/ThemeToggle";
 import StepIndicator from "@/components/register/StepIndicator";
 import FieldWrapper from "@/components/register/FieldWrapper";
 import {
-  Building2,
+  Building,
   Mail,
   Phone,
   Globe,
@@ -1411,10 +1410,10 @@ export default function RegisterPage() {
 
       {/* navbar */}
       <nav
-        className="glass-nav"
+        // className="glass-nav"
         style={{
-          position: "sticky",
-          top: 0,
+          position: "fixed",
+          bottom: 0,
           zIndex: 50,
           padding: "0 24px",
         }}
@@ -1428,8 +1427,8 @@ export default function RegisterPage() {
             alignItems: "center",
             justifyContent: "space-between",
           }}
-        ><
-          ThemeToggle />
+        >
+          <ThemeToggle />
         </div>
       </nav>
 
@@ -1552,7 +1551,7 @@ export default function RegisterPage() {
                 >
                   <FieldWrapper label="University Full Name *">
                     <div style={{ position: "relative" }}>
-                      <Building2
+                      <Building
                         size={16}
                         color="var(--text-muted)"
                         style={{

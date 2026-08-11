@@ -2,19 +2,10 @@
 
 import { motion } from "framer-motion";
 
-interface SectionBackgroundProps {
-  showWatermark?: boolean;
-  y?: any;
-}
-
-export default function SectionBackground({
-  showWatermark = false,
-  y,
-}: SectionBackgroundProps) {
+export default function SectionBackground() {
   return (
     <motion.div
       style={{
-        y,
         position: "absolute",
         inset: 0,
         zIndex: 0,

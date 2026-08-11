@@ -68,7 +68,7 @@ const plans = [
   },
   {
     name: 'Institution',
-    price: '$49',
+    price: '$140',
     period: 'per month',
     desc: 'For growing universities that need the full Uniflow experience.',
     highlight: true,

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, Variants } from 'framer-motion'
-import { Building2, CalendarCheck, Smartphone } from 'lucide-react'
+import { Building, CalendarCheck, Smartphone } from 'lucide-react'
 import { APP_URL, universityPortalHost } from '@/lib/domain'
 import { Caveat } from 'next/font/google'
 import SectionBackground from '@/components/landing/SectionBackground'
@@ -84,7 +84,7 @@ const stepIconVariants: Record<string, Variants> = {
 const steps = [
   {
     number: '01',
-    icon: Building2,
+    icon: Building,
     animationKey: 'building' as const,
     title: 'University registers',
     desc: `A university rep signs up on ${APP_URL.replace(/^https?:\/\//, '')}. After Uniflow Admin approves, they get their own portal — ${universityPortalHost('aaua')} — instantly.`,
