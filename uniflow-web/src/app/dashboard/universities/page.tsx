@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import {
-  Building2,
+  Building,
   Globe,
   Users,
   Mail,
@@ -202,7 +202,7 @@ export default function UniversitiesPage() {
             borderRadius: "var(--radius-lg)",
           }}
         >
-          <Building2
+          <Building
             size={32}
             color="var(--text-muted)"
             style={{
@@ -270,7 +270,7 @@ export default function UniversitiesPage() {
                       flexShrink: 0,
                     }}
                   >
-                    <Building2
+                    <Building
                       size={18}
                       color="var(--brand)"
                       strokeWidth={1.8}

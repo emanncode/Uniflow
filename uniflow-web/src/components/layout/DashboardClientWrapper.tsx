@@ -10,7 +10,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { useInactivityTimeout } from "@/hooks/useInactivityTimeout";
 import {
   LayoutDashboard,
-  Building2,
+  Building,
   CheckSquare,
   Settings,
   LogOut,
@@ -20,7 +20,7 @@ import {
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Registrations", href: "/dashboard/registrations", icon: Building2 },
+  { label: "Registrations", href: "/dashboard/registrations", icon: Building },
   { label: "Universities", href: "/dashboard/universities", icon: CheckSquare },
   { label: "Notifications", href: "/dashboard/notifications", icon: Bell },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },

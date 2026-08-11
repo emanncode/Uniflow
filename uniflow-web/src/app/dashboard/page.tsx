@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Building2, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Building, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { universityPortalHost } from "@/lib/domain";
 import { queryKeys } from "@/lib/queryClient";
 
@@ -69,7 +69,7 @@ export default function DashboardPage() {
     {
       label: "Total Applications",
       value: stats.total,
-      icon: Building2,
+      icon: Building,
       color: "var(--text-secondary)",
       bg: "var(--bg-hover)",
     },

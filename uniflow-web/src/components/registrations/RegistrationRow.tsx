@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import StatusBadge from '@/components/registrations/StatusBadge'
 import {
-  Building2, CheckCircle2, XCircle,
+  Building, CheckCircle2, XCircle,
   ChevronDown, ChevronUp, Globe, Mail,
   Phone, Users, User, Briefcase, ExternalLink
 } from 'lucide-react'
@@ -61,7 +61,7 @@ export default function RegistrationRow({ reg, onApprove, onReject }: {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <Building2 size={18} color="var(--brand)" strokeWidth={1.8} />
+            <Building size={18} color="var(--brand)" strokeWidth={1.8} />
           </div>
           <div>
             <div style={{

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import RejectModal from '@/components/registrations/RejectModal'
 import RegistrationRow from '@/components/registrations/RegistrationRow'
-import { Building2, Mail, Loader2 } from 'lucide-react'
+import { Building, Mail, Loader2 } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
 
@@ -140,7 +140,7 @@ export default function RegistrationsPage() {
         message={`Are you sure you want to approve ${confirmApprove?.university_name}? This will create their university instance and admin account.`}
         confirmText="Yes, Approve"
         isLoading={actionLoading}
-        icon={Building2}
+        icon={Building}
       />
 
       {approvalNotice && (
@@ -246,7 +246,7 @@ export default function RegistrationsPage() {
             border: '1px dashed var(--border-secondary)',
             borderRadius: 'var(--radius-lg)',
           }}>
-            <Building2 size={32} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
+            <Building size={32} color="var(--text-muted)" style={{ marginBottom: '12px' }} />
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', margin: 0 }}>
               No {filter === 'all' ? '' : filter} registrations yet.
             </p>
