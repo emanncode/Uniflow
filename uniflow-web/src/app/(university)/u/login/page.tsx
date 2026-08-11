@@ -21,6 +21,7 @@ export default function UniversityLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [university, setUniversity] = useState<{ name: string; short_name: string } | null>(null);
+  const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0);
 
   useEffect(() => {
     async function detectUniversity() {
@@ -40,8 +41,68 @@ export default function UniversityLoginPage() {
     detectUniversity();
   }, []);
 
+  useEffect(() => {
+    const lockoutUntilStr = localStorage.getItem("login_lockout_until");
+    if (lockoutUntilStr) {
+      const lockoutUntil = Number(lockoutUntilStr);
+      if (lockoutUntil > Date.now()) {
+        const timeLeft = Math.ceil((lockoutUntil - Date.now()) / 1000);
+        setLockoutTimeLeft(timeLeft);
+        setError(`Too many failed attempts. Please try again in ${timeLeft} seconds.`);
+
+        const interval = setInterval(() => {
+          const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+          if (remaining <= 0) {
+            setLockoutTimeLeft(0);
+            setError("");
+            localStorage.removeItem("login_lockout_until");
+            localStorage.removeItem("login_attempts");
+            clearInterval(interval);
+          } else {
+            setLockoutTimeLeft(remaining);
+            setError(`Too many failed attempts. Please try again in ${remaining} seconds.`);
+          }
+        }, 1000);
+
+        return () => clearInterval(interval);
+      } else {
+        localStorage.removeItem("login_lockout_until");
+        localStorage.removeItem("login_attempts");
+      }
+    }
+  }, []);
+
+  const handleFailedAttempt = () => {
+    const attemptsStr = localStorage.getItem("login_attempts") || "0";
+    const newAttempts = Number(attemptsStr) + 1;
+    localStorage.setItem("login_attempts", newAttempts.toString());
+
+    if (newAttempts >= 5) {
+      const lockoutDuration = 30000; // 30 seconds
+      const lockoutUntil = Date.now() + lockoutDuration;
+      localStorage.setItem("login_lockout_until", lockoutUntil.toString());
+      setLockoutTimeLeft(30);
+      setError("Too many failed attempts. Please try again in 30 seconds.");
+
+      const interval = setInterval(() => {
+        const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+        if (remaining <= 0) {
+          setLockoutTimeLeft(0);
+          setError("");
+          localStorage.removeItem("login_lockout_until");
+          localStorage.removeItem("login_attempts");
+          clearInterval(interval);
+        } else {
+          setLockoutTimeLeft(remaining);
+          setError(`Too many failed attempts. Please try again in ${remaining} seconds.`);
+        }
+      }, 1000);
+    }
+  };
+
   const handleCredentials = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (lockoutTimeLeft > 0) return;
     if (loading) return;
     setLoading(true);
     setError("");
@@ -52,8 +113,12 @@ export default function UniversityLoginPage() {
         password,
       });
 
-      if (signInError) throw new Error("Invalid email or password.");
+      if (signInError) {
+        handleFailedAttempt();
+        throw new Error("Invalid email or password.");
+      }
       if (!data.session?.access_token) {
+        handleFailedAttempt();
         throw new Error("Sign in failed. Please try again.");
       }
 
@@ -63,6 +128,7 @@ export default function UniversityLoginPage() {
       );
 
       if (!verifyRes.ok) {
+        handleFailedAttempt();
         const payload = (await verifyRes.json().catch(() => null)) as {
           error?: string;
         } | null;
@@ -76,8 +142,13 @@ export default function UniversityLoginPage() {
         );
       }
 
+      // Clear failed attempts counter upon successful login
+      localStorage.removeItem("login_attempts");
+      localStorage.removeItem("login_lockout_until");
+
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get("redirectTo") || "/u";
+      localStorage.setItem("session_login_time", Date.now().toString());
       router.push(redirectTo);
     } catch (err: unknown) {
       setError((err as Error).message);
@@ -377,7 +448,7 @@ export default function UniversityLoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@university.edu"
                   className="w-full bg-secondary hover:bg-hover focus:bg-secondary border border-primary focus:border-brand rounded-lg pl-12 pr-4 py-3 text-sm text-primary placeholder:text-muted outline-none transition-all duration-200"
-                  disabled={loading}
+                  disabled={loading || lockoutTimeLeft > 0}
                   required
                   autoComplete="email"
                 />
@@ -399,14 +470,14 @@ export default function UniversityLoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full bg-secondary hover:bg-hover focus:bg-secondary border border-primary focus:border-brand rounded-lg pl-12 pr-12 py-3 text-sm text-primary placeholder:text-muted outline-none transition-all duration-200"
-                  disabled={loading}
+                  disabled={loading || lockoutTimeLeft > 0}
                   required
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  disabled={loading}
+                  disabled={loading || lockoutTimeLeft > 0}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -419,10 +490,10 @@ export default function UniversityLoginPage() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               type="submit"
-              disabled={loading}
+              disabled={loading || lockoutTimeLeft > 0}
               className="w-full bg-[#008751] hover:bg-[#00a86b] disabled:bg-[#008751]/50 text-white font-bold py-3 px-4 rounded-lg text-sm tracking-wide transition-all shadow-[0_4px_20px_rgba(0,135,81,0.2)] hover:shadow-[0_4px_25px_rgba(0,135,81,0.35)] disabled:shadow-none flex items-center justify-center gap-2 cursor-pointer mt-6"
             >
-              {loading ? "Verifying..." : "Continue"}
+              {loading ? "Verifying..." : lockoutTimeLeft > 0 ? "Locked Out" : "Continue"}
             </motion.button>
           </form>
         </div>

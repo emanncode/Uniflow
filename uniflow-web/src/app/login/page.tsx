@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { verifyPortalAccess } from "@/lib/verify-portal-client";
@@ -25,8 +25,69 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [otpError, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0);
+
+  useEffect(() => {
+    const lockoutUntilStr = localStorage.getItem("login_lockout_until");
+    if (lockoutUntilStr) {
+      const lockoutUntil = Number(lockoutUntilStr);
+      if (lockoutUntil > Date.now()) {
+        const timeLeft = Math.ceil((lockoutUntil - Date.now()) / 1000);
+        setLockoutTimeLeft(timeLeft);
+        setError(`Too many failed attempts. Please try again in ${timeLeft} seconds.`);
+
+        const interval = setInterval(() => {
+          const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+          if (remaining <= 0) {
+            setLockoutTimeLeft(0);
+            setError("");
+            localStorage.removeItem("login_lockout_until");
+            localStorage.removeItem("login_attempts");
+            clearInterval(interval);
+          } else {
+            setLockoutTimeLeft(remaining);
+            setError(`Too many failed attempts. Please try again in ${remaining} seconds.`);
+          }
+        }, 1000);
+
+        return () => clearInterval(interval);
+      } else {
+        localStorage.removeItem("login_lockout_until");
+        localStorage.removeItem("login_attempts");
+      }
+    }
+  }, []);
+
+  const handleFailedAttempt = () => {
+    const attemptsStr = localStorage.getItem("login_attempts") || "0";
+    const newAttempts = Number(attemptsStr) + 1;
+    localStorage.setItem("login_attempts", newAttempts.toString());
+
+    if (newAttempts >= 5) {
+      const lockoutDuration = 30000; // 30 seconds
+      const lockoutUntil = Date.now() + lockoutDuration;
+      localStorage.setItem("login_lockout_until", lockoutUntil.toString());
+      setLockoutTimeLeft(30);
+      setError("Too many failed attempts. Please try again in 30 seconds.");
+
+      const interval = setInterval(() => {
+        const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+        if (remaining <= 0) {
+          setLockoutTimeLeft(0);
+          setError("");
+          localStorage.removeItem("login_lockout_until");
+          localStorage.removeItem("login_attempts");
+          clearInterval(interval);
+        } else {
+          setLockoutTimeLeft(remaining);
+          setError(`Too many failed attempts. Please try again in ${remaining} seconds.`);
+        }
+      }, 1000);
+    }
+  };
 
   const handleCredentials = async () => {
+    if (lockoutTimeLeft > 0) return;
     if (loading) return;
     setLoading(true);
     setError("");
@@ -38,12 +99,14 @@ export default function LoginPage() {
     });
 
     if (error) {
+      handleFailedAttempt();
       setError(error.message);
       setLoading(false);
       return;
     }
 
     if (!data.session?.access_token) {
+      handleFailedAttempt();
       setError("Sign in failed. Please try again.");
       setLoading(false);
       return;
@@ -55,6 +118,7 @@ export default function LoginPage() {
     );
 
     if (!verifyRes.ok) {
+      handleFailedAttempt();
       const payload = (await verifyRes.json().catch(() => null)) as {
         error?: string;
       } | null;
@@ -69,6 +133,10 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
+
+    // Clear failed attempts counter upon successful login
+    localStorage.removeItem("login_attempts");
+    localStorage.removeItem("login_lockout_until");
 
     // OTP logic disabled temporarily. DO NOT UNCOMMENT YET.
     /*
@@ -95,6 +163,7 @@ export default function LoginPage() {
 
     const params = new URLSearchParams(window.location.search);
     const redirectTo = params.get("redirectTo") || "/dashboard";
+    localStorage.setItem("session_login_time", Date.now().toString());
     router.push(redirectTo);
     setLoading(false);
   };
@@ -506,7 +575,7 @@ export default function LoginPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={`admin@${BASE_DOMAIN}`}
                       className="w-full bg-secondary hover:bg-hover focus:bg-secondary border border-primary focus:border-brand rounded-lg pl-12 pr-4 py-3 text-sm text-primary placeholder:text-muted outline-none transition-all duration-200"
-                      disabled={loading}
+                      disabled={loading || lockoutTimeLeft > 0}
                       autoComplete="email"
                     />
                   </div>
@@ -527,16 +596,16 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       className="w-full bg-secondary hover:bg-hover focus:bg-secondary border border-primary focus:border-brand rounded-lg pl-12 pr-12 py-3 text-sm text-primary placeholder:text-muted outline-none transition-all duration-200"
-                      disabled={loading}
+                      disabled={loading || lockoutTimeLeft > 0}
                       autoComplete="current-password"
                       onKeyDown={(e) =>
-                        e.key === "Enter" && !loading && handleCredentials()
+                        e.key === "Enter" && !loading && lockoutTimeLeft === 0 && handleCredentials()
                       }
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      disabled={loading}
+                      disabled={loading || lockoutTimeLeft > 0}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -549,10 +618,10 @@ export default function LoginPage() {
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                   onClick={handleCredentials}
-                  disabled={loading}
+                  disabled={loading || lockoutTimeLeft > 0}
                   className="w-full bg-[#008751] hover:bg-[#00a86b] disabled:bg-[#008751]/50 text-white font-bold py-3 px-4 rounded-lg text-sm tracking-wide transition-all shadow-[0_4px_20px_rgba(0,135,81,0.2)] hover:shadow-[0_4px_25px_rgba(0,135,81,0.35)] disabled:shadow-none flex items-center justify-center gap-2 cursor-pointer mt-6"
                 >
-                  {loading ? "Verifying..." : "Continue"}
+                  {loading ? "Verifying..." : lockoutTimeLeft > 0 ? "Locked Out" : "Continue"}
                 </motion.button>
               </div>
             </>
