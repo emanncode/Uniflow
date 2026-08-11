@@ -14,7 +14,7 @@ import {
   User,
   Mail,
   Phone,
-  Building2,
+  Building,
   GraduationCap,
   Layers,
   ChevronRight,
@@ -396,7 +396,7 @@ return (
         <Text style={styles.sectionLabel}>University</Text>
         <View style={styles.card}>
           <InfoRow
-            icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+            icon={<Building size={16} color={C.brand} strokeWidth={1.8} />}
             label="Institution"
             value={universityName}
           />
@@ -414,7 +414,7 @@ return (
             <>
               <View style={styles.rowDivider} />
               <InfoRow
-                icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+                icon={<Building size={16} color={C.brand} strokeWidth={1.8} />}
                 label="Faculty"
                 value={facultyLabel}
               />

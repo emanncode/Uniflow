@@ -13,7 +13,7 @@
     User,
     Mail,
     Phone,
-    Building2,
+    Building,
     GraduationCap,
     ChevronRight,
     LogOut,
@@ -406,7 +406,7 @@
           <Text style={styles.sectionLabel}>University</Text>
           <View style={styles.card}>
             <InfoRow
-              icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+              icon={<Building size={16} color={C.brand} strokeWidth={1.8} />}
               label="Institution"
               value={universityName}
             />
@@ -425,7 +425,7 @@
               <>
                 <View style={styles.rowDivider} />
                 <InfoRow
-                  icon={<Building2 size={16} color={C.brand} strokeWidth={1.8} />}
+                  icon={<Building size={16} color={C.brand} strokeWidth={1.8} />}
                   label="Faculty"
                   value={facultyLabel}
                   badge={profile.role === "dean" ? "Dean" : undefined}
