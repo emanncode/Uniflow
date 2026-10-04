@@ -17,19 +17,30 @@ Uniflow is a comprehensive university coordination platform featuring a dual-int
 
 ## 📋 Table of Contents
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Architecture & Tech Stack](#-architecture--tech-stack)
-- [User Roles & Access](#-user-roles--access)
-- [Project Directory Structure](#-project-directory-structure)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Local Development](#local-development)
-  - [Supabase Configuration](#supabase-configuration)
-- [Deployment](#-deployment)
-- [Developer Resources](#-developer-resources)
-- [License](#-license)
+- [Uniflow — Academic Coordination Platform](#uniflow--academic-coordination-platform)
+  - [📋 Table of Contents](#-table-of-contents)
+  - [🎯 Overview](#-overview)
+  - [✨ Key Features](#-key-features)
+    - [🖥️ Multi-Tenant Web Administration](#️-multi-tenant-web-administration)
+    - [📱 Student \& Lecturer Mobile App](#-student--lecturer-mobile-app)
+  - [🛠️ Architecture \& Tech Stack](#️-architecture--tech-stack)
+    - [💻 Web Portal (`uniflow-web`)](#-web-portal-uniflow-web)
+    - [📱 Mobile Application (`uniflow-app`)](#-mobile-application-uniflow-app)
+    - [⚙️ Database \& Infrastructure](#️-database--infrastructure)
+  - [👥 User Roles \& Access](#-user-roles--access)
+  - [📁 Project Directory Structure](#-project-directory-structure)
+  - [🚀 Getting Started](#-getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Local Development](#local-development)
+      - [1. Web Portal \& APIs (`uniflow-web`)](#1-web-portal--apis-uniflow-web)
+      - [2. Mobile App (`uniflow-app`)](#2-mobile-app-uniflow-app)
+    - [Supabase Configuration](#supabase-configuration)
+  - [📦 Deployment](#-deployment)
+    - [Web Portal (Next.js)](#web-portal-nextjs)
+    - [Mobile App (Expo)](#mobile-app-expo)
+  - [📖 Developer Resources](#-developer-resources)
+  - [📄 License](#-license)
 
 ---
 
@@ -89,14 +100,14 @@ Uniflow is organized as a monorepo leveraging a shared Supabase Postgres instanc
 
 ## 👥 User Roles & Access
 
-| Role | Web Access | Mobile Access | Scope / Navigation |
-|---|---|---|---|
-| `uniflow_admin` | ✅ Super Dashboard | ❌ Blocked | Platform operations and tenant onboarding. |
-| `university_admin` | ✅ `{tenant}-admin` Subdomain | ❌ Blocked | University setup, directories, and schedules. |
-| `lecturer` | ❌ Blocked | ✅ `(lecturer)` Scope | Viewing teaching calendars, resource uploads, class status alerts. |
-| `dean` | ❌ Blocked | ✅ `(lecturer)` Scope | Faculty representation, shares lecturer UI. |
-| `hod` | ❌ Blocked | ✅ `(lecturer)` Scope | Department representation, shares lecturer UI. |
-| `student` | ❌ Blocked | ✅ `(student)` Scope | Accessing timetables, downloading resources, upvoting reports. |
+| Role               | Web Access                   | Mobile Access        | Scope / Navigation                                                 |
+| ------------------ | ---------------------------- | -------------------- | ------------------------------------------------------------------ |
+| `uniflow_admin`    | ✅ Super Dashboard            | ❌ Blocked            | Platform operations and tenant onboarding.                         |
+| `university_admin` | ✅ `{tenant}-admin` Subdomain | ❌ Blocked            | University setup, directories, and schedules.                      |
+| `lecturer`         | ❌ Blocked                    | ✅ `(lecturer)` Scope | Viewing teaching calendars, resource uploads, class status alerts. |
+| `dean`             | ❌ Blocked                    | ✅ `(lecturer)` Scope | Faculty representation, shares lecturer UI.                        |
+| `hod`              | ❌ Blocked                    | ✅ `(lecturer)` Scope | Department representation, shares lecturer UI.                     |
+| `student`          | ❌ Blocked                    | ✅ `(student)` Scope  | Accessing timetables, downloading resources, upvoting reports.     |
 
 ---
 
