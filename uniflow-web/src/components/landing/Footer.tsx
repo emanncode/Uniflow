@@ -377,7 +377,18 @@ export default function Footer() {
               margin: 0,
             }}
           >
-            © {new Date().getFullYear()} Uniflow. All rights reserved.
+            © {new Date().getFullYear()} Uniflow. All rights reserved. &bull; Engineered by{" "}
+            <a
+              href="https://emanncode.work"
+              target="_blank"
+              rel="noopener"
+              style={{
+                color: "var(--text-primary)",
+                textDecoration: "underline",
+              }}
+            >
+              EmannCode
+            </a>
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>

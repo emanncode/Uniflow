@@ -3,10 +3,10 @@ import { APP_URL, BASE_DOMAIN } from "@/lib/domain";
 
 export const SITE_NAME = "Uniflow";
 export const SITE_TAGLINE =
-  "University timetable & campus management platform";
+  "University Timetable & Campus Coordination Platform | by EmannCode";
 export const DEFAULT_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const DEFAULT_DESCRIPTION =
-  "Uniflow (UniflowApp) is the all-in-one university platform for timetables, course management, lecturer assignments, and real-time campus updates. Register your university at uniflowapp.xyz.";
+  "Uniflow (uniflowapp.xyz) is the all-in-one university timetable and campus coordination platform engineered by EmannCode. Class schedules, lecturer assignments, and real-time campus updates.";
 
 export const SEO_KEYWORDS = [
   "uniflow",
@@ -14,6 +14,9 @@ export const SEO_KEYWORDS = [
   "uniflow app",
   "uniflowapp.xyz",
   "university timetable",
+  "EmannCode",
+  "EmannCode Uniflow",
+  "Ifeoluwa Olajubaje",
   "university management system",
   "campus management platform",
   "student timetable app",
@@ -41,8 +44,8 @@ export function getMarketingMetadata(overrides?: Partial<Metadata>): Metadata {
     description: DEFAULT_DESCRIPTION,
     keywords: SEO_KEYWORDS,
     applicationName: SITE_NAME,
-    authors: [{ name: SITE_NAME, url: siteUrl }],
-    creator: SITE_NAME,
+    authors: [{ name: "EmannCode (Ifeoluwa Olajubaje)", url: "https://emanncode.work" }],
+    creator: "EmannCode (Ifeoluwa Olajubaje)",
     publisher: SITE_NAME,
     category: "education",
     alternates: {
@@ -120,8 +123,14 @@ export const organizationJsonLd = {
   url: getSiteUrl(),
   logo: `${getSiteUrl()}/favicon.ico`,
   description: DEFAULT_DESCRIPTION,
+  founder: {
+    "@type": "Person",
+    name: "EmannCode",
+    alternateName: "Ifeoluwa Olajubaje",
+    url: "https://emanncode.work",
+  },
   sameAs: [
-    // Add your social profile URLs here as you create them
+    "https://emanncode.work",
     process.env.NEXT_PUBLIC_SOCIAL_GITHUB,
     process.env.NEXT_PUBLIC_SOCIAL_LINKEDIN,
     process.env.NEXT_PUBLIC_SOCIAL_TWITTER,
@@ -136,8 +145,10 @@ export const websiteJsonLd = {
   url: getSiteUrl(),
   description: DEFAULT_DESCRIPTION,
   publisher: {
-    "@type": "Organization",
-    name: SITE_NAME,
+    "@type": "Person",
+    name: "EmannCode",
+    alternateName: "Ifeoluwa Olajubaje",
+    url: "https://emanncode.work",
   },
 };
 
@@ -150,6 +161,12 @@ export const softwareJsonLd = {
   operatingSystem: "Web, iOS, Android",
   url: getSiteUrl(),
   description: DEFAULT_DESCRIPTION,
+  creator: {
+    "@type": "Person",
+    name: "EmannCode",
+    alternateName: "Ifeoluwa Olajubaje",
+    url: "https://emanncode.work",
+  },
   offers: {
     "@type": "Offer",
     price: "0",
