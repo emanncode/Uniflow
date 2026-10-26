@@ -25,10 +25,10 @@ End-to-end guide to how **Uniflow Admin**, **University Admin**, and the **mobil
 
 Uniflow is a monorepo with two applications sharing one Supabase backend:
 
-| App | Stack | Who uses it |
-|-----|-------|-------------|
-| `uniflow-web` | Next.js 16 | Uniflow operators, university administrators |
-| `uniflow-app` | Expo / React Native | Students, lecturers, deans, HODs |
+| App           | Stack               | Who uses it                                  |
+| ------------- | ------------------- | -------------------------------------------- |
+| `uniflow-web` | Next.js 16          | Uniflow operators, university administrators |
+| `uniflow-app` | Expo / React Native | Students, lecturers, deans, HODs             |
 
 ```mermaid
 flowchart TB
@@ -83,19 +83,19 @@ flowchart TB
 
 ### Production hosts
 
-| Host | Purpose |
-|------|---------|
-| `uniflowapp.xyz` | Marketing, public registration, Uniflow Admin login, password reset landing |
-| `admin.uniflowapp.xyz` | Uniflow Admin dashboard (role-gated) |
-| `{shortname}-admin.uniflowapp.xyz` | Per-university admin portal (e.g. `abu-admin.uniflowapp.xyz`) |
+| Host                               | Purpose                                                                     |
+| ---------------------------------- | --------------------------------------------------------------------------- |
+| `uniflowapp.xyz`                   | Marketing, public registration, Uniflow Admin login, password reset landing |
+| `admin.uniflowapp.xyz`             | Uniflow Admin dashboard (role-gated)                                        |
+| `{shortname}-admin.uniflowapp.xyz` | Per-university admin portal (e.g. `abu-admin.uniflowapp.xyz`)               |
 
 ### Local development
 
-| Host | Maps to |
-|------|---------|
-| `localhost:3000` | Apex (same as production apex) |
-| `admin.localhost:3000` | Super admin subdomain |
-| `{shortname}-admin.localhost:3000` | University portal |
+| Host                               | Maps to                        |
+| ---------------------------------- | ------------------------------ |
+| `localhost:3000`                   | Apex (same as production apex) |
+| `admin.localhost:3000`             | Super admin subdomain          |
+| `{shortname}-admin.localhost:3000` | University portal              |
 
 Auth cookies are shared across `*.localhost` in dev via `domain: ".localhost"`.
 
@@ -119,14 +119,14 @@ The Next.js **proxy** (`uniflow-web/src/proxy.ts`) handles:
 
 ## 3. Roles and access matrix
 
-| Role | Uniflow Admin web | University Admin web | Mobile app | Created by |
-|------|-------------------|----------------------|------------|------------|
-| `uniflow_admin` | ✅ | ❌ | ❌ | Manual / seed |
-| `university_admin` | ❌ | ✅ | ❌ | University approval flow |
-| `lecturer` | ❌ | ❌ | ✅ → `(lecturer)` group | University Admin |
-| `dean` | ❌ | ❌ | ✅ → `(lecturer)` group | University Admin |
-| `hod` | ❌ | ❌ | ✅ → `(lecturer)` group | University Admin |
-| `student` | ❌ | ❌ | ✅ → `(student)` group | University Admin |
+| Role               | Uniflow Admin web | University Admin web | Mobile app              | Created by               |
+| ------------------ | ----------------- | -------------------- | ----------------------- | ------------------------ |
+| `uniflow_admin`    | ✅                | ❌                   | ❌                      | Manual / seed            |
+| `university_admin` | ❌                | ✅                   | ❌                      | University approval flow |
+| `lecturer`         | ❌                | ❌                   | ✅ → `(lecturer)` group | University Admin         |
+| `dean`             | ❌                | ❌                   | ✅ → `(lecturer)` group | University Admin         |
+| `hod`              | ❌                | ❌                   | ✅ → `(lecturer)` group | University Admin         |
+| `student`          | ❌                | ❌                   | ✅ → `(student)` group  | University Admin         |
 
 **Key rules**
 
@@ -191,13 +191,13 @@ sequenceDiagram
 
 ### Dashboard areas
 
-| Route | Purpose |
-|-------|---------|
-| `/(dashboard)` | Overview — registration stats, recent applications |
-| `/(dashboard)/registrations` | Approve or reject pending university applications |
-| `/(dashboard)/universities` | List approved universities; send password reset to uni admins |
-| `/(dashboard)/notifications` | Platform notifications |
-| `/(dashboard)/settings` | Edit profile; change password (requires current password) |
+| Route                        | Purpose                                                       |
+| ---------------------------- | ------------------------------------------------------------- |
+| `/(dashboard)`               | Overview — registration stats, recent applications            |
+| `/(dashboard)/registrations` | Approve or reject pending university applications             |
+| `/(dashboard)/universities`  | List approved universities; send password reset to uni admins |
+| `/(dashboard)/notifications` | Platform notifications                                        |
+| `/(dashboard)/settings`      | Edit profile; change password (requires current password)     |
 
 ### What Uniflow Admin does NOT do
 
@@ -290,22 +290,22 @@ sequenceDiagram
 
 **Sidebar navigation**
 
-| Item | Path (external) | Purpose |
-|------|-----------------|---------|
-| Overview | `/` | Stats, quick actions, recent activity |
-| Faculties | `/faculties` | Manage faculties |
-| Notifications | `/notifications` | Portal notifications |
-| Settings | `/settings` | Profile + password change |
+| Item          | Path (external)  | Purpose                               |
+| ------------- | ---------------- | ------------------------------------- |
+| Overview      | `/`              | Stats, quick actions, recent activity |
+| Faculties     | `/faculties`     | Manage faculties                      |
+| Notifications | `/notifications` | Portal notifications                  |
+| Settings      | `/settings`      | Profile + password change             |
 
 **Additional pages** (reachable from overview / faculties / departments)
 
-| Page | Purpose |
-|------|---------|
-| Departments | CRUD departments within a faculty |
-| Lecturers | Create/manage lecturers, deans, HODs; CSV import; reset passwords |
-| Students | Create/manage students (levels 100–500); CSV import; reset passwords |
-| Courses | Course catalog per department/level |
-| Timetable | Schedule slots |
+| Page        | Purpose                                                              |
+| ----------- | -------------------------------------------------------------------- |
+| Departments | CRUD departments within a faculty                                    |
+| Lecturers   | Create/manage lecturers, deans, HODs; CSV import; reset passwords    |
+| Students    | Create/manage students (levels 100–500); CSV import; reset passwords |
+| Courses     | Course catalog per department/level                                  |
+| Timetable   | Schedule slots                                                       |
 
 ### Typical setup order (current implementation)
 
@@ -396,12 +396,12 @@ confirm which migrations have run in any deployed environment.
 
 ### Role-specific notes
 
-| Role | Level required | App routing |
-|------|----------------|-------------|
-| `student` | Yes (100–500) | `(student)` tab group |
-| `lecturer` | No | `(lecturer)` tab group |
-| `dean` | No | `(lecturer)` tab group; faculty linked via `faculties.dean_id` |
-| `hod` | No | `(lecturer)` tab group; department linked via `departments.hod_id` |
+| Role       | Level required | App routing                                                        |
+| ---------- | -------------- | ------------------------------------------------------------------ |
+| `student`  | Yes (100–500)  | `(student)` tab group                                              |
+| `lecturer` | No             | `(lecturer)` tab group                                             |
+| `dean`     | No             | `(lecturer)` tab group; faculty linked via `faculties.dean_id`     |
+| `hod`      | No             | `(lecturer)` tab group; department linked via `departments.hod_id` |
 
 ### First-time user path to the app
 
@@ -432,7 +432,7 @@ sequenceDiagram
 - ✅ `student`, `lecturer`, `dean`, `hod`
 - ❌ `uniflow_admin`, `university_admin`
 
-Blocked users see: *“This app is for lecturers, students, deans, and HODs only. Admin accounts must use the web portal.”*
+Blocked users see: _“This app is for lecturers, students, deans, and HODs only. Admin accounts must use the web portal.”_
 
 ### Authentication flow
 
@@ -451,11 +451,11 @@ Blocked users see: *“This app is for lecturers, students, deans, and HODs only
 
 ### Routing (`app/_layout.tsx` AuthGuard)
 
-| Condition | Destination |
-|-----------|-------------|
-| Not authenticated | `/login` |
+| Condition                            | Destination     |
+| ------------------------------------ | --------------- |
+| Not authenticated                    | `/login`        |
 | Role is `lecturer`, `dean`, or `hod` | `/(lecturer)/*` |
-| Role is `student` | `/(student)/*` |
+| Role is `student`                    | `/(student)/*`  |
 
 There is **no separate dean/HOD app shell** — leadership roles use the lecturer navigation and screens. Role label in the UI may show “Dean” or “HOD” via `getMobileRoleLabel()`.
 
@@ -463,14 +463,14 @@ There is **no separate dean/HOD app shell** — leadership roles use the lecture
 
 Both `(student)` and `(lecturer)` groups share the same tab layout:
 
-| Tab | Screen | Purpose |
-|-----|--------|---------|
-| Home | `index.tsx` | Dashboard / overview for the role |
-| Timetable | `timetable.tsx` | Weekly schedule |
-| Courses | `courses.tsx` | Enrolled or assigned courses |
-| Resources | `resources.tsx` | Learning resources |
-| Profile | `profile.tsx` | Account info, change password (hidden from tab bar) |
-| Notifications | `notifications.tsx` | Real-time notifications (hidden from tab bar) |
+| Tab           | Screen              | Purpose                                             |
+| ------------- | ------------------- | --------------------------------------------------- |
+| Home          | `index.tsx`         | Dashboard / overview for the role                   |
+| Timetable     | `timetable.tsx`     | Weekly schedule                                     |
+| Courses       | `courses.tsx`       | Enrolled or assigned courses                        |
+| Resources     | `resources.tsx`     | Learning resources                                  |
+| Profile       | `profile.tsx`       | Account info, change password (hidden from tab bar) |
+| Notifications | `notifications.tsx` | Real-time notifications (hidden from tab bar)       |
 
 ### Forgot password (mobile only self-service reset)
 
@@ -482,12 +482,12 @@ Both `(student)` and `(lecturer)` groups share the same tab layout:
 
 ### Dean and HOD in practice
 
-| Role | Data enrichment | App experience |
-|------|-----------------|----------------|
-| `lecturer` | Department/faculty from profile | Lecturer tabs |
-| `dean` | Faculty resolved from `faculties.dean_id` | Lecturer tabs, label “Dean” |
-| `hod` | Department resolved from `departments.hod_id` | Lecturer tabs, label “HOD” |
-| `student` | Level, department, enrollments | Student tabs |
+| Role       | Data enrichment                               | App experience              |
+| ---------- | --------------------------------------------- | --------------------------- |
+| `lecturer` | Department/faculty from profile               | Lecturer tabs               |
+| `dean`     | Faculty resolved from `faculties.dean_id`     | Lecturer tabs, label “Dean” |
+| `hod`      | Department resolved from `departments.hod_id` | Lecturer tabs, label “HOD”  |
+| `student`  | Level, department, enrollments                | Student tabs                |
 
 ```mermaid
 flowchart TB
@@ -519,19 +519,19 @@ flowchart TB
 
 ### Self-service forgot password
 
-| Portal | Allowed? |
-|--------|----------|
-| Mobile app | ✅ Mobile roles only |
-| Uniflow Admin login | ❌ Contact another Uniflow administrator |
-| University Admin login | ❌ Contact Uniflow administrator |
+| Portal                 | Allowed?                                 |
+| ---------------------- | ---------------------------------------- |
+| Mobile app             | ✅ Mobile roles only                     |
+| Uniflow Admin login    | ❌ Contact another Uniflow administrator |
+| University Admin login | ❌ Contact Uniflow administrator         |
 
 ### Admin-initiated reset (email link)
 
-| Initiator | Target | Reset URL pattern |
-|-----------|--------|-------------------|
-| Uniflow Admin | University admin | `/reset-password?university={shortname}` |
-| Uniflow Admin | Any user via API | Role-based URL from `passwordResetUrlForProfile` |
-| University Admin | Staff / students | `{APP_URL}/reset-password` |
+| Initiator        | Target           | Reset URL pattern                                |
+| ---------------- | ---------------- | ------------------------------------------------ |
+| Uniflow Admin    | University admin | `/reset-password?university={shortname}`         |
+| Uniflow Admin    | Any user via API | Role-based URL from `passwordResetUrlForProfile` |
+| University Admin | Staff / students | `{APP_URL}/reset-password`                       |
 
 ### In-session password change (Settings)
 
@@ -566,23 +566,23 @@ Used for first-time setup and admin-initiated resets:
 
 ### URLs cheat sheet
 
-| Actor | Login | After login |
-|-------|-------|-------------|
-| Public | `uniflowapp.xyz/register` | — |
-| Uniflow Admin | `uniflowapp.xyz/login` or `admin.uniflowapp.xyz` | `/(dashboard)` |
-| University Admin | `{short}-admin.uniflowapp.xyz/login` | `/` (overview) |
-| Mobile user | App login screen | `(student)` or `(lecturer)` tabs |
+| Actor            | Login                                            | After login                      |
+| ---------------- | ------------------------------------------------ | -------------------------------- |
+| Public           | `uniflowapp.xyz/register`                        | —                                |
+| Uniflow Admin    | `uniflowapp.xyz/login` or `admin.uniflowapp.xyz` | `/(dashboard)`                   |
+| University Admin | `{short}-admin.uniflowapp.xyz/login`             | `/` (overview)                   |
+| Mobile user      | App login screen                                 | `(student)` or `(lecturer)` tabs |
 
 ### Key API routes
 
-| Endpoint | Who calls it | Purpose |
-|----------|--------------|---------|
-| `POST /api/approve-university` | Uniflow Admin | Create uni + university_admin + approval email |
-| `POST /api/reject-university` | Uniflow Admin | Reject application |
-| `POST /api/create-staff` | University Admin | Create lecturer/dean/hod/student + reset email |
-| `POST /api/reset-password` | Uniflow or University Admin | Send reset email to any profile |
-| `POST /api/public/request-password-reset` | Mobile app | Self-service reset for mobile roles |
-| `POST /api/auth/verify-portal` | Web login pages | Enforce portal/role match |
+| Endpoint                                  | Who calls it                | Purpose                                        |
+| ----------------------------------------- | --------------------------- | ---------------------------------------------- |
+| `POST /api/approve-university`            | Uniflow Admin               | Create uni + university_admin + approval email |
+| `POST /api/reject-university`             | Uniflow Admin               | Reject application                             |
+| `POST /api/create-staff`                  | University Admin            | Create lecturer/dean/hod/student + reset email |
+| `POST /api/reset-password`                | Uniflow or University Admin | Send reset email to any profile                |
+| `POST /api/public/request-password-reset` | Mobile app                  | Self-service reset for mobile roles            |
+| `POST /api/auth/verify-portal`            | Web login pages             | Enforce portal/role match                      |
 
 ### Data relationships (simplified)
 
@@ -602,12 +602,12 @@ university_registrations  →  (approve)  →  universities + university_admin p
 
 ## Summary
 
-| Stage | Actor | Platform | Outcome |
-|-------|-------|----------|---------|
-| Register | University rep | `uniflowapp.xyz` | Pending application |
-| Approve | Uniflow Admin | Dashboard | Live portal + university_admin account |
-| Configure | University Admin | `{short}-admin.uniflowapp.xyz` | Faculties, staff, students, timetables |
-| Onboard users | University Admin | Web API | Staff/students receive set-password emails |
-| Daily use | Student / Lecturer / Dean / HOD | Mobile app | Timetable, courses, resources, notifications |
+| Stage         | Actor                           | Platform                       | Outcome                                      |
+| ------------- | ------------------------------- | ------------------------------ | -------------------------------------------- |
+| Register      | University rep                  | `uniflowapp.xyz`               | Pending application                          |
+| Approve       | Uniflow Admin                   | Dashboard                      | Live portal + university_admin account       |
+| Configure     | University Admin                | `{short}-admin.uniflowapp.xyz` | Faculties, staff, students, timetables       |
+| Onboard users | University Admin                | Web API                        | Staff/students receive set-password emails   |
+| Daily use     | Student / Lecturer / Dean / HOD | Mobile app                     | Timetable, courses, resources, notifications |
 
 Uniflow Admin **governs the platform and onboards universities**. University Admin **runs the institution**. The mobile app **serves the academic community** — with dean and HOD included in the lecturer experience, and platform admins deliberately kept off mobile for security.
