@@ -307,19 +307,67 @@ sequenceDiagram
 | Courses | Course catalog per department/level |
 | Timetable | Schedule slots |
 
-### Typical setup order
+### Typical setup order (current implementation)
 
 ```mermaid
 flowchart TD
   A[University Admin signs in] --> B[Create faculties]
   B --> C[Create departments]
-  C --> D[Assign dean / HOD on faculty or department]
-  D --> E[Create lecturers]
-  E --> F[Create courses]
-  F --> G[Build timetable]
-  G --> H[Create students]
-  H --> I[Students/lecturers get app invite emails]
+  C --> D[Create lecturers and leadership profiles]
+  D --> E[Create students with department and level]
+  E --> F[Import combined course and timetable CSV]
+  F --> G[Review preview and fix errors]
+  G --> H[Commit courses, offerings, and scheduled slots]
+  H --> I[Auto-enroll matching active students]
+  I --> J[Users set password and sign in to mobile app]
 ```
+
+#### Academic setup: combined import and remaining manual paths
+
+The preferred path on the **Timetable** page is **Combined import**. Create the
+department's lecturers and students first, then upload one CSV with course,
+lecturer, and optional schedule fields. The API defaults to the current
+academic context (`getAcademicContext()`), while the request can override the
+session and semester.
+
+1. **Preview** validates course fields, schedule shape, and lecturer lookup.
+   Fix errors before committing. An unmatched or blank lecturer is a warning,
+   not an error, so the preview can still permit commit.
+2. **Commit** creates or updates the catalog course. If the lecturer resolves
+   to an active lecturer/dean/HOD in the selected university and department, it
+   also creates/reactivates a `course_offerings` row and syncs the legacy
+   `lecturer_courses` mapping. A complete schedule on that row creates or
+   reactivates a `timetable` slot. Repeated course/lecturer rows can add
+   multiple slots to the same offering.
+3. If the lecturer is missing or unmatched, commit creates/updates the catalog
+   course but skips the offering and timetable slot for that row. Assigning a
+   lecturer later requires a later import or one of the manual assignment
+   flows; auto-enrollment cannot enroll students into an offering that was not
+   created.
+4. When `auto_enroll` is enabled (the default for this API), commit runs
+   auto-enrollment for **all active offerings** in the selected university,
+   department, academic session, and semester. Active students are matched by
+   department and level to the offering course's level and semester. Existing
+   inactive enrollment rows are reactivated; existing active rows are kept.
+5. Auto-enrollment is the intended explicit enrollment record, but some
+   installed RLS helper functions also allow level-matched course/timetable
+   reads when the student has no active enrollment records. Actual visibility
+   therefore depends on which RLS migration version is installed, as well as
+   the client's legacy query fallbacks.
+
+The combined import is the preferred workflow, but not the only code path. The
+Courses page still has catalog and lecturer-assignment UI, and the Timetable
+page still supports adding slots manually. These paths remain relevant during
+the migration. Mobile reads can fall back across `course_offerings`,
+`lecturer_courses`, and timetable rows; some student and timetable queries also
+relax semester filtering when the current academic context returns no rows.
+These fallbacks aid compatibility but can surface data from another semester,
+so they are not equivalent to strict session/semester isolation.
+
+**Database prerequisite:** the `course_offerings` and related RLS migrations
+must be applied to the target Supabase database before relying on these writes
+and reads. Repository inspection confirms the SQL files exist, but does not
+confirm which migrations have run in any deployed environment.
 
 ### University Admin capabilities
 
@@ -341,10 +389,10 @@ flowchart TD
 ### Staff / student creation flow
 
 1. University Admin submits name, email, role, department (and level for students).
-2. Server creates Supabase auth user with a bootstrap password (never returned to UI).
-3. Server inserts `profiles` row with role, `university_id`, `department_id`, and `level` (students).
-4. Server sends `resetPasswordForEmail` → link to `https://uniflowapp.xyz/reset-password`.
-5. UI shows success: “Reset email sent to {email}”.
+2. Server creates a Supabase auth user with a generated bootstrap password (not returned to the UI).
+3. Server inserts a `profiles` row with role, `university_id`, `department_id`, and `level` for students.
+4. Server generates a recovery link and sends the account setup/reset email through the configured email flow.
+5. UI reports whether the profile was created and whether email delivery succeeded.
 
 ### Role-specific notes
 
@@ -428,8 +476,8 @@ Both `(student)` and `(lecturer)` groups share the same tab layout:
 
 1. User taps “Forgot password?” on app login.
 2. App calls `{WEB_APP_URL}/api/public/request-password-reset` with `portal: "mobile"`.
-3. API only sends email if role is a mobile role.
-4. User opens link in browser → web `/reset-password` → sets password.
+3. API only sends email if the matched profile has a mobile-app role.
+4. User opens the link in a browser and completes the recovery flow on web `/reset-password`.
 5. User returns to app and signs in.
 
 ### Dean and HOD in practice
